@@ -1,0 +1,14 @@
+{
+    "name": "pubsub-fowarder",
+    "description": "Function to fowarder messages from one PubSub Topic to another PubSub Topic",
+    "license": "Apache-2.0",
+    "author": "Google Inc.",
+    "dependencies": {
+        "@google-cloud/functions-framework": "^1.7.1",
+        "@google-cloud/pubsub": "^1.7.3"
+    },
+    "scripts": {
+        "start": "functions-framework --target=forwardFromHTTP",
+        "debug": "node --inspect node_modules/@google-cloud/functions-framework --target=forwardFromHTTP"
+    }
+}

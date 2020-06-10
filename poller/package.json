@@ -1,0 +1,16 @@
+{
+    "name": "metrics-poller",
+    "description": "Polls Spanner metrics with Cloud Monitoring",
+    "license": "Apache-2.0",
+    "author": "Google Inc.",
+    "dependencies": {
+        "@google-cloud/functions-framework": "^1.4.0",
+        "@google-cloud/monitoring": "^1.7.0",
+        "@google-cloud/pubsub": "^1.6.0",
+        "@google-cloud/spanner": "^3.1.0"
+    },
+    "scripts": {
+        "start": "functions-framework --target=checkSpannerScaleMetricsHTTP",
+        "debug": "node --inspect node_modules/@google-cloud/functions-framework --target=checkSpannerScaleMetricsHTTP"
+    }
+}
