@@ -85,9 +85,7 @@ At the bottom of the Cloud Console, a <a href='https://cloud.google.com/shell/do
 TODO: replace with GitHub URL and directory once launched.
 
 ```sh
-  git clone https://source.developers.google.com/p/spanner-scaler/r/spanner-autoscaler
-  
-  #git clone https://github.com/GoogleCloudPlatform/cloud-spanner-autoscaler.git
+  git clone https://github.com/cloudspannerecosystem/autoscaler.git
 ```
 
 4. Export variables for the working directories
