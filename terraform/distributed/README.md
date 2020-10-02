@@ -94,8 +94,8 @@ TODO: replace with GitHub URL and directory once launched.
 4. Export variables for the working directories
 
 ```sh
-  export AUTOSCALER_DIR="$(pwd)/spanner-autoscaler/terraform/distributed/autoscaler-project"
-  export APP_DIR="$(pwd)/spanner-autoscaler/terraform/distributed/app-project"
+  export AUTOSCALER_DIR="$(pwd)/autoscaler/terraform/distributed/autoscaler-project"
+  export APP_DIR="$(pwd)/autoscaler/terraform/distributed/app-project"
 ```
 
 ## Preparing the Autoscaler Project

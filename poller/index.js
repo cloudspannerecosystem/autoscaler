@@ -37,6 +37,17 @@ const spannerDefaults = {
   scalingMethod: 'STEPWISE'
 }
 
+function log(message, severity = 'DEBUG', payload) {
+  // Structured logging
+  // https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
+  const logEntry = {
+    message: message,
+    severity: severity,
+    payload: payload
+  };
+  console.log(JSON.stringify(logEntry))
+}
+
 function buildMetrics(projectId, instanceId) {
   // Recommended alerting policies
   // https://cloud.google.com/spanner/docs/monitoring-stackdriver#create-alert
@@ -82,7 +93,7 @@ function buildMetrics(projectId, instanceId) {
 
 function getMaxMetricValue(projectId, spannerInstanceId, metric) {
   const metricWindow = 5;
-  console.log('Get max ' + metric.name + ' from ' + projectId + "/" + spannerInstanceId + " over " + metricWindow + " minutes.");
+  log(`Get max ${metric.name} from ${projectId}/${spannerInstanceId} over ${metricWindow} minutes.`);
 
   const request = {
     name : "projects/" + projectId,
@@ -122,7 +133,7 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
 }
 
 function getSpannerMetadata(projectId, spannerInstanceId) {
-  console.log('Getting metadata for ' + projectId + "/" + spannerInstanceId);
+  log(`----- ${projectId}/${spannerInstanceId}: Getting Metadata -----`, 'INFO');
 
   const spanner = new Spanner({
     projectId: projectId,
@@ -132,10 +143,9 @@ function getSpannerMetadata(projectId, spannerInstanceId) {
   return spannerInstance.getMetadata()
   .then(data => {
     const metadata = data[0];
-    console.log("----- Spanner Configuration -----");
-    console.log("DisplayName: " + metadata['displayName']);
-    console.log("NodeCount:   " + metadata['nodeCount']);
-    console.log("Config:      " + metadata['config'].split("/").pop());
+    log(`DisplayName: ${metadata['displayName']}`);
+    log(`NodeCount:   ${metadata['nodeCount']}`);
+    log(`Config:      ${metadata['config'].split("/").pop()}`);
  
     const spannerMetadata = {
       currentNodes: metadata['nodeCount'], 
@@ -154,10 +164,10 @@ function postPubSubMessage(spanner, metrics) {
 
   return topic.publish(messageBuffer)
   .then(
-    console.log("Published message to topic: " + spanner.scalerPubSubTopic + "\n" + messageBuffer)
+    log(`----- Published message to topic: ${spanner.scalerPubSubTopic}`, 'INFO', spanner)
   )
   .catch(err => {
-    console.error(err);
+    log(`An error occurred when publishing the message to ${spanner.scalerPubSubTopic}`, 'ERROR', err);
   });
 }
 
@@ -176,14 +186,14 @@ async function parseAndEnrichPayload(payload) {
 
 async function getMetrics(spanner) {
 
-  console.log("----- " + spanner.projectId + "/" + spanner.instanceId + ": Getting Metrics -----");
+  log(`----- ${spanner.projectId}/${spanner.instanceId}: Getting Metrics -----`, 'INFO');
   var metrics = [];
   for (const metric of spanner.metrics) {
     var maxMetricValue = await getMaxMetricValue(spanner.projectId, spanner.instanceId, metric)
     const threshold = (spanner.regional) ? metric.regional_threshold : metric.multi_regional_threshold
   
     var aboveOrUnder =  ((maxMetricValue > threshold) ? "ABOVE" : "UNDER");
-    console.log("\t " + metric.name + " = " + maxMetricValue + ", " + aboveOrUnder + " the " + threshold + " threshold."); 
+    log(`	 ${metric.name} = ${maxMetricValue}, ${aboveOrUnder} the ${threshold} threshold.`); 
     
     const metricsObject = {
       name: metric.name,
@@ -197,7 +207,7 @@ async function getMetrics(spanner) {
 
 async function checkSpanners(payload) {
   const spanners = await parseAndEnrichPayload(payload);
-  console.log(spanners);
+  log('Autoscaler poller started.', 'DEBUG', spanners);
   
   for(const spanner of spanners) {
     var metrics = await getMetrics(spanner);
@@ -208,11 +218,10 @@ async function checkSpanners(payload) {
 exports.checkSpannerScaleMetricsPubSub = async (pubSubEvent, context) => {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
-    console.log(payload);
   
     await checkSpanners(payload);
   } catch (err) {
-    console.error(err);
+    log(`An error occurred in the Autoscaler poller function`, 'ERROR', err);
   }
 };
 
@@ -220,12 +229,11 @@ exports.checkSpannerScaleMetricsPubSub = async (pubSubEvent, context) => {
 exports.checkSpannerScaleMetricsHTTP = async (req, res) => {
   try {
     const payload = '[{"projectId": "spanner-scaler", "instanceId": "autoscale-test", "scalerPubSubTopic": "projects/spanner-scaler/topics/test-scaling", "minNodes": 1, "maxNodes": 3, "stateProjectId" : "spanner-scaler"}]';
-    console.log(payload);
 
     await checkSpanners(payload);
     res.status(200).end();
   } catch (err) {
-    console.error(err);
+    log(`An error occurred in the Autoscaler poller function`, 'ERROR', err);
     res.status(500).end(err.toString()); 
   }
 };

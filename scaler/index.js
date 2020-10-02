@@ -25,6 +25,17 @@
 const {Spanner} = require('@google-cloud/spanner');
 const State = require('./state.js');
 
+function log(message, severity = 'DEBUG', payload) {
+  // Structured logging
+  // https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
+  const logEntry = {
+    message: message,
+    severity: severity,
+    payload: payload
+  };
+  console.log(JSON.stringify(logEntry))
+}
+
 function getScalingMethod(methodName) {
   const SCALING_METHODS_FOLDER = './scaling-methods/';
   const DEFAULT_METHOD_NAME = 'STEPWISE';
@@ -33,17 +44,17 @@ function getScalingMethod(methodName) {
   try {
     scalingMethod = require(SCALING_METHODS_FOLDER + methodName.toLowerCase());
   } catch (err) {
-    console.warn("Unknown scaling method '" + methodName + "'");
+    log(`Unknown scaling method '${methodName}'`, 'WARNING');
     scalingMethod = require(SCALING_METHODS_FOLDER + DEFAULT_METHOD_NAME.toLowerCase()); 
     methodName = DEFAULT_METHOD_NAME;
   }
-  console.log("Using scaling method: " + methodName);
+  log(`Using scaling method: ${methodName}`);
   return scalingMethod;
 }
 
 async function scaleSpannerInstance(spanner, suggestedNodes) {
  
-  console.log("----- " + spanner.projectId + "/" + spanner.instanceId + ": Scaling spanner instance to " + suggestedNodes + " nodes -----");
+  log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling spanner instance to ${suggestedNodes} nodes -----`, 'INFO');
 
   const metadata = {
     //displayName : 'instance' + Math.floor(Math.random() * 100) // For testing. See next line for actual scaling
@@ -56,7 +67,7 @@ async function scaleSpannerInstance(spanner, suggestedNodes) {
 
   return spannerClient.instance(spanner.instanceId).setMetadata(metadata).then(function(data) {
     const operation = data[0];
-    console.log("Cloud Spanner started the scaling operation: " + operation.name);
+    log(`Cloud Spanner started the scaling operation: ${operation.name}`);
    });
 }
 
@@ -86,7 +97,7 @@ function withinCooldownPeriod(spanner, suggestedNodes, autoscalerState, now) {
   var cooldownPeriodOver;
   var duringOverload = '';
 
-  console.log("----- " + spanner.projectId + "/" + spanner.instanceId + ": Verifing if scaling is allowed -----");
+  log(`-----  ${spanner.projectId}/${spanner.instanceId}: Verifing if scaling is allowed -----`, 'INFO');
   operation = scaleOutSuggested ?  
     { description : "scale out", lastScalingMillisec : autoscalerState.lastScalingTimestamp, coolingMillisec : spanner.scaleOutCoolingMinutes * MS_IN_1_MIN } :
     { description : "scale in", lastScalingMillisec : autoscalerState.lastScalingTimestamp, coolingMillisec : spanner.scaleInCoolingMinutes * MS_IN_1_MIN }
@@ -94,7 +105,7 @@ function withinCooldownPeriod(spanner, suggestedNodes, autoscalerState, now) {
   if (spanner.isOverloaded) {
     if (spanner.overloadCoolingMinutes == null ) {
       spanner.overloadCoolingMinutes = spanner.scaleOutCoolingMinutes;
-      console.log(`\tNo cooldown period defined for overload situations. Using default: ${spanner.scaleOutCoolingMinutes} minutes`)
+      log(`\tNo cooldown period defined for overload situations. Using default: ${spanner.scaleOutCoolingMinutes} minutes`)
     }
     operation.coolingMillisec = spanner.overloadCoolingMinutes * MS_IN_1_MIN;
     duringOverload = ' during overload'
@@ -102,29 +113,30 @@ function withinCooldownPeriod(spanner, suggestedNodes, autoscalerState, now) {
 
   if (operation.lastScalingMillisec == 0) {
     cooldownPeriodOver = true;
-    console.log("\tNo previous scaling operation found for this Spanner instance");
+    log(`\tNo previous scaling operation found for this Spanner instance`);
   } else {
     const elapsedMillisec = now - operation.lastScalingMillisec;
     cooldownPeriodOver = (elapsedMillisec >= operation.coolingMillisec);
-    console.log("\tLast scaling operation was " + convertMillisecToHumanReadable(now - operation.lastScalingMillisec) + " ago.");
-    console.log("\tCooldown period for " + operation.description + duringOverload + " is " + convertMillisecToHumanReadable(operation.coolingMillisec) + ".");
+    log(`	Last scaling operation was ${convertMillisecToHumanReadable(now - operation.lastScalingMillisec)} ago.`);
+    log(`	Cooldown period for ${operation.description}${duringOverload} is ${convertMillisecToHumanReadable(operation.coolingMillisec)}.`);
   }
 
   if (cooldownPeriodOver){
-    console.log("\t=> Autoscale allowed");
+    log(`\t=> Autoscale allowed`, 'INFO');
     return false;
   }
   else {
-    console.log("\t=> Autoscale NOT allowed yet");
+    log(`\t=> Autoscale NOT allowed yet`, 'INFO');
     return true;
   }
 }
 
 async function processScalingRequest(spanner) {
+  log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling request received`, 'INFO', spanner);
 
   const suggestedNodes = getScalingMethod(spanner.scalingMethod).calculateNumNodes(spanner);
   if (suggestedNodes == spanner.currentNodes) {
-    console.log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.currentNodes} nodes, no scaling needed at the moment`);
+    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.currentNodes} nodes, no scaling needed at the moment`, 'INFO');
     return;
   }
 
@@ -134,8 +146,7 @@ async function processScalingRequest(spanner) {
       await scaleSpannerInstance(spanner, suggestedNodes);
       await autoscalerState.set();
     } catch(err) { 
-      console.log("----- " + spanner.projectId + "/" + spanner.instanceId + ': [' + err.constructor.name + '] Unsuccessful scaling attempt.');
-      console.debug(err);
+      log(`----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt.`, 'WARNING', err);
     }
   }
 }
@@ -143,7 +154,6 @@ async function processScalingRequest(spanner) {
 exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
-    console.log(payload);
   
     await processScalingRequest(JSON.parse(payload));
   } catch (err) {
@@ -155,7 +165,6 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 exports.scaleSpannerInstanceHTTP = async (req, res) => {
   try {
     const payload ='{"minNodes":1,"maxNodes":3,"stepSize":1,"overloadStepSize":5,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":95},{"name":"rolling_24_hr","threshold":90,"value":80},{"name":"storage","threshold":75,"value":80}],"currentNodes":1,"regional":true}';
-    console.log(payload);
 
     await processScalingRequest(JSON.parse(payload));
     res.status(200).end();
