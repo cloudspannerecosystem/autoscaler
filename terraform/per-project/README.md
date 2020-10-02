@@ -18,7 +18,7 @@
     ·
     <a href="../README.md">Terraform configuration</a>
     <br />
-      Single Project
+      Per-Project
       ·
       <a href="../centralized/README.md">Centralized</a>
       ·
@@ -91,12 +91,12 @@ TODO: replace with GitHub URL and directory once launched.
 4. Export variables for the working directories
 
 ```sh
-  export AUTOSCALER_DIR="$(pwd)/spanner-autoscaler/terraform/per-project"
+  export AUTOSCALER_DIR="$(pwd)/autoscaler/terraform/per-project"
 ```
 
 ## Preparing the Autoscaler Project
 
-In this section you prepare the deployment of the project where the centralized Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
+In this section you prepare your project for deployment.
 
 1. Go to the [project selector page][project-selector] in the Cloud Console. Select or create a Cloud project.
    

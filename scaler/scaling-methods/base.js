@@ -24,6 +24,8 @@
 const OVERLOAD_METRIC = 'high_priority_cpu';
 const OVERLOAD_THRESHOLD = 90;
 
+const { log } = require('../utils.js');
+
 function logSuggestion(spanner, metric, suggestedNodes) {
 
   var aboveOrBelow = (metric.value > metric.threshold ? 'ABOVE' : 'BELOW');
@@ -35,12 +37,12 @@ function logSuggestion(spanner, metric, suggestedNodes) {
     overload = ' OVERLOAD';
   }
 
-  console.log(`\t${metric.name}=${metric.value}, ${aboveOrBelow} the ${threshold}${overload} threshold => suggesting ${suggestedNodes} nodes.`);
+  log(`\t${metric.name}=${metric.value}, ${aboveOrBelow} the ${threshold}${overload} threshold => suggesting ${suggestedNodes} nodes.`);
 }
 
 function loopThroughSpannerMetrics (spanner, getSuggestedNodes) {
-  console.log('---- ' + spanner.projectId + "/" + spanner.instanceId + ": "+ spanner.scalingMethod + ' node suggestions' + '----');
-  console.log("\tNodes: Min=" + spanner.minNodes + ', Current=' + spanner.currentNodes + ', Max=' + spanner.maxNodes);
+  log(`---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} node suggestions----`);
+  log(`	Nodes: Min=${spanner.minNodes}, Current=${spanner.currentNodes}, Max=${spanner.maxNodes}`);
 
   var maxSuggestedNodes = spanner.minNodes;
   spanner.isOverloaded = false;
@@ -55,7 +57,7 @@ function loopThroughSpannerMetrics (spanner, getSuggestedNodes) {
   }
 
   maxSuggestedNodes = Math.min(maxSuggestedNodes, spanner.maxNodes);
-  console.log('\t=> Final ' + spanner.scalingMethod + ' suggestion: ' + maxSuggestedNodes + ' nodes');
+  log('\t=> Final ' + spanner.scalingMethod + ' suggestion: ' + maxSuggestedNodes + ' nodes');
   return maxSuggestedNodes;
 }
 
