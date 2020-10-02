@@ -20,9 +20,10 @@
  * Useful to scale an instance in preparation for a batch job, 
  * and and to scale it back after the job is finished.
  */
+const { log } = require('../utils.js');
 
 exports.calculateNumNodes = (spanner) => {
-  console.log('---- DIRECT node suggestions for ' + spanner.projectId + "/" + spanner.instanceId + '----');
-  console.log('\tFinal DIRECT suggestion: ' + spanner.maxNodes + ' nodes');
+  log(`---- DIRECT node suggestions for ${spanner.projectId}/${spanner.instanceId}----`);
+  log(`	Final DIRECT suggestion: ${spanner.maxNodes} nodes`);
   return spanner.maxNodes;
  }

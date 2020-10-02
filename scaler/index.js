@@ -23,18 +23,8 @@
  */
 
 const {Spanner} = require('@google-cloud/spanner');
+const { log, convertMillisecToHumanReadable } = require('./utils.js');
 const State = require('./state.js');
-
-function log(message, severity = 'DEBUG', payload) {
-  // Structured logging
-  // https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
-  const logEntry = {
-    message: message,
-    severity: severity,
-    payload: payload
-  };
-  console.log(JSON.stringify(logEntry))
-}
 
 function getScalingMethod(methodName) {
   const SCALING_METHODS_FOLDER = './scaling-methods/';
@@ -69,25 +59,6 @@ async function scaleSpannerInstance(spanner, suggestedNodes) {
     const operation = data[0];
     log(`Cloud Spanner started the scaling operation: ${operation.name}`);
    });
-}
-
-function convertMillisecToHumanReadable(millisec) {
-// By Nofi @ https://stackoverflow.com/a/32180863
-
-  var seconds = (millisec / 1000).toFixed(1);
-  var minutes = (millisec / (1000 * 60)).toFixed(1);
-  var hours = (millisec / (1000 * 60 * 60)).toFixed(1);
-  var days = (millisec / (1000 * 60 * 60 * 24)).toFixed(1);
-
-  if (seconds < 60) {
-      return seconds + " Sec";
-  } else if (minutes < 60) {
-      return minutes + " Min";
-  } else if (hours < 24) {
-      return hours + " Hrs";
-  } else {
-      return days + " Days"
-  }
 }
 
 function withinCooldownPeriod(spanner, suggestedNodes, autoscalerState, now) {
