@@ -1,11 +1,11 @@
 /* Copyright 2020 Google LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     https://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,7 @@
 
 /*
  * Autoscaler Poller function
- * 
+ *
  * * Polls one or more Spanner instances for metrics.
  * * Sends metrics to Scaler to determine if an instance needs to be autoscaled
  */
@@ -40,12 +40,24 @@ const spannerDefaults = {
 function log(message, severity = 'DEBUG', payload) {
   // Structured logging
   // https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
+
+  if (!!payload) {
+    // If payload is an Error, get the stack trace.
+    if (payload instanceof Error && !!payload.stack) {
+      if (!!message ) {
+         message = message + '\n' + payload.stack;
+      } else {
+         message = payload.stack;
+      }
+    }
+  }
+
   const logEntry = {
     message: message,
     severity: severity,
     payload: payload
   };
-  console.log(JSON.stringify(logEntry))
+  console.log(JSON.stringify(logEntry));
 }
 
 function buildMetrics(projectId, instanceId) {
@@ -139,20 +151,20 @@ function getSpannerMetadata(projectId, spannerInstanceId) {
     projectId: projectId,
   });
   const spannerInstance = spanner.instance(spannerInstanceId);
-  
+
   return spannerInstance.getMetadata()
   .then(data => {
     const metadata = data[0];
     log(`DisplayName: ${metadata['displayName']}`);
     log(`NodeCount:   ${metadata['nodeCount']}`);
     log(`Config:      ${metadata['config'].split("/").pop()}`);
- 
+
     const spannerMetadata = {
-      currentNodes: metadata['nodeCount'], 
+      currentNodes: metadata['nodeCount'],
       regional: metadata['config'].split("/").pop().startsWith("regional")
     };
 
-    return spannerMetadata;    
+    return spannerMetadata;
   });
 }
 
@@ -191,15 +203,15 @@ async function getMetrics(spanner) {
   for (const metric of spanner.metrics) {
     var maxMetricValue = await getMaxMetricValue(spanner.projectId, spanner.instanceId, metric)
     const threshold = (spanner.regional) ? metric.regional_threshold : metric.multi_regional_threshold
-  
+
     var aboveOrUnder =  ((maxMetricValue > threshold) ? "ABOVE" : "UNDER");
-    log(`	 ${metric.name} = ${maxMetricValue}, ${aboveOrUnder} the ${threshold} threshold.`); 
-    
+    log(`	 ${metric.name} = ${maxMetricValue}, ${aboveOrUnder} the ${threshold} threshold.`);
+
     const metricsObject = {
       name: metric.name,
       threshold: threshold,
       value: maxMetricValue
-    } 
+    }
     metrics.push(metricsObject);
   }
   return metrics;
@@ -208,7 +220,7 @@ async function getMetrics(spanner) {
 async function checkSpanners(payload) {
   const spanners = await parseAndEnrichPayload(payload);
   log('Autoscaler poller started.', 'DEBUG', spanners);
-  
+
   for(const spanner of spanners) {
     var metrics = await getMetrics(spanner);
     postPubSubMessage(spanner, metrics);
@@ -218,7 +230,7 @@ async function checkSpanners(payload) {
 exports.checkSpannerScaleMetricsPubSub = async (pubSubEvent, context) => {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
-  
+
     await checkSpanners(payload);
   } catch (err) {
     log(`An error occurred in the Autoscaler poller function`, 'ERROR', err);
@@ -234,6 +246,7 @@ exports.checkSpannerScaleMetricsHTTP = async (req, res) => {
     res.status(200).end();
   } catch (err) {
     log(`An error occurred in the Autoscaler poller function`, 'ERROR', err);
-    res.status(500).end(err.toString()); 
+    res.status(500).end(err.toString());
   }
 };
+
