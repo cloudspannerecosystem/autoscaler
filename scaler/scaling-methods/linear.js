@@ -1,11 +1,11 @@
 /* Copyright 2020 Google LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     https://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,14 +15,14 @@
 
 /*
  * Linear scaling method
- * 
- * Suggests adding or removing nodes, calculated with a simple linear cross multiplication.
+ *
+ * Suggests adding or removing nodes, calculated with a simple linear cross
+ * multiplication.
  */
 
 exports.calculateNumNodes = (spanner) => {
-  const baseModule = require("./base");
+  const baseModule = require('./base');
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
-    return Math.ceil(spanner.currentNodes * metric.value / metric.threshold); 
+    return Math.ceil(spanner.currentNodes * metric.value / metric.threshold);
   });
- 
 }
