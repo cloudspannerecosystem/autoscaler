@@ -49,13 +49,13 @@ function convertMillisecToHumanReadable(millisec) {
   var days = (millisec / (1000 * 60 * 60 * 24)).toFixed(1);
 
   if (seconds < 60) {
-    return seconds + " Sec";
+    return seconds + ' Sec';
   } else if (minutes < 60) {
-    return minutes + " Min";
+    return minutes + ' Min';
   } else if (hours < 24) {
-    return hours + " Hrs";
+    return hours + ' Hrs';
   } else {
-    return days + " Days";
+    return days + ' Days';
   }
 }
 

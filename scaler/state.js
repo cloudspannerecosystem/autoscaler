@@ -1,10 +1,10 @@
 /* Copyright 2020 Google LLC
- * 
+ *
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     https://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,25 +14,26 @@
 
 /*
  * Manages the Autoscaler persistent state
- * 
- * By default, this implementation uses a Firestore instance in the same 
- * project as the Spanner instance. To use a different project, set the 
- * `stateProjectId` parameter in the Cloud Scheduler configuration 
+ *
+ * By default, this implementation uses a Firestore instance in the same
+ * project as the Spanner instance. To use a different project, set the
+ * `stateProjectId` parameter in the Cloud Scheduler configuration
  */
 
 const {Firestore} = require('@google-cloud/firestore');
 
 class State {
-
   constructor(spanner) {
-    this.projectId = (spanner.stateProjectId != null) ? spanner.stateProjectId : spanner.projectId;
+    this.projectId = (spanner.stateProjectId != null) ? spanner.stateProjectId :
+                                                        spanner.projectId;
     this.instanceId = spanner.instanceId;
   }
 
   get docRef() {
     if (this._docRef == null) {
-      this.firestore = new Firestore({ projectId: this.projectId });
-      this._docRef = this.firestore.collection('spannerAutoscaler').doc(this.instanceId); 
+      this.firestore = new Firestore({projectId: this.projectId});
+      this._docRef =
+          this.firestore.collection('spannerAutoscaler').doc(this.instanceId);
     }
     return this._docRef;
   }
@@ -43,7 +44,6 @@ class State {
    * https://googleapis.dev/nodejs/firestore/latest/Timestamp.htmlr
    */
   toMillis(docData) {
-
     Object.keys(docData).forEach(key => {
       if (docData[key] instanceof Firestore.Timestamp) {
         docData[key] = docData[key].toMillis();
@@ -54,12 +54,12 @@ class State {
 
   async init() {
     var initData = {
-      lastScalingTimestamp : 0,
-      createdOn : Firestore.FieldValue.serverTimestamp()
-    }
-  
+      lastScalingTimestamp: 0,
+      createdOn: Firestore.FieldValue.serverTimestamp()
+    };
+
     await this.docRef.set(initData);
-    return initData; 
+    return initData;
   }
 
   async get() {
@@ -70,27 +70,22 @@ class State {
     } else {
       this.data = snapshot.data();
     }
-  
+
     return this.toMillis(this.data);
   }
 
   async set() {
+    await this.get();  // make sure doc exists
 
-    await this.get(); // make sure doc exists
-    
-    var newData = {
-      updatedOn : Firestore.FieldValue.serverTimestamp()
-    }
+    var newData = {updatedOn: Firestore.FieldValue.serverTimestamp()};
     newData.lastScalingTimestamp = Firestore.FieldValue.serverTimestamp();
-  
-    await this.docRef.update(newData);
 
+    await this.docRef.update(newData);
   }
 
   get now() {
     return Firestore.Timestamp.now().toMillis();
   }
-
 }
 
 module.exports = State;

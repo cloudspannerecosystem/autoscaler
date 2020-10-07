@@ -1,11 +1,11 @@
 /* Copyright 2020 Google LLC
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     https://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,14 +20,14 @@
  * * Log node suggestions per metric
  */
 
-// Only the high_priority_cpu metric is used to determine if an overload situation exists
+// Only the high_priority_cpu metric is used to determine if an overload
+// situation exists
 const OVERLOAD_METRIC = 'high_priority_cpu';
 const OVERLOAD_THRESHOLD = 90;
 
-const { log } = require('../utils.js');
+const {log} = require('../utils.js');
 
 function logSuggestion(spanner, metric, suggestedNodes) {
-
   var aboveOrBelow = (metric.value > metric.threshold ? 'ABOVE' : 'BELOW');
   var threshold = metric.threshold;
   var overload = '';
@@ -40,7 +40,7 @@ function logSuggestion(spanner, metric, suggestedNodes) {
   log(`\t${metric.name}=${metric.value}, ${aboveOrBelow} the ${threshold}${overload} threshold => suggesting ${suggestedNodes} nodes.`);
 }
 
-function loopThroughSpannerMetrics (spanner, getSuggestedNodes) {
+function loopThroughSpannerMetrics(spanner, getSuggestedNodes) {
   log(`---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} node suggestions----`);
   log(`	Nodes: Min=${spanner.minNodes}, Current=${spanner.currentNodes}, Max=${spanner.maxNodes}`);
 
@@ -48,8 +48,9 @@ function loopThroughSpannerMetrics (spanner, getSuggestedNodes) {
   spanner.isOverloaded = false;
 
   for (const metric of spanner.metrics) {
-
-    if (metric.name === OVERLOAD_METRIC && metric.value > OVERLOAD_THRESHOLD) spanner.isOverloaded = true;
+    if (metric.name === OVERLOAD_METRIC && metric.value > OVERLOAD_THRESHOLD) {
+      spanner.isOverloaded = true;
+    }
     const suggestedNodes = getSuggestedNodes(spanner, metric);
     logSuggestion(spanner, metric, suggestedNodes);
 
@@ -57,7 +58,8 @@ function loopThroughSpannerMetrics (spanner, getSuggestedNodes) {
   }
 
   maxSuggestedNodes = Math.min(maxSuggestedNodes, spanner.maxNodes);
-  log('\t=> Final ' + spanner.scalingMethod + ' suggestion: ' + maxSuggestedNodes + ' nodes');
+  log('\t=> Final ' + spanner.scalingMethod +
+      ' suggestion: ' + maxSuggestedNodes + ' nodes');
   return maxSuggestedNodes;
 }
 

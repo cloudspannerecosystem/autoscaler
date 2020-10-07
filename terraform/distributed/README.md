@@ -3,7 +3,6 @@
   <h2 align="center">Cloud Spanner Autoscaler</h2>
   <img src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg" alt="Spanner Autoscaler">
 
-
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
     Set up the Cloud Spanner Autoscaler in a distributed deployment using Terraform
@@ -29,100 +28,117 @@
 
 ## Table of Contents
 
-- [Table of Contents](#table-of-contents)
-- [Overview](#overview)
-- [Architecture](#architecture)
-  - [Pros](#pros)
-  - [Cons](#cons)
-- [Before you begin](#before-you-begin)
-- [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
-  - [Deploy the Autoscaler](#deploy-the-autoscaler)
-- [Preparing the Application Project](#preparing-the-application-project)
-  - [Deploy the Application infrastructure](#deploy-the-application-infrastructure)
-  - [Authorize the Forwarder function to publish to the Poller topic](#authorize-the-forwarder-function-to-publish-to-the-poller-topic)
-- [Verifying your deployment](#verifying-your-deployment)
+-   [Table of Contents](#table-of-contents)
+-   [Overview](#overview)
+-   [Architecture](#architecture)
+    -   [Pros](#pros)
+    -   [Cons](#cons)
+-   [Before you begin](#before-you-begin)
+-   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
+    -   [Deploy the Autoscaler](#deploy-the-autoscaler)
+-   [Preparing the Application Project](#preparing-the-application-project)
+    -   [Deploy the Application infrastructure](#deploy-the-application-infrastructure)
+    -   [Authorize the Forwarder function to publish to the Poller topic](#authorize-the-forwarder-function-to-publish-to-the-poller-topic)
+-   [Verifying your deployment](#verifying-your-deployment)
 
 ## Overview
 
-This directory contains Terraform configuration files to quickly set up the infrastructure for your Cloud Spanner Autoscaler with a distributed deployment.
+This directory contains Terraform configuration files to quickly set up the
+infrastructure for your Cloud Spanner Autoscaler with a distributed deployment.
 
-In this deployment option all the components of the Cloud Spanner Autoscaler reside in a single project, with the exception of Cloud Scheduler (step 1) and the [Forwarder topic and function](../../forwarder/README.md)
+In this deployment option all the components of the Cloud Spanner Autoscaler
+reside in a single project, with the exception of Cloud Scheduler (step 1) and
+the [Forwarder topic and function](../../forwarder/README.md)
 
-This deployment is the best of both worlds between the per-project and the centralized deployments:
-* Teams who own the Spanner instances, called Application teams, are able to manage the Autoscaler configuration parameters for their instances with their own Cloud Scheduler jobs.
-* On the other hand, the rest of the Autoscaler infrastructure is managed by a central team.
+This deployment is the best of both worlds between the per-project and the
+centralized deployments: * Teams who own the Spanner instances, called
+Application teams, are able to manage the Autoscaler configuration parameters
+for their instances with their own Cloud Scheduler jobs. * On the other hand,
+the rest of the Autoscaler infrastructure is managed by a central team.
 
 ## Architecture
 
 ![architecture-distributed](../../resources/architecture-distributed.png)
 
-For an explanation of the components of the Cloud Spanner Autoscaler and the interaction flow, please read the [main Architecture section](../../README.md#architecture).
+For an explanation of the components of the Cloud Spanner Autoscaler and the
+interaction flow, please read the
+[main Architecture section](../../README.md#architecture).
 
-Cloud Scheduler can only publish messages to topics in the same project. Therefore in step 2, we transparently introduce an intermediate component to make this architecture possible. For more information, see the [Forwarder function](../../forwarder/README.md).
+Cloud Scheduler can only publish messages to topics in the same project.
+Therefore in step 2, we transparently introduce an intermediate component to
+make this architecture possible. For more information, see the
+[Forwarder function](../../forwarder/README.md).
 
 The distributed deployment has the following pros and cons:
 
-
 ### Pros
 
-* **Configuration and infrastructure**: application teams are in control of their config and schedules
-* **Maintenance**: Scaler infrastructure is centralized, reducing up-keep overhead
-* **Policies and audit**: Best practices across teams might be easier to specify and enact. Audits might be easier to execute.
+*   **Configuration and infrastructure**: application teams are in control of
+    their config and schedules
+*   **Maintenance**: Scaler infrastructure is centralized, reducing up-keep
+    overhead
+*   **Policies and audit**: Best practices across teams might be easier to
+    specify and enact. Audits might be easier to execute.
 
 ### Cons
-* **Configuration**: application teams need to provide service accounts to write to the polling topic.
-* **Risk**: the centralized team itself may become a single point of failure even if the infrastructure is designed with high availability in mind.
 
+*   **Configuration**: application teams need to provide service accounts to
+    write to the polling topic.
+*   **Risk**: the centralized team itself may become a single point of failure
+    even if the infrastructure is designed with high availability in mind.
 
 ## Before you begin
 
-1. Open the [Cloud Console][cloud-console]
-2. Activate [Cloud Shell][cloud-shell]
+1.  Open the [Cloud Console][cloud-console]
+2.  Activate [Cloud Shell][cloud-shell] \
+    At the bottom of the Cloud Console, a
+    <a href='https://cloud.google.com/shell/docs/features'>Cloud Shell</a>
+    session starts and displays a command-line prompt. Cloud Shell is a shell
+    environment with the Cloud SDK already installed, including the
+    <code>gcloud</code> command-line tool, and with values already set for your
+    current project. It can take a few seconds for the session to initialize.
 
-<ul> <li style="list-style-type: none;">
-At the bottom of the Cloud Console, a <a href='https://cloud.google.com/shell/docs/features'>Cloud Shell</a> session starts and displays a command-line prompt. Cloud Shell is a shell environment with the Cloud SDK already installed, including the <code>gcloud</code> command-line tool, and with values already set for your current project. It can take a few seconds for the session to initialize.
-</li> </ul>
+3.  In Cloud Shell, clone this repository
 
-3. In Cloud Shell, clone this repository
-  
-TODO: replace with GitHub URL and directory once launched.
+    ```sh
+    git clone https://github.com/cloudspannerecosystem/autoscaler.git
+    ```
 
-```sh
-  git clone https://github.com/cloudspannerecosystem/autoscaler.git
-```
+1.  Export variables for the working directories
 
-4. Export variables for the working directories
-
-```sh
-  export AUTOSCALER_DIR="$(pwd)/autoscaler/terraform/distributed/autoscaler-project"
-  export APP_DIR="$(pwd)/autoscaler/terraform/distributed/app-project"
-```
+    ```sh
+    export AUTOSCALER_DIR="$(pwd)/autoscaler/terraform/distributed/autoscaler-project"
+    export APP_DIR="$(pwd)/autoscaler/terraform/distributed/app-project"
+    ```
 
 ## Preparing the Autoscaler Project
 
-In this section you prepare the deployment of the project where the centralized Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
+In this section you prepare the deployment of the project where the centralized
+Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
 
-1. Go to the [project selector page][project-selector] in the Cloud Console. Select or create a Cloud project.
-   
-2. Make sure that billing is enabled for your Google Cloud project. [Learn how to confirm billing is enabled for your project][enable-billing].
+1.  Go to the [project selector page][project-selector] in the Cloud Console.
+    Select or create a Cloud project.
 
-3. In Cloud Shell, set environment variables with the ID of your **autoscaler** project:
+2.  Make sure that billing is enabled for your Google Cloud project.
+    [Learn how to confirm billing is enabled for your project][enable-billing].
 
-```sh
+3.  In Cloud Shell, set environment variables with the ID of your **autoscaler**
+    project:
+
+    ```sh
     export AUTO_SCALER_PROJECT_ID=<INSERT_YOUR_PROJECT_ID>
     gcloud config set project "${AUTO_SCALER_PROJECT_ID}"
-```
+    ```
 
-4. Choose the [region and zone][region-and-zone] and [App Engine Location][app-engine-location] where the Autoscaler infrastructure will be located.
-```sh
-    export AUTO_SCALER_REGION=us-central1
-    export AUTO_SCALER_ZONE=us-central1-c
-    export AUTO_SCALER_APP_ENGINE_LOCATION=us-central
-```
+1.  Choose the [region and zone][region-and-zone] and
+    [App Engine Location][app-engine-location] where the Autoscaler
+    infrastructure will be located. `sh export AUTO_SCALER_REGION=us-central1
+    export AUTO_SCALER_ZONE=us-central1-c export
+    AUTO_SCALER_APP_ENGINE_LOCATION=us-central`
 
-5. Enable the required Cloud APIs :
+2.  Enable the required Cloud APIs :
 
-```sh
+    ```sh
     gcloud services enable iam.googleapis.com \
         cloudresourcemanager.googleapis.com \
         spanner.googleapis.com \
@@ -131,86 +147,97 @@ In this section you prepare the deployment of the project where the centralized 
         pubsub.googleapis.com \
         cloudfunctions.googleapis.com  \
         cloudbuild.googleapis.com
-```
+    ```
 
-6. Create a [service account][service-account] that will be used by Terraform to create all the resources in your infrastructure.
+1.  Create a [service account][service-account] that will be used by Terraform
+    to create all the resources in your infrastructure.
 
-```sh
+    ```sh
     gcloud iam service-accounts create terraformer --display-name "Terraform service account"
-```
+    ```
 
-7. Give the project owner role to the service account
+1.  Give the project owner role to the service account
 
-```sh
+    ```sh
     gcloud projects add-iam-policy-binding "${AUTO_SCALER_PROJECT_ID}" \
       --member "serviceAccount:terraformer@${AUTO_SCALER_PROJECT_ID}.iam.gserviceaccount.com" \
       --role roles/owner
-```
+    ```
 
-8. Create a service account [key file][key-adc]
+1.  Create a service account [key file][key-adc]
 
-```sh
+    ```sh
     gcloud iam service-accounts keys create \
       --iam-account "terraformer@${AUTO_SCALER_PROJECT_ID}.iam.gserviceaccount.com" "${AUTOSCALER_DIR}/key.json"
-```
+    ```
 
-9. If your project does not have a [Firestore][firestore] instance yet, create one
+1.  If your project does not have a [Firestore][firestore] instance yet, create
+    one
 
-```sh
+    ```sh
     gcloud app create --region="${AUTO_SCALER_APP_ENGINE_LOCATION}"
     gcloud alpha firestore databases create --region="${AUTO_SCALER_APP_ENGINE_LOCATION}"
-```
-
+    ```
 
 ### Deploy the Autoscaler
 
-1. Set the project ID, region, zone and App Engine location in the corresponding Terraform environment variables
+1.  Set the project ID, region, zone and App Engine location in the
+    corresponding Terraform environment variables
 
-```sh
+    ```sh
     export TF_VAR_project_id="${AUTO_SCALER_PROJECT_ID}"
     export TF_VAR_region="${AUTO_SCALER_REGION}"
     export TF_VAR_zone="${AUTO_SCALER_ZONE}"
     export TF_VAR_location="${AUTO_SCALER_APP_ENGINE_LOCATION}"
-```
-2. Change directory into the Terraform scaler-project directory and initialize it.
+    ```
 
-```sh
+1.  Change directory into the Terraform scaler-project directory and initialize
+    it.
+
+    ```sh
     cd "${AUTOSCALER_DIR}"
     terraform init
-```
+    ```
 
-3. Create the Autoscaler infrastructure. Answer `yes` when prompted, after reviewing the resources that Terraform intends to create.
+1.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
+    reviewing the resources that Terraform intends to create.
 
-```sh
+    ```sh
     terraform apply -parallelism=2
-```
-If you are running this command in Cloud Shell and encounter errors of the form "`Error: cannot assign requested address`", this is a [known issue][provider-issue] in the Terraform Google provider, please retry with -parallelism=1:
+    ```
+
+If you are running this command in Cloud Shell and encounter errors of the form
+"`Error: cannot assign requested address`", this is a
+[known issue][provider-issue] in the Terraform Google provider, please retry
+with -parallelism=1:
 
 ## Preparing the Application Project
 
-In this section you prepare the deployment of the Cloud Scheduler, Forwarder topic and function in the project where the Spanner instances live.
+In this section you prepare the deployment of the Cloud Scheduler, Forwarder
+topic and function in the project where the Spanner instances live.
 
-1. Go to the [project selector page][project-selector] in the Cloud Console. Select or create a Cloud project.
-   
-2. Make sure that billing is enabled for your Google Cloud project. [Learn how to confirm billing is enabled for your project][enable-billing].
+1.  Go to the [project selector page][project-selector] in the Cloud Console.
+    Select or create a Cloud project.
 
-3. In Cloud Shell, set the environment variables with the ID of your **application** project: 
+2.  Make sure that billing is enabled for your Google Cloud project.
+    [Learn how to confirm billing is enabled for your project][enable-billing].
 
-```sh
+3.  In Cloud Shell, set the environment variables with the ID of your
+    **application** project:
+
+    ```sh
     export APP_PROJECT_ID=<INSERT_YOUR_APP_PROJECT_ID>
     gcloud config set project "${APP_PROJECT_ID}"
-```
+    ```
 
-5. Choose the [region and zone][region-and-zone] and [App Engine Location][app-engine-location] where the Application project will be located.
-```sh
-    export APP_REGION=us-central1
-    export APP_ZONE=us-central1-c
-    export APP_APP_ENGINE_LOCATION=us-central
-```
+1.  Choose the [region and zone][region-and-zone] and
+    [App Engine Location][app-engine-location] where the Application project
+    will be located. `sh export APP_REGION=us-central1 export
+    APP_ZONE=us-central1-c export APP_APP_ENGINE_LOCATION=us-central`
 
-6. Use the following command to enable the Cloud APIs:
+2.  Use the following command to enable the Cloud APIs:
 
-```sh    
+    ```sh
     gcloud services enable iam.googleapis.com \
         cloudresourcemanager.googleapis.com \
         appengine.googleapis.com \
@@ -219,113 +246,136 @@ In this section you prepare the deployment of the Cloud Scheduler, Forwarder top
         cloudfunctions.googleapis.com \
         cloudscheduler.googleapis.com \
         cloudbuild.googleapis.com
-```
+    ```
 
-7. Create a [service account][service-account] that will be used by Terraform to create all the resources in your infrastructure.
+1.  Create a [service account][service-account] that will be used by Terraform
+    to create all the resources in your infrastructure.
 
-```sh
+    ```sh
     gcloud iam service-accounts create terraformer --display-name "Terraform service account"
-```
+    ```
 
-8. Give the project owner role to the service account
+1.  Give the project owner role to the service account
 
-```sh
+    ```sh
     gcloud projects add-iam-policy-binding "${APP_PROJECT_ID}" \
       --member "serviceAccount:terraformer@${APP_PROJECT_ID}.iam.gserviceaccount.com" \
       --role roles/owner
-```
+    ```
 
-9. Create a service account [key file][key-adc]
+1.  Create a service account [key file][key-adc]
 
-```sh
+    ```sh
     gcloud iam service-accounts keys create \
       --iam-account "terraformer@${APP_PROJECT_ID}.iam.gserviceaccount.com" "${APP_DIR}/key.json"
-```
+    ```
 
-10. Create an App to enable Cloud Scheduler, but do not create a Firestore database:
+1.  Create an App to enable Cloud Scheduler, but do not create a Firestore
+    database:
 
-```sh
+    ```sh
     gcloud app create --region="${APP_APP_ENGINE_LOCATION}"
-```
+    ```
 
 ### Deploy the Application infrastructure
 
-1. Set the project ID, region, zone and App Engine location in the corresponding Terraform environment variables
+1.  Set the project ID, region, zone and App Engine location in the
+    corresponding Terraform environment variables
 
-```sh
+    ```sh
     export TF_VAR_project_id="${APP_PROJECT_ID}"
     export TF_VAR_region="${APP_REGION}"
     export TF_VAR_zone="${APP_ZONE}"
     export TF_VAR_location="${APP_APP_ENGINE_LOCATION}"
-```
+    ```
 
-2. Set the project ID where the Autoscaler state will be stored. The autoscaler state includes the timestamps when the scaling events were triggered for each instance.
+1.  Set the project ID where the Autoscaler state will be stored. The autoscaler
+    state includes the timestamps when the scaling events were triggered for
+    each instance.
 
-```sh
+    ```sh
     export TF_VAR_state_project_id="${AUTO_SCALER_PROJECT_ID}"
-```
+    ```
 
-3. If you want to create a new Spanner instance for testing the autoscaler, set the following variable. The spanner instance that Terraform creates is named `autoscale-test`.
+1.  If you want to create a new Spanner instance for testing the autoscaler, set
+    the following variable. The spanner instance that Terraform creates is named
+    `autoscale-test`.
 
-```sh
+    ```sh
     export TF_VAR_terraform_spanner=true
-```
+    ```
 
-<ul> <li style="list-style-type: none;">
-On the other hand, if you  do not want to create a new Spanner instance because you already have an instance for the Autoscaler to monitor, set the name name of your instance in the following variable
-</li> </ul> 
+    On the other hand, if you do not want to create a new Spanner instance
+    because you already have an instance for the Autoscaler to monitor, set the
+    name name of your instance in the following variable
 
-```sh
+    ```sh
     export TF_VAR_spanner_name=<INSERT_YOUR_SPANNER_INSTANCE_NAME>
-```
+    ```
 
-For more information on how to make your Spanner instance to be managed by Terraform, see [Import your Spanner instances](../per-project/README.md#import-your-spanner-instances)
+For more information on how to make your Spanner instance to be managed by
+Terraform, see
+[Import your Spanner instances](../per-project/README.md#import-your-spanner-instances)
 
-4. Change directory into the Terraform app-project directory and initialize it.
+1.  Change directory into the Terraform app-project directory and initialize it.
 
-```sh
+    ```sh
     cd "${APP_DIR}"
     terraform init
-```
+    ```
 
-5. Create the infrastructure in the application project. Answer `yes` when prompted, after reviewing the resources that Terraform intends to create.
+1.  Create the infrastructure in the application project. Answer `yes` when
+    prompted, after reviewing the resources that Terraform intends to create.
 
-```sh
+    ```sh
     terraform import module.scheduler.google_app_engine_application.app "${APP_PROJECT_ID}"
     terraform apply -parallelism=2
-```
+    ```
 
-If you are running this command in Cloud Shell and encounter errors of the form "`Error: cannot assign requested address`", this is a [known issue][provider-issue] in the Terraform Google provider, please retry with -parallelism=1
+If you are running this command in Cloud Shell and encounter errors of the form
+"`Error: cannot assign requested address`", this is a
+[known issue][provider-issue] in the Terraform Google provider, please retry
+with -parallelism=1
 
 ### Authorize the Forwarder function to publish to the Poller topic
 
-1. Switch back to the Autoscaler project and ensure that Terraform variables are correctly set.
-```sh
-    cd "${AUTOSCALER_DIR}"
+1.  Switch back to the Autoscaler project and ensure that Terraform variables
+    are correctly set. ```sh cd "${AUTOSCALER_DIR}"
 
+    ```sh
     export TF_VAR_project_id="${AUTO_SCALER_PROJECT_ID}"
     export TF_VAR_region="${AUTO_SCALER_REGION}"
     export TF_VAR_zone="${AUTO_SCALER_ZONE}"
     export TF_VAR_location="${AUTO_SCALER_APP_ENGINE_LOCATION}"
-```
+    ```
 
-2. Set the Terraform variables for your Forwarder service accounts, updating and adding your service accounts as needed. Answer `yes` when prompted, after reviewing the resources that Terraform intends to create.
-```sh
+2.  Set the Terraform variables for your Forwarder service accounts, updating
+    and adding your service accounts as needed. Answer `yes` when prompted,
+    after reviewing the resources that Terraform intends to create.
+
+    ```sh
     export TF_VAR_forwarder_sa_emails='["serviceAccount:forwarder-sa@'"${APP_PROJECT_ID}"'.iam.gserviceaccount.com"]'
-
     terraform apply -parallelism=2
-```
+    ```
 
-If you are running this command in Cloud Shell and encounter errors of the form "`Error: cannot assign requested address`", this is a [known issue][provider-issue] in the Terraform Google provider, please retry with -parallelism=1
+If you are running this command in Cloud Shell and encounter errors of the form
+"`Error: cannot assign requested address`", this is a
+[known issue][provider-issue] in the Terraform Google provider, please retry
+with -parallelism=1
 
 ## Verifying your deployment
 
-Your Autoscaler infrastructure is ready, follow the instructions in the main page to [configure your Autoscaler](../../README.md#configuration). Please take in account that In a distributed deployment: 
-* Logs from the Poller and Scaler functions will appear in the [Logs Viewer][logs-viewer] for the Autoscaler project. 
-* Logs about syntax errors in the JSON configuration of the Cloud Scheduler payload will appear in the Logs viewer of each Application project, so that the team responsible for a specific Cloud Spanner instance can troubleshoot its configuration issues independently. 
-
+Your Autoscaler infrastructure is ready, follow the instructions in the main
+page to [configure your Autoscaler](../../README.md#configuration). Please take
+in account that In a distributed deployment: * Logs from the Poller and Scaler
+functions will appear in the [Logs Viewer][logs-viewer] for the Autoscaler
+project. * Logs about syntax errors in the JSON configuration of the Cloud
+Scheduler payload will appear in the Logs viewer of each Application project, so
+that the team responsible for a specific Cloud Spanner instance can troubleshoot
+its configuration issues independently.
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [project-selector]: https://console.cloud.google.com/projectselector2/home/dashboard
 [enable-billing]: https://cloud.google.com/billing/docs/how-to/modify-project
 [activate-cloud-shell]: https://console.cloud.google.com/?cloudshell=true

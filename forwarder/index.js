@@ -48,17 +48,18 @@ function log(message, severity = 'DEBUG', payload) {
 
 exports.forwardFromHTTP = async (req, res) => {
   try {
-    const payloadString = '[{"projectId": "spanner-scaler" "instanceId": "my-spanner", "scalerPubSubTopic": "projects/spanner-scaler/topics/my-scaling", "minNodes": 1, "maxNodes": 3, "stateProjectId" : "spanner-scaler"}]';
-    const payload = Buffer.from(payloadString, 'utf8')
+    const payloadString =
+        '[{"projectId": "spanner-scaler" "instanceId": "my-spanner", "scalerPubSubTopic": "projects/spanner-scaler/topics/my-scaling", "minNodes": 1, "maxNodes": 3, "stateProjectId" : "spanner-scaler"}]';
+    const payload = Buffer.from(payloadString, 'utf8');
 
-    JSON.parse(payload.toString()); // Log exception in App project if payload cannot be parsed
-
+    JSON.parse(payload.toString());  // Log exception in App project if payload
+                                     // cannot be parsed
     const pollerTopic = pubSub.topic(process.env.POLLER_TOPIC);
     pollerTopic.publish(payload);
 
     res.status(200).end();
   } catch (err) {
-    log('failed to process payload: \n' + payloadString, 'ERROR', err)
+    log('failed to process payload: \n' + payloadString, 'ERROR', err);
     res.status(500).end(err.toString());
   }
 };
@@ -66,13 +67,14 @@ exports.forwardFromHTTP = async (req, res) => {
 exports.forwardFromPubSub = async (pubSubEvent, context) => {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64');
-    JSON.parse(payload.toString()); // Log exception in App project if payload cannot be parsed
+    JSON.parse(payload.toString());  // Log exception in App project if payload
+                                     // cannot be parsed
 
     const pollerTopic = pubSub.topic(process.env.POLLER_TOPIC);
     pollerTopic.publish(payload);
 
-    console.log("Poll request forwarded to " + process.env.POLLER_TOPIC);
+    console.log('Poll request forwarded to ' + process.env.POLLER_TOPIC);
   } catch (err) {
-    log('failed to process payload: \n' + payload, 'ERROR', err)
+    log('failed to process payload: \n' + payload, 'ERROR', err);
   }
 };
