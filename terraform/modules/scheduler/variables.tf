@@ -28,6 +28,11 @@ variable "schedule" {
   default = "*/2 * * * *"
 }
 
+variable "time_zone" {
+  type    = string
+  default = "America/Los_Angeles"
+}
+
 variable "pubsub_topic" {
   type    = string
 }
