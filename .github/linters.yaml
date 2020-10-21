@@ -12,3 +12,5 @@ jobs:
       uses: actions/checkout@master
     - name: Run mdl
       uses: actionshub/markdownlint@master
+      with:
+        filesToIgnoreRegex: code\-of\-conduct\.md
