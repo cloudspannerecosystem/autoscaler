@@ -26,7 +26,11 @@
 -   [Configuration parameters](#configuration-parameters)
     -   [Required](#required)
     -   [Optional](#optional)
--   [Custom Thresholds](#custom-thresholds)
+-   [Metrics parameters](#metrics-parameters)
+    -   [Selector](#selector)
+    -   [Parameters](#parameters)
+-   [Custom thresholds](#custom-thresholds)
+-   [Example configuration](#example-configuration)
 
 ## Overview
 
@@ -56,14 +60,11 @@ instructions on how to change the payload.
 
 ### Required
 
-| Key                 | Description                                            |
-| ------------------- | ------------------------------------------------------ |
-| `projectId`         | Project ID of the Cloud Spanner to be monitored by the |
-:                     : Autoscaler                                             :
-| `instanceId`        | Instance ID of the Cloud Spanner to be monitored by    |
-:                     : the Autoscaler                                         :
-| `scalerPubSubTopic` | PubSub topic for the Poller function to publish        |
-:                     : messages for the Scaler function                       :
+| Key                 | Description
+| ------------------- | -----------
+| `projectId`         | Project ID of the Cloud Spanner to be monitored by the Autoscaler
+| `instanceId`        | Instance ID of the Cloud Spanner to be monitored by the Autoscaler
+| `scalerPubSubTopic` | PubSub topic for the Poller function to publish messages for the Scaler function
 
 ### Optional
 
@@ -71,15 +72,43 @@ Key                      | Default Value  | Description
 ------------------------ | -------------- | -----------
 `minNodes`               | 1              | Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
 `maxNodes`               | 3              | Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
-`scalingMethod`          | `STEPWISE`     | Scaling method that should be used. Options are: `STEPWISE`, `LINEAR`, `DIRECT`. <br /> See the [scaling methods section][autoscaler-scaler-methods] in the Scaler function page for more information.
+`scalingMethod`          | `STEPWISE`     | Scaling method that should be used. Options are: `STEPWISE`, `LINEAR`, `DIRECT`. See the [scaling methods section][autoscaler-scaler-methods] in the Scaler function page for more information.
 `stepSize`               | 2              | Number of nodes that should be added or removed when scaling with the `STEPWISE` method.
 `overloadStepSize`       | 5              | Number of nodes that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used.
 `scaleOutCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed.
 `scaleInCoolingMinutes`  | 30             | Minutes to wait after scaling IN or OUT before a scale IN event can be processed.
-`overloadCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed, when the Spanner instance is overloaded.<br/> An instance is overloaded if its High Priority CPU utilization is over 90%.
-`stateProjectId`         | `${projectId}` | The project ID where the Autoscaler state will be persisted. <br /> By default it is persisted using [Cloud Firestore][cloud-firestore] in the same project as the Spanner instance.
+`overloadCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed, when the Spanner instance is overloaded. An instance is overloaded if its High Priority CPU utilization is over 90%.
+`stateProjectId`         | `${projectId}` | The project ID where the Autoscaler state will be persisted. By default it is persisted using [Cloud Firestore][cloud-firestore] in the same project as the Spanner instance.
+`metrics`                | Array          | Array of objects that can override the values in the metrics used to decide when the Cloud Spanner instance should be scaled IN or OUT. Refer to the [metrics definition table](#metrics-parameters) to see the fields used for defining metrics.
 
-## Custom Thresholds
+## Metrics parameters
+
+The table describes the objects used to define metrics. These can be provided
+in the configuration objects to customize the metrics used to autoscale your
+Cloud Spanner instances.
+
+To specify a custom threshold specify the name of the metrics to customize
+followed by the parameter values you wish to change. The updated parameters
+will be merged with the default metric parameters.
+
+### Selectors
+
+Key                  | Description
+---------------------| -----------
+`name`               | The unique name of the for the metric to be evaulated. The default metrics are `high_priority_cpu`, `rolling_24_hr` and `storage`.
+
+### Parameters
+
+Key                        | Description
+-------------------------- | -----------
+`filter`                   | The Cloud Monitoring metrics filter that should be used when querying for data.  This filter needs to include the project and instance_id filters.
+`reducer`                  | The reducer specifies how the data points should be aggregated when querying for metrics, typically `REDUCE_SUM`. For more details please refer to [Alert Policies - Reducer][alertpolicy-reducer] documentation.
+`aligner`                  | The aligner specifies how the data points should be aligned in the time series, typically `ALIGN_MAX`. For more details please refer to [Alert Policies - Aligner][alertpolicy-aligner] documentation.
+`period`                   | Defines the period of time in units of seconds at which aggregation takes place. Typically the period should be 60.
+`regional_threshold`       | Threshold that should be use when evaluating if a regional instance needs to be scaled in or out.
+`multi_regional_threshold` | Threshold that should be use when evaluating if a multi-regional instance needs to be scaled in or out.
+
+## Custom thresholds
 
 The Cloud Spanner Autoscaler determines the number of nodes to be added or
 substracted to an instance based on the
@@ -92,14 +121,36 @@ threshold triggers an alert to your operations team, you could make the
 Autoscaler react to a more conservative threshold to avoid alerts being
 triggered.
 
-To modify the recommended thresholds, change the following properties in the
-[Poller function metrics definition](../poller/index.js):
+To modify the recommended thresholds, add the metrics parameter to your
+configuration and specify name (`high_priority_cpu`, `rolling_24_hr` and
+`storage`) of the metric to be changed and desired `regional_threshold` or
+`multi_regional_threshold` for your Cloud Spanner instance.
 
-```js
-   {  ...,
-      regional_threshold: X,
-      multi_regional_threshold: Y
-   }
+## Example configuration
+
+```json
+[
+    {
+        "projectId": "my-spanner-project",
+        "instanceId": "spanner1",
+        "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
+        "minNodes": 1,
+        "maxNodes": 3,
+        "metrics": [
+          {
+            "name": "high_priority_cpu",
+            "regional_threshold": 40
+          }
+        ]
+    },{
+        "projectId": "different-project",
+        "instanceId": "another-spanner1",
+        "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
+        "minNodes": 5,
+        "maxNodes": 30,
+        "scalingMethod": "DIRECT"
+    }
+]
 ```
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
@@ -110,3 +161,5 @@ To modify the recommended thresholds, change the following properties in the
 [autoscaler-scaler-methods]: ../scaler/README.md#scaling-methods
 [cloud-firestore]: https://cloud.google.com/firestore
 [spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
+[alertpolicy-reducer]: https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies#reducer
+[alertpolicy-aligner]: https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies#aligner

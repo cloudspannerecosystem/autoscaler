@@ -202,7 +202,9 @@ async function parseAndEnrichPayload(payload) {
     if(metricOverrides != null) {
       for (var oIdx = 0; oIdx < metricOverrides.length; oIdx++) {
         mIdx = spanners[sIdx].metrics.findIndex(x => x.name === metricOverrides[oIdx].name);
-        spanners[sIdx].metrics[mIdx] = {...spanners[sIdx].metrics[mIdx], ...metricOverrides[oIdx]};
+        if(mIdx != -1) {
+          spanners[sIdx].metrics[mIdx] = {...spanners[sIdx].metrics[mIdx], ...metricOverrides[oIdx]};
+        }
       }
     }
 
