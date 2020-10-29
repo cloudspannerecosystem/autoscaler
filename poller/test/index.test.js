@@ -60,4 +60,36 @@
 
         unset();
     });
+
+    it('should override the regional threshold for storage but not high_priority_cpu', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "minNodes": 10, "metrics": [{"name": "storage", "regional_threshold":10}]}]';
+
+        let stub = sinon.stub().resolves({currentNode: 5, regional: true});
+        let unset = app.__set__('getSpannerMetadata', stub);
+
+        let mergedConfig = await parseAndEnrichPayload(payload);
+
+        let idx = mergedConfig[0].metrics.findIndex(x => x.name === 'storage');
+        (mergedConfig[0].metrics[idx].regional_threshold).should.equal(10);
+        idx = mergedConfig[0].metrics.findIndex(x => x.name === 'high_priority_cpu');
+        (mergedConfig[0].metrics[idx].regional_threshold).should.equal(65);
+
+        unset();
+    });
+
+    it('should override the multiple thresholds', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "minNodes": 10, "metrics": [{"name": "high_priority_cpu", "multi_regional_threshold":20}, {"name": "storage", "regional_threshold":10}]}]';
+
+        let stub = sinon.stub().resolves({currentNode: 5, regional: true});
+        let unset = app.__set__('getSpannerMetadata', stub);
+
+        let mergedConfig = await parseAndEnrichPayload(payload);
+
+        let idx = mergedConfig[0].metrics.findIndex(x => x.name === 'storage');
+        (mergedConfig[0].metrics[idx].regional_threshold).should.equal(10);
+        idx = mergedConfig[0].metrics.findIndex(x => x.name === 'high_priority_cpu');
+        (mergedConfig[0].metrics[idx].multi_regional_threshold).should.equal(20);
+
+        unset();
+    });
  });

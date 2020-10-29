@@ -190,14 +190,26 @@ function postPubSubMessage(spanner, metrics) {
 async function parseAndEnrichPayload(payload) {
   var spanners = JSON.parse(payload);
 
-  for (var i = 0; i < spanners.length; i++) {
+  for (var sIdx = 0; sIdx < spanners.length; sIdx++) {
+    const metricOverrides = spanners[sIdx].metrics;
+
     // merge in the defaults
-    spanners[i] = {...spannerDefaults, ...spanners[i]};
-    spanners[i].metrics =
-        buildMetrics(spanners[i].projectId, spanners[i].instanceId);
-    spanners[i] = {
-      ...spanners[i],
-      ...await getSpannerMetadata(spanners[i].projectId, spanners[i].instanceId)
+    spanners[sIdx] = {...spannerDefaults, ...spanners[sIdx]};
+
+    spanners[sIdx].metrics =
+      buildMetrics(spanners[sIdx].projectId, spanners[sIdx].instanceId);
+    // merge in custom thresholds
+    if(metricOverrides != null) {
+      for (var oIdx = 0; oIdx < metricOverrides.length; oIdx++) {
+        mIdx = spanners[sIdx].metrics.findIndex(x => x.name === metricOverrides[oIdx].name);
+        spanners[sIdx].metrics[mIdx] = {...spanners[sIdx].metrics[mIdx], ...metricOverrides[oIdx]};
+      }
+    }
+
+    // merge in the current Spanner state
+    spanners[sIdx] = {
+      ...spanners[sIdx],
+      ...await getSpannerMetadata(spanners[sIdx].projectId, spanners[sIdx].instanceId)
     };
   }
 
