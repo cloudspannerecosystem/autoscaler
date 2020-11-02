@@ -95,13 +95,21 @@ will be merged with the default metric parameters.
 
 Key                  | Description
 ---------------------| -----------
-`name`               | The unique name of the for the metric to be evaulated. The default metrics are `high_priority_cpu`, `rolling_24_hr` and `storage`.
+`name`               | A unique name of the for the metric to be evaulated. If you want to override the default metrics, their names are: `high_priority_cpu`, `rolling_24_hr` and `storage`.
 
 ### Parameters
 
+When defining a metric for the autoscaler there are two key components:
+thresholds and a [Cloud Monitoring time series metric](time-series-filters)
+comprised of a filter, reducer, aligner and period. Having a properly defined
+metric is critical to the opertional of the autoscaler, please refer to
+[Filtering and aggregation: manipulating time series](filtering-and-aggregation)
+for a complete discussion on building metric filters and aggregating data
+points.
+
 Key                        | Description
 -------------------------- | -----------
-`filter`                   | The Cloud Monitoring metrics filter that should be used when querying for data.  This filter needs to include the project and instance_id filters.
+`filter`                   | The [Cloud Spanner metric](spanner-metrics) and [filter](time-series-filters) that should be used when querying for data. The filter needs to include expressions for [Spanner instance resources, instance id](spanner-filter) and project id.
 `reducer`                  | The reducer specifies how the data points should be aggregated when querying for metrics, typically `REDUCE_SUM`. For more details please refer to [Alert Policies - Reducer][alertpolicy-reducer] documentation.
 `aligner`                  | The aligner specifies how the data points should be aligned in the time series, typically `ALIGN_MAX`. For more details please refer to [Alert Policies - Aligner][alertpolicy-aligner] documentation.
 `period`                   | Defines the period of time in units of seconds at which aggregation takes place. Typically the period should be 60.
@@ -163,3 +171,7 @@ configuration and specify name (`high_priority_cpu`, `rolling_24_hr` and
 [spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
 [alertpolicy-reducer]: https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies#reducer
 [alertpolicy-aligner]: https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies#aligner
+[filtering-and-aggregation]: https://cloud.google.com/monitoring/api/v3/aggregation
+[time-series-filters]: https://cloud.google.com/monitoring/api/v3/filters#time-series-filter
+[spanner-metrics]: https://cloud.google.com/monitoring/api/metrics_gcp#gcp-spanner
+[spanner-filter]: https://cloud.google.com/logging/docs/view/query-library#spanner-filters
