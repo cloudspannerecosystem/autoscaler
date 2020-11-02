@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg" alt="Spanner Autoscaler">
+  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
@@ -21,11 +21,11 @@
 
 ## Table of Contents
 
--   [Table of Contents](#table-of-contents)
--   [Overview](#overview)
--   [Scaling methods](#scaling-methods)
-    -   [Custom scaling methods](#custom-scaling-methods)
--   [Parameters](#parameters)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Scaling methods](#scaling-methods)
+    *   [Custom scaling methods](#custom-scaling-methods)
+*   [Parameters](#parameters)
 
 ## Overview
 

@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg" alt="Spanner Autoscaler">
+  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
@@ -21,11 +21,11 @@
 
 ## Table of Contents
 
--   [Table of Contents](#table-of-contents)
--   [Overview](#overview)
--   [Architecture](#architecture)
--   [Configuration parameters](#configuration-parameters)
-    -   [Required](#required)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Architecture](#architecture)
+*   [Configuration parameters](#configuration-parameters)
+    *   [Required](#required)
 
 ## Overview
 
@@ -50,13 +50,16 @@ The Cloud Spanner instances reside in a given application project.
 
   2b. The Forwarder Cloud Function reads messages from the Forwarder topic, and
 
-  2c. Forwards them to the Polling topic. The Polling topic resides in a different project.
+  2c. Forwards them to the Polling topic. The Polling topic resides in a
+  different project.
 
-  3 . The Poller function reads the messages from the polling topic and urther continues the process as described in the [main architecture section](../README.md#architecture).
+  3 . The Poller function reads the messages from the polling topic and
+  further continues the process as described in
+  the [main architecture section](../README.md#architecture).
 </li> </ul>
 
 It is important to note that Autoscaler infrastructure is now distributed across
-several projects. * The core components reside in the Autoscaler project * An
+several projects. *The core components reside in the Autoscaler project* An
 instance of Cloud Scheduler, the Forwarder topic and the Forwarder Function
 reside in each of the application projects.
 
