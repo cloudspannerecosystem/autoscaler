@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg" alt="Spanner Autoscaler">
+  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     An open source tool to autoscale Spanner instances
@@ -20,13 +20,13 @@
 
 ## Table of Contents
 
--   [Table of Contents](#table-of-contents)
--   [Overview](#overview)
--   [Architecture](#architecture)
--   [Deployment](#deployment)
--   [Configuration](#configuration)
--   [Licensing](#licensing)
--   [Contributing](#contributing)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Architecture](#architecture)
+*   [Deployment](#deployment)
+*   [Configuration](#configuration)
+*   [Licensing](#licensing)
+*   [Contributing](#contributing)
 
 ## Overview
 
@@ -176,7 +176,7 @@ instances in the next scheduled job run.
 
 ## Licensing
 
-```
+```lang-none
 Copyright 2020 Google LLC
 
 Licensed under the Apache License, Version 2.0 (the "License");

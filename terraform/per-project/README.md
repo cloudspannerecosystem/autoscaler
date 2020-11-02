@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg" alt="Spanner Autoscaler">
+  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
@@ -28,16 +28,16 @@
 
 ## Table of Contents
 
--   [Table of Contents](#table-of-contents)
--   [Overview](#overview)
--   [Architecture](#architecture)
-    -   [Pros](#pros)
-    -   [Cons](#cons)
--   [Before you begin](#before-you-begin)
--   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
--   [Deploying the Autoscaler](#deploying-the-autoscaler)
--   [Importing your Spanner instances](#importing-your-spanner-instances)
--   [Next steps](#next-steps)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Architecture](#architecture)
+    *   [Pros](#pros)
+    *   [Cons](#cons)
+*   [Before you begin](#before-you-begin)
+*   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
+*   [Deploying the Autoscaler](#deploying-the-autoscaler)
+*   [Importing your Spanner instances](#importing-your-spanner-instances)
+*   [Next steps](#next-steps)
 
 ## Overview
 
@@ -99,7 +99,7 @@ In this section you prepare your project for deployment.
     git clone https://github.com/cloudspannerecosystem/autoscaler.git
     ```
 
-1.  Export variables for the working directories
+4.  Export variables for the working directories
 
     ```sh
     export AUTOSCALER_DIR="$(pwd)/autoscaler/terraform/per-project"
@@ -188,7 +188,7 @@ In this section you prepare your project for deployment.
     export TF_VAR_zone="${ZONE}"
     ```
 
-1.  If you want to create a new Spanner instance for testing the autoscaler, set
+2.  If you want to create a new Spanner instance for testing the autoscaler, set
     the following variable. The spanner instance that Terraform creates is named
     `autoscale-test`.
 
@@ -204,23 +204,23 @@ In this section you prepare your project for deployment.
     export TF_VAR_spanner_name=<INSERT_YOUR_SPANNER_INSTANCE_NAME>
     ```
 
-For more information on how to make your Spanner instance to be managed by
-Terraform, see [Import your Spanner instances](#import-your-spanner-instances)
+    For more information on how to make your Spanner instance to be managed by
+    Terraform, see [Import your Spanner instances](#import-your-spanner-instances)
 
-1.  Change directory into the Terraform per-project directory and initialize it.
+3.  Change directory into the Terraform per-project directory and initialize it.
 
     ```sh
     cd "${AUTOSCALER_DIR}"
     terraform init
     ```
 
-1.  Import the existing AppEngine application into Terraform state
+4.  Import the existing AppEngine application into Terraform state
 
     ```sh
     terraform import module.scheduler.google_app_engine_application.app "${PROJECT_ID}"
     ```
 
-1.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
+5.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
     reviewing the resources that Terraform intends to create.
 
     ```sh
@@ -244,27 +244,27 @@ in this section.
     gcloud spanner instances list
     ```
 
-1.  Set the following variable with the instance name to import
+2.  Set the following variable with the instance name to import
 
     ```sh
     SPANNER_INSTANCE_NAME=<YOUR_SPANNER_INSTANCE_NAME>
     ```
 
-1.  Create a Terraform config file with an empty
+3.  Create a Terraform config file with an empty
     [`google_spanner_instance`][terraform-spanner-instance] resource
 
     ```sh
     echo "resource \"google_spanner_instance\" \"${SPANNER_INSTANCE_NAME}\" {}" > "${SPANNER_INSTANCE_NAME}.tf"
     ```
 
-1.  [Import][terraform-import-usage] the Spanner instance into the Terraform
+4.  [Import][terraform-import-usage] the Spanner instance into the Terraform
     state.
 
     ```sh
     terraform import "google_spanner_instance.${SPANNER_INSTANCE_NAME}" "${SPANNER_INSTANCE_NAME}"
     ```
 
-1.  After the import succeeds, update the Terraform config file for your
+5.  After the import succeeds, update the Terraform config file for your
     instance with the actual instance attributes
 
     ```sh

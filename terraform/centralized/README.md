@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg" alt="Spanner Autoscaler">
+  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
@@ -26,13 +26,13 @@
 
 ## Table of Contents
 
--   [Table of Contents](#table-of-contents)
--   [Overview](#overview)
--   [Architecture](#architecture)
-    -   [Pros](#pros)
-    -   [Cons](#cons)
--   [Before you begin](#before-you-begin)
--   [Configuring your Application project](#configuring-your-application-project)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Architecture](#architecture)
+    *   [Pros](#pros)
+    *   [Cons](#cons)
+*   [Before you begin](#before-you-begin)
+*   [Configuring your Application project](#configuring-your-application-project)
 
 ## Overview
 
@@ -107,7 +107,7 @@ Autoscaler infrastructure and configuration.
     export APP_PROJECT_ID=<INSERT_YOUR_APP_PROJECT_ID>
     ```
 
-1.  Give the previously created `terraformer` service account the owner role in
+4.  Give the previously created `terraformer` service account the owner role in
     the Application project so it can create resources.
 
     ```sh
@@ -116,14 +116,14 @@ Autoscaler infrastructure and configuration.
       --role roles/owner
     ```
 
-1.  Enable the Spanner API
+5.  Enable the Spanner API
 
     ```sh
     gcloud services enable --project="${APP_PROJECT_ID}" \
       spanner.googleapis.com
     ```
 
-1.  Set the Application project ID in the corresponding Terraform environment
+6.  Set the Application project ID in the corresponding Terraform environment
     variable
 
     ```sh

@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg" alt="Spanner Autoscaler">
+  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
@@ -28,18 +28,18 @@
 
 ## Table of Contents
 
--   [Table of Contents](#table-of-contents)
--   [Overview](#overview)
--   [Architecture](#architecture)
-    -   [Pros](#pros)
-    -   [Cons](#cons)
--   [Before you begin](#before-you-begin)
--   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
-    -   [Deploy the Autoscaler](#deploy-the-autoscaler)
--   [Preparing the Application Project](#preparing-the-application-project)
-    -   [Deploy the Application infrastructure](#deploy-the-application-infrastructure)
-    -   [Authorize the Forwarder function to publish to the Poller topic](#authorize-the-forwarder-function-to-publish-to-the-poller-topic)
--   [Verifying your deployment](#verifying-your-deployment)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Architecture](#architecture)
+    *   [Pros](#pros)
+    *   [Cons](#cons)
+*   [Before you begin](#before-you-begin)
+*   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
+    *   [Deploy the Autoscaler](#deploy-the-autoscaler)
+*   [Preparing the Application Project](#preparing-the-application-project)
+    *   [Deploy the Application infrastructure](#deploy-the-application-infrastructure)
+    *   [Authorize the Forwarder function to publish to the Poller topic](#authorize-the-forwarder-function-to-publish-to-the-poller-topic)
+*   [Verifying your deployment](#verifying-your-deployment)
 
 ## Overview
 
@@ -104,7 +104,7 @@ The distributed deployment has the following pros and cons:
     git clone https://github.com/cloudspannerecosystem/autoscaler.git
     ```
 
-1.  Export variables for the working directories
+4.  Export variables for the working directories
 
     ```sh
     export AUTOSCALER_DIR="$(pwd)/autoscaler/terraform/distributed/autoscaler-project"
@@ -130,13 +130,13 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     gcloud config set project "${AUTO_SCALER_PROJECT_ID}"
     ```
 
-1.  Choose the [region and zone][region-and-zone] and
+4.  Choose the [region and zone][region-and-zone] and
     [App Engine Location][app-engine-location] where the Autoscaler
     infrastructure will be located. `sh export AUTO_SCALER_REGION=us-central1
     export AUTO_SCALER_ZONE=us-central1-c export
     AUTO_SCALER_APP_ENGINE_LOCATION=us-central`
 
-2.  Enable the required Cloud APIs :
+5.  Enable the required Cloud APIs :
 
     ```sh
     gcloud services enable iam.googleapis.com \
@@ -149,14 +149,14 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
         cloudbuild.googleapis.com
     ```
 
-1.  Create a [service account][service-account] that will be used by Terraform
+6.  Create a [service account][service-account] that will be used by Terraform
     to create all the resources in your infrastructure.
 
     ```sh
     gcloud iam service-accounts create terraformer --display-name "Terraform service account"
     ```
 
-1.  Give the project owner role to the service account
+7.  Give the project owner role to the service account
 
     ```sh
     gcloud projects add-iam-policy-binding "${AUTO_SCALER_PROJECT_ID}" \
@@ -164,14 +164,14 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
       --role roles/owner
     ```
 
-1.  Create a service account [key file][key-adc]
+8.  Create a service account [key file][key-adc]
 
     ```sh
     gcloud iam service-accounts keys create \
       --iam-account "terraformer@${AUTO_SCALER_PROJECT_ID}.iam.gserviceaccount.com" "${AUTOSCALER_DIR}/key.json"
     ```
 
-1.  If your project does not have a [Firestore][firestore] instance yet, create
+9.  If your project does not have a [Firestore][firestore] instance yet, create
     one
 
     ```sh
@@ -191,7 +191,7 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     export TF_VAR_location="${AUTO_SCALER_APP_ENGINE_LOCATION}"
     ```
 
-1.  Change directory into the Terraform scaler-project directory and initialize
+2.  Change directory into the Terraform scaler-project directory and initialize
     it.
 
     ```sh
@@ -199,7 +199,7 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     terraform init
     ```
 
-1.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
+3.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
     reviewing the resources that Terraform intends to create.
 
     ```sh
@@ -230,12 +230,12 @@ topic and function in the project where the Spanner instances live.
     gcloud config set project "${APP_PROJECT_ID}"
     ```
 
-1.  Choose the [region and zone][region-and-zone] and
+4.  Choose the [region and zone][region-and-zone] and
     [App Engine Location][app-engine-location] where the Application project
     will be located. `sh export APP_REGION=us-central1 export
     APP_ZONE=us-central1-c export APP_APP_ENGINE_LOCATION=us-central`
 
-2.  Use the following command to enable the Cloud APIs:
+5.  Use the following command to enable the Cloud APIs:
 
     ```sh
     gcloud services enable iam.googleapis.com \
@@ -248,14 +248,14 @@ topic and function in the project where the Spanner instances live.
         cloudbuild.googleapis.com
     ```
 
-1.  Create a [service account][service-account] that will be used by Terraform
+6.  Create a [service account][service-account] that will be used by Terraform
     to create all the resources in your infrastructure.
 
     ```sh
     gcloud iam service-accounts create terraformer --display-name "Terraform service account"
     ```
 
-1.  Give the project owner role to the service account
+7.  Give the project owner role to the service account
 
     ```sh
     gcloud projects add-iam-policy-binding "${APP_PROJECT_ID}" \
@@ -263,14 +263,14 @@ topic and function in the project where the Spanner instances live.
       --role roles/owner
     ```
 
-1.  Create a service account [key file][key-adc]
+8.  Create a service account [key file][key-adc]
 
     ```sh
     gcloud iam service-accounts keys create \
       --iam-account "terraformer@${APP_PROJECT_ID}.iam.gserviceaccount.com" "${APP_DIR}/key.json"
     ```
 
-1.  Create an App to enable Cloud Scheduler, but do not create a Firestore
+9.  Create an App to enable Cloud Scheduler, but do not create a Firestore
     database:
 
     ```sh
@@ -289,7 +289,7 @@ topic and function in the project where the Spanner instances live.
     export TF_VAR_location="${APP_APP_ENGINE_LOCATION}"
     ```
 
-1.  Set the project ID where the Autoscaler state will be stored. The autoscaler
+2.  Set the project ID where the Autoscaler state will be stored. The autoscaler
     state includes the timestamps when the scaling events were triggered for
     each instance.
 
@@ -297,7 +297,7 @@ topic and function in the project where the Spanner instances live.
     export TF_VAR_state_project_id="${AUTO_SCALER_PROJECT_ID}"
     ```
 
-1.  If you want to create a new Spanner instance for testing the autoscaler, set
+3.  If you want to create a new Spanner instance for testing the autoscaler, set
     the following variable. The spanner instance that Terraform creates is named
     `autoscale-test`.
 
@@ -313,18 +313,18 @@ topic and function in the project where the Spanner instances live.
     export TF_VAR_spanner_name=<INSERT_YOUR_SPANNER_INSTANCE_NAME>
     ```
 
-For more information on how to make your Spanner instance to be managed by
-Terraform, see
-[Import your Spanner instances](../per-project/README.md#import-your-spanner-instances)
+    For more information on how to make your Spanner instance to be managed by
+    Terraform, see
+    [Import your Spanner instances](../per-project/README.md#import-your-spanner-instances)
 
-1.  Change directory into the Terraform app-project directory and initialize it.
+4.  Change directory into the Terraform app-project directory and initialize it.
 
     ```sh
     cd "${APP_DIR}"
     terraform init
     ```
 
-1.  Create the infrastructure in the application project. Answer `yes` when
+5.  Create the infrastructure in the application project. Answer `yes` when
     prompted, after reviewing the resources that Terraform intends to create.
 
     ```sh
@@ -332,10 +332,10 @@ Terraform, see
     terraform apply -parallelism=2
     ```
 
-If you are running this command in Cloud Shell and encounter errors of the form
-"`Error: cannot assign requested address`", this is a
-[known issue][provider-issue] in the Terraform Google provider, please retry
-with -parallelism=1
+    If you are running this command in Cloud Shell and encounter errors of the form
+    "`Error: cannot assign requested address`", this is a
+    [known issue][provider-issue] in the Terraform Google provider, please retry
+    with -parallelism=1
 
 ### Authorize the Forwarder function to publish to the Poller topic
 
