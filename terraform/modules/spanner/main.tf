@@ -46,6 +46,7 @@ resource "google_spanner_instance_iam_binding" "spanner_metadata_get_binding" {
   members = [
     "serviceAccount:${var.poller_sa_email}",
   ]
+  depends_on = [google_spanner_instance.main]
 }
 
 resource "google_spanner_instance_iam_binding" "spanner_admin_binding" {
@@ -57,6 +58,7 @@ resource "google_spanner_instance_iam_binding" "spanner_admin_binding" {
   members = [
     "serviceAccount:${var.scaler_sa_email}",
   ]
+  depends_on = [google_spanner_instance.main]
 }
 
 resource "google_project_iam_binding" "poller_sa_cloud_monitoring" {
