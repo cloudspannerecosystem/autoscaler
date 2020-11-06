@@ -51,41 +51,44 @@ recommended thresholds are different depending if a Spanner instance is
 ![architecture-per-project](resources/architecture-per-project.png)
 
 The diagram above shows the components of the Cloud Spanner Autoscaler and the
-interaction flow: 1. Using [Cloud Scheduler][cloud-scheduler] you define how
-often one or more Spanner instances should be verified. You can define separate
-Cloud Scheduler jobs to check several Spanner instances with different
-schedules, or you can group many instances under a single schedule.
+interaction flow:
 
-1.  At the specified time and frequency, Cloud Scheduler pushes a message into
+1.  Using [Cloud Scheduler][cloud-scheduler] you define how
+    often one or more Spanner instances should be verified. You can define
+    separate Cloud Scheduler jobs to check several Spanner instances with
+    different schedules, or you can group many instances under a single
+    schedule.
+
+2.  At the specified time and frequency, Cloud Scheduler pushes a message into
     the Polling [Cloud Pub/Sub][cloud-pub-sub] topic. The message contains a
     JSON payload with the autoscaler [configuration parameters](#configuration)
     that you defined for each Spanner instance.
 
-2.  When Cloud Scheduler pushes a message into the Poller topic, an instance of
+3.  When Cloud Scheduler pushes a message into the Poller topic, an instance of
     the [Poller Cloud Function][autoscaler-poller] is created to handle the
     message.
 
-3.  The Poller function reads the message payload and queries the
+4.  The Poller function reads the message payload and queries the
     [Cloud Monitoring][cloud-monitoring] API to retrieve the utilization metrics
     for each Spanner instance.
 
-4.  For each instance, the Poller function pushes one message into the Scaling
+5.  For each instance, the Poller function pushes one message into the Scaling
     Pub/Sub topic. The message payload contains the utilization metrics for the
     specific Spanner instance, and some of its corresponding configuration
     parameters.
 
-5.  For each message pushed into the Scaler topic, an instance of the
+6.  For each message pushed into the Scaler topic, an instance of the
     [Scaler Cloud Function][autoscaler-scaler] is created to handle it. \
     Using the chosen [scaling method](scaler/README.md#scaling-methods), the
     Scaler function compares the Spanner instance metrics against the
     recommended thresholds and determines if the instance should be scaled, and
     the number of nodes that it should be scaled to.
 
-6.  The Scaler function retrieves the time when the instance was last scaled
+7.  The Scaler function retrieves the time when the instance was last scaled
     from the state data stored in [Cloud Firestore][cloud-firestore] and
     compares it with the current database time.
 
-7.  If the configured cooldown period has passed, then the Scaler function
+8.  If the configured cooldown period has passed, then the Scaler function
     requests the Spanner Instance to scale out or in.
 
 Throughout the flow, the Cloud Spanner Autoscaler writes a step by step summary
