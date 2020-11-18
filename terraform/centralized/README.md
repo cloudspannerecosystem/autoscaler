@@ -1,11 +1,11 @@
 <br />
 <p align="center">
-  <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
+  <h2 align="center">Autoscaler tool for Cloud Spanner</h2>
+  <img alt="Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
-    Show the Cloud Spanner Autoscaler in a centralized deployment
+    Show the Autoscaler in a centralized deployment
     <br />
     <a href="../README.md">Home</a>
     ·
@@ -26,18 +26,18 @@
 
 ## Table of Contents
 
-*   [Table of Contents](#table-of-contents)
-*   [Overview](#overview)
-*   [Architecture](#architecture)
-    *   [Pros](#pros)
-    *   [Cons](#cons)
-*   [Before you begin](#before-you-begin)
-*   [Configuring your Application project](#configuring-your-application-project)
+* [Table of Contents](#table-of-contents)
+* [Overview](#overview)
+* [Architecture](#architecture)
+  * [Pros](#pros)
+  * [Cons](#cons)
+* [Before you begin](#before-you-begin)
+* [Configuring your Application project](#configuring-your-application-project)
 
 ## Overview
 
-This document shows the centralized deployment of the Cloud Spanner Autoscaler.
-In the centralized deployment all the components of the Cloud Spanner Autoscaler
+This document shows the centralized deployment of the Autoscaler.
+In the centralized deployment all the components of the Autoscaler
 reside in the same project, but the Spanner instances may be located in
 different projects.
 
@@ -50,7 +50,7 @@ by the same or other teams.
 
 ![architecture-centralized](../../resources/architecture-centralized.png)
 
-For an explanation of the components of the Cloud Spanner Autoscaler and the
+For an explanation of the components of the Autoscaler and the
 interaction flow, please read the
 [main Architecture section](../README.md#architecture).
 
@@ -68,7 +68,7 @@ The centralized deployment has the following pros and cons:
 
 ### Cons
 
-*   **Configuration**: any change to the autoscaler parameters needs to go
+*   **Configuration**: any change to the Autoscaler parameters needs to go
     through the centralized team, even though the team requesting the change
     owns the Spanner instance.
 *   **Risk**: the centralized team itself may become a single point of failure

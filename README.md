@@ -1,7 +1,7 @@
 <br />
 <p align="center">
-  <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
+  <h2 align="center">Autoscaler tool for Cloud Spanner</h2>
+  <img alt="Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     An open source tool to autoscale Spanner instances
@@ -20,17 +20,17 @@
 
 ## Table of Contents
 
-*   [Table of Contents](#table-of-contents)
-*   [Overview](#overview)
-*   [Architecture](#architecture)
-*   [Deployment](#deployment)
-*   [Configuration](#configuration)
-*   [Licensing](#licensing)
-*   [Contributing](#contributing)
+* [Table of Contents](#table-of-contents)
+* [Overview](#overview)
+* [Architecture](#architecture)
+* [Deployment](#deployment)
+* [Configuration](#configuration)
+* [Licensing](#licensing)
+* [Contributing](#contributing)
 
 ## Overview
 
-The Cloud Spanner Autoscaler is a companion tool to Cloud Spanner that allows
+The Autoscaler tool for Cloud Spanner is a companion tool to Cloud Spanner that allows
 you to automatically increase or reduce the number of nodes in one or more
 Spanner instances, based on their utilization.
 
@@ -39,7 +39,7 @@ number of nodes that provide compute resources for the instance. As the
 instance's workload changes, Cloud Spanner does *not* automatically adjust the
 number of nodes in the instance.
 
-The Cloud Spanner Autoscaler monitors your instances and automatically adds or
+The Autoscaler monitors your instances and automatically adds or
 removes nodes to ensure that they stay within the
 [recommended maximums for CPU utilization][spanner-max-cpu] and the
 [recommended limit for storage per node][spanner-max-storage]. Note that the
@@ -50,7 +50,7 @@ recommended thresholds are different depending if a Spanner instance is
 
 ![architecture-per-project](resources/architecture-per-project.png)
 
-The diagram above shows the components of the Cloud Spanner Autoscaler and the
+The diagram above shows the components of the Autoscaler and the
 interaction flow:
 
 1.  Using [Cloud Scheduler][cloud-scheduler] you define how
@@ -61,7 +61,7 @@ interaction flow:
 
 2.  At the specified time and frequency, Cloud Scheduler pushes a message into
     the Polling [Cloud Pub/Sub][cloud-pub-sub] topic. The message contains a
-    JSON payload with the autoscaler [configuration parameters](#configuration)
+    JSON payload with the Autoscaler [configuration parameters](#configuration)
     that you defined for each Spanner instance.
 
 3.  When Cloud Scheduler pushes a message into the Poller topic, an instance of
@@ -91,17 +91,17 @@ interaction flow:
 8.  If the configured cooldown period has passed, then the Scaler function
     requests the Spanner Instance to scale out or in.
 
-Throughout the flow, the Cloud Spanner Autoscaler writes a step by step summary
+Throughout the flow, the Autoscaler writes a step by step summary
 of its recommendations and actions to [Cloud Logging][cloud-logging] for
 tracking and auditing.
 
 ## Deployment
 
-To deploy the Cloud Spanner Autoscaler, decide which of the following strategies
+To deploy the Autoscaler, decide which of the following strategies
 is best adjusted to fulfill your technical and operational needs.
 
 *   [Per-Project deployment](terraform/per-project/README.md): all the
-    components of the Cloud Spanner Autoscaler reside in the same project as
+    components of the Autoscaler reside in the same project as
     your Spanner instances. This deployment is ideal for independent teams who
     want to self manage the configuration and infrastructure of their own
     Autoscalers. It is also a good entry point for testing the Autoscaler
@@ -109,13 +109,13 @@ is best adjusted to fulfill your technical and operational needs.
 
 *   [Centralized deployment](terraform/centralized/README.md): a slight
     departure from the pre-project deployment, where all the components of the
-    Cloud Spanner Autoscaler reside in the same project, but the Spanner
+    Autoscaler reside in the same project, but the Spanner
     instances may be located in different projects. This deployment is suited
     for a team managing the configuration and infrastructure of several
     Autoscalers in a central place.
 
 *   [Distributed deployment](terraform/distributed/README.md): all the
-    components of the Cloud Spanner Autoscaler reside in a single project, with
+    components of the Autoscaler reside in a single project, with
     the exception of Cloud Scheduler. This deployment is a hybrid where teams
     who own the Spanner instances want to manage only the Autoscaler
     configuration parameters for their instances, but the rest of the Autoscaler

@@ -19,12 +19,12 @@
 
 resource "google_service_account" "poller_sa" {
   account_id   = "poller-sa"
-  display_name = "Spanner Autoscaler - Metrics Poller Service Account"
+  display_name = "Autoscaler - Metrics Poller Service Account"
 }
 
 resource "google_service_account" "scaler_sa" {
   account_id   = "scaler-sa"
-  display_name = "Spanner Autoscaler - Scaler Function Service Account"
+  display_name = "Autoscaler - Scaler Function Service Account"
 }
 
 resource "google_project_iam_binding" "scaler_sa_firestore" {

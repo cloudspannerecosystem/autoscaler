@@ -19,7 +19,7 @@
 
 resource "google_service_account" "forwarder_sa" {
   account_id   = "forwarder-sa"
-  display_name = "Spanner Autoscaler - PubSub Forwarder Service Account"
+  display_name = "Autoscaler - PubSub Forwarder Service Account"
 }
 
 // PubSub
