@@ -1,7 +1,7 @@
 <br />
 <p align="center">
-  <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
+  <h2 align="center">Autoscaler tool for Cloud Spanner</h2>
+  <img alt="Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
@@ -27,7 +27,7 @@
     *   [Required](#required)
     *   [Optional](#optional)
 *   [Metrics parameters](#metrics-parameters)
-    *   [Selector](#selector)
+    *   [Selectors](#selectors)
     *   [Parameters](#parameters)
 *   [Custom thresholds](#custom-thresholds)
 *   [Example configuration](#example-configuration)
@@ -99,10 +99,10 @@ Key                  | Description
 
 ### Parameters
 
-When defining a metric for the autoscaler there are two key components:
+When defining a metric for the Autoscaler there are two key components:
 thresholds and a [Cloud Monitoring time series metric](time-series-filters)
 comprised of a filter, reducer, aligner and period. Having a properly defined
-metric is critical to the opertional of the autoscaler, please refer to
+metric is critical to the opertional of the Autoscaler, please refer to
 [Filtering and aggregation: manipulating time series](filtering-and-aggregation)
 for a complete discussion on building metric filters and aggregating data
 points.
@@ -118,7 +118,7 @@ Key                        | Description
 
 ## Custom thresholds
 
-The Cloud Spanner Autoscaler determines the number of nodes to be added or
+The Autoscaler determines the number of nodes to be added or
 substracted to an instance based on the
 [Spanner recommended thresholds][spanner-metrics] for High Priority CPU, 24 hour
 rolling average CPU and Storage utilization metrics.

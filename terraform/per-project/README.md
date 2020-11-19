@@ -1,11 +1,11 @@
 <br />
 <p align="center">
-  <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
+  <h2 align="center">Autoscaler tool for Cloud Spanner</h2>
+  <img alt="Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
-    Set up the Cloud Spanner Autoscaler in a per-project deployment using Terraform
+    Set up the Autoscaler in a per-project deployment using Terraform
     <br />
     <a href="../../README.md">Home</a>
     ·
@@ -42,9 +42,9 @@
 ## Overview
 
 This directory contains Terraform configuration files to quickly set up the
-infrastructure for your Cloud Spanner Autoscaler with a per-project deployment.
+infrastructure for your Autoscaler with a per-project deployment.
 
-In this deployment option, all the components of the Cloud Spanner Autoscaler
+In this deployment option, all the components of the Autoscaler
 reside in the same project as your Spanner instances.
 
 This deployment is ideal for independent teams who want to self-manage the
@@ -55,7 +55,7 @@ entry point for testing the Autoscaler capabilities.
 
 ![architecture-per-project](../../resources/architecture-per-project.png)
 
-For an explanation of the components of the Cloud Spanner Autoscaler and the
+For an explanation of the components of the Autoscaler and the
 interaction flow, please read the
 [main Architecture section](../../README.md#architecture).
 
@@ -66,7 +66,7 @@ The per-project deployment has the following pros and cons:
 *   **Design**: this option has the simplest design.
 *   **Configuration**: The control over scheduler parameters belongs to the team
     that owns the Spanner instance, therefore the team has the highest degree of
-    freedom to adapt the autoscaler to its needs.
+    freedom to adapt the Autoscaler to its needs.
 *   **Infrastructure**: This design establishes a clear boundary of
     responsibility and security over the Autoscaler infrastructure because the
     team owner of the Spanner instances is also the owner of the Autoscaler
@@ -188,7 +188,7 @@ In this section you prepare your project for deployment.
     export TF_VAR_zone="${ZONE}"
     ```
 
-2.  If you want to create a new Spanner instance for testing the autoscaler, set
+2.  If you want to create a new Spanner instance for testing the Autoscaler, set
     the following variable. The spanner instance that Terraform creates is named
     `autoscale-test`.
 

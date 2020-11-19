@@ -1,11 +1,11 @@
 <br />
 <p align="center">
-  <h2 align="center">Cloud Spanner Autoscaler</h2>
-  <img alt="Spanner Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
+  <h2 align="center">Autoscaler tool for Cloud Spanner</h2>
+  <img alt="Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
-    Set up the Cloud Spanner Autoscaler in a distributed deployment using Terraform
+    Set up the Autoscaler in a distributed deployment using Terraform
     <br />
     <a href="../../README.md">Home</a>
     ·
@@ -44,23 +44,23 @@
 ## Overview
 
 This directory contains Terraform configuration files to quickly set up the
-infrastructure for your Cloud Spanner Autoscaler with a distributed deployment.
+infrastructure for your Autoscaler with a distributed deployment.
 
-In this deployment option all the components of the Cloud Spanner Autoscaler
+In this deployment option all the components of the Autoscaler
 reside in a single project, with the exception of Cloud Scheduler (step 1) and
 the [Forwarder topic and function](../../forwarder/README.md)
 
 This deployment is the best of both worlds between the per-project and the
-centralized deployments: * Teams who own the Spanner instances, called
+centralized deployments: *Teams who own the Spanner instances, called
 Application teams, are able to manage the Autoscaler configuration parameters
-for their instances with their own Cloud Scheduler jobs. * On the other hand,
+for their instances with their own Cloud Scheduler jobs.* On the other hand,
 the rest of the Autoscaler infrastructure is managed by a central team.
 
 ## Architecture
 
 ![architecture-distributed](../../resources/architecture-distributed.png)
 
-For an explanation of the components of the Cloud Spanner Autoscaler and the
+For an explanation of the components of the Autoscaler and the
 interaction flow, please read the
 [main Architecture section](../../README.md#architecture).
 
@@ -289,7 +289,7 @@ topic and function in the project where the Spanner instances live.
     export TF_VAR_location="${APP_APP_ENGINE_LOCATION}"
     ```
 
-2.  Set the project ID where the Autoscaler state will be stored. The autoscaler
+2.  Set the project ID where the Autoscaler state will be stored. The Autoscaler
     state includes the timestamps when the scaling events were triggered for
     each instance.
 
@@ -297,7 +297,7 @@ topic and function in the project where the Spanner instances live.
     export TF_VAR_state_project_id="${AUTO_SCALER_PROJECT_ID}"
     ```
 
-3.  If you want to create a new Spanner instance for testing the autoscaler, set
+3.  If you want to create a new Spanner instance for testing the Autoscaler, set
     the following variable. The spanner instance that Terraform creates is named
     `autoscale-test`.
 
@@ -367,9 +367,9 @@ with -parallelism=1
 
 Your Autoscaler infrastructure is ready, follow the instructions in the main
 page to [configure your Autoscaler](../../README.md#configuration). Please take
-in account that In a distributed deployment: * Logs from the Poller and Scaler
+in account that In a distributed deployment: *Logs from the Poller and Scaler
 functions will appear in the [Logs Viewer][logs-viewer] for the Autoscaler
-project. * Logs about syntax errors in the JSON configuration of the Cloud
+project.* Logs about syntax errors in the JSON configuration of the Cloud
 Scheduler payload will appear in the Logs viewer of each Application project, so
 that the team responsible for a specific Cloud Spanner instance can troubleshoot
 its configuration issues independently.
