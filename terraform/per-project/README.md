@@ -28,16 +28,16 @@
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Overview](#overview)
-* [Architecture](#architecture)
-  * [Pros](#pros)
-  * [Cons](#cons)
-* [Before you begin](#before-you-begin)
-* [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
-* [Deploying the Autoscaler](#deploying-the-autoscaler)
-* [Importing your Spanner instances](#importing-your-spanner-instances)
-* [Next steps](#next-steps)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Architecture](#architecture)
+    *   [Pros](#pros)
+    *   [Cons](#cons)
+*   [Before you begin](#before-you-begin)
+*   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
+*   [Deploying the Autoscaler](#deploying-the-autoscaler)
+*   [Importing your Spanner instances](#importing-your-spanner-instances)
+*   [Next steps](#next-steps)
 
 ## Overview
 

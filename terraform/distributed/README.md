@@ -28,18 +28,18 @@
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Overview](#overview)
-* [Architecture](#architecture)
-  * [Pros](#pros)
-  * [Cons](#cons)
-* [Before you begin](#before-you-begin)
-* [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
-  * [Deploy the Autoscaler](#deploy-the-autoscaler)
-* [Preparing the Application Project](#preparing-the-application-project)
-  * [Deploy the Application infrastructure](#deploy-the-application-infrastructure)
-  * [Authorize the Forwarder function to publish to the Poller topic](#authorize-the-forwarder-function-to-publish-to-the-poller-topic)
-* [Verifying your deployment](#verifying-your-deployment)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Architecture](#architecture)
+    *   [Pros](#pros)
+    *   [Cons](#cons)
+*   [Before you begin](#before-you-begin)
+*   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
+    *   [Deploy the Autoscaler](#deploy-the-autoscaler)
+*   [Preparing the Application Project](#preparing-the-application-project)
+    *   [Deploy the Application infrastructure](#deploy-the-application-infrastructure)
+    *   [Authorize the Forwarder function to publish to the Poller topic](#authorize-the-forwarder-function-to-publish-to-the-poller-topic)
+*   [Verifying your deployment](#verifying-your-deployment)
 
 ## Overview
 
@@ -51,9 +51,9 @@ reside in a single project, with the exception of Cloud Scheduler (step 1) and
 the [Forwarder topic and function](../../forwarder/README.md)
 
 This deployment is the best of both worlds between the per-project and the
-centralized deployments: * Teams who own the Spanner instances, called
+centralized deployments: *Teams who own the Spanner instances, called
 Application teams, are able to manage the Autoscaler configuration parameters
-for their instances with their own Cloud Scheduler jobs. * On the other hand,
+for their instances with their own Cloud Scheduler jobs.* On the other hand,
 the rest of the Autoscaler infrastructure is managed by a central team.
 
 ## Architecture
@@ -367,9 +367,9 @@ with -parallelism=1
 
 Your Autoscaler infrastructure is ready, follow the instructions in the main
 page to [configure your Autoscaler](../../README.md#configuration). Please take
-in account that In a distributed deployment: * Logs from the Poller and Scaler
+in account that In a distributed deployment: *Logs from the Poller and Scaler
 functions will appear in the [Logs Viewer][logs-viewer] for the Autoscaler
-project. * Logs about syntax errors in the JSON configuration of the Cloud
+project.* Logs about syntax errors in the JSON configuration of the Cloud
 Scheduler payload will appear in the Logs viewer of each Application project, so
 that the team responsible for a specific Cloud Spanner instance can troubleshoot
 its configuration issues independently.

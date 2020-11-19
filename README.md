@@ -20,13 +20,13 @@
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Overview](#overview)
-* [Architecture](#architecture)
-* [Deployment](#deployment)
-* [Configuration](#configuration)
-* [Licensing](#licensing)
-* [Contributing](#contributing)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Architecture](#architecture)
+*   [Deployment](#deployment)
+*   [Configuration](#configuration)
+*   [Licensing](#licensing)
+*   [Contributing](#contributing)
 
 ## Overview
 

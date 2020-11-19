@@ -26,13 +26,13 @@
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Overview](#overview)
-* [Architecture](#architecture)
-  * [Pros](#pros)
-  * [Cons](#cons)
-* [Before you begin](#before-you-begin)
-* [Configuring your Application project](#configuring-your-application-project)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Architecture](#architecture)
+    *   [Pros](#pros)
+    *   [Cons](#cons)
+*   [Before you begin](#before-you-begin)
+*   [Configuring your Application project](#configuring-your-application-project)
 
 ## Overview
 

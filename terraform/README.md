@@ -28,8 +28,8 @@
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Overview](#overview)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
 
 ## Overview
 

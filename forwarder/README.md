@@ -21,11 +21,11 @@
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Overview](#overview)
-* [Architecture](#architecture)
-* [Configuration parameters](#configuration-parameters)
-  * [Required](#required)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Architecture](#architecture)
+*   [Configuration parameters](#configuration-parameters)
+    *   [Required](#required)
 
 ## Overview
 

@@ -21,16 +21,16 @@
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Overview](#overview)
-* [Configuration parameters](#configuration-parameters)
-  * [Required](#required)
-  * [Optional](#optional)
-* [Metrics parameters](#metrics-parameters)
-  * [Selectors](#selectors)
-  * [Parameters](#parameters)
-* [Custom thresholds](#custom-thresholds)
-* [Example configuration](#example-configuration)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Configuration parameters](#configuration-parameters)
+    *   [Required](#required)
+    *   [Optional](#optional)
+*   [Metrics parameters](#metrics-parameters)
+    *   [Selectors](#selectors)
+    *   [Parameters](#parameters)
+*   [Custom thresholds](#custom-thresholds)
+*   [Example configuration](#example-configuration)
 
 ## Overview
 

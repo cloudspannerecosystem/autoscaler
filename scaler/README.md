@@ -21,11 +21,11 @@
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Overview](#overview)
-* [Scaling methods](#scaling-methods)
-  * [Custom scaling methods](#custom-scaling-methods)
-* [Parameters](#parameters)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Scaling methods](#scaling-methods)
+    *   [Custom scaling methods](#custom-scaling-methods)
+*   [Parameters](#parameters)
 
 ## Overview
 
