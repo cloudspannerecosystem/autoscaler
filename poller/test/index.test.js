@@ -93,15 +93,16 @@
         unset();
     });
 
-    it('should not do anything if a metric not found', async () => {
-        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "minNodes": 10, "metrics": [{"name": "bogus", "multi_regional_threshold":20}]}]';
+    it('should add a custom metric to the list if metric name not found', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "minNodes": 10, "metrics": [{"filter": "my super cool filter", "name": "bogus", "multi_regional_threshold":20}]}]';
 
         let stub = sinon.stub().resolves({currentNode: 5, regional: true});
         let unset = app.__set__('getSpannerMetadata', stub);
 
         let mergedConfig = await parseAndEnrichPayload(payload);
-        should(mergedConfig[0].metrics[-1]).be.undefined();
-
+        let idx = mergedConfig[0].metrics.findIndex(x => x.name === 'bogus');
+        console.log(mergedConfig[0].metrics[idx]);
+        (mergedConfig[0].metrics[idx].multi_regional_threshold).should.equal(20);
         unset();
     });
  });

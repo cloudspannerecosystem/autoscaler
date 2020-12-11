@@ -36,6 +36,11 @@ const spannerDefaults = {
   scaleInCoolingMinutes: 30,
   scalingMethod: 'STEPWISE'
 };
+const metricDefaults = {
+  period: 60,
+  aligner: 'ALIGN_MAX',
+  reducer: 'REDUCE_SUM'
+}
 
 function log(message, severity = 'DEBUG', payload) {
   // Structured logging
@@ -66,9 +71,7 @@ function buildMetrics(projectId, instanceId) {
   const metrics = [
     {
       name: 'high_priority_cpu',
-      filter: 'resource.labels.instance_id="' + instanceId + '" AND ' +
-          'resource.type="spanner_instance" AND ' +
-          'project="' + projectId + '" AND ' +
+      filter: createBaseFilter(projectId, instanceId) +
           'metric.type="spanner.googleapis.com/instance/cpu/utilization_by_priority" AND ' +
           'metric.label.priority="high"',
       reducer: 'REDUCE_SUM',
@@ -79,9 +82,7 @@ function buildMetrics(projectId, instanceId) {
     },
     {
       name: 'rolling_24_hr',
-      filter: 'resource.labels.instance_id="' + instanceId + '" AND ' +
-          'resource.type="spanner_instance" AND ' +
-          'project="' + projectId + '" AND ' +
+      filter: createBaseFilter(projectId, instanceId) +
           'metric.type="spanner.googleapis.com/instance/cpu/smoothed_utilization"',
       reducer: 'REDUCE_SUM',
       aligner: 'ALIGN_MAX',
@@ -91,9 +92,7 @@ function buildMetrics(projectId, instanceId) {
     },
     {
       name: 'storage',
-      filter: 'resource.labels.instance_id="' + instanceId + '" AND ' +
-          'resource.type="spanner_instance" AND ' +
-          'project="' + projectId + '" AND ' +
+      filter: createBaseFilter(projectId, instanceId) +
           'metric.type="spanner.googleapis.com/instance/storage/utilization"',
       reducer: 'REDUCE_SUM',
       aligner: 'ALIGN_MAX',
@@ -104,6 +103,13 @@ function buildMetrics(projectId, instanceId) {
   ];
 
   return metrics;
+}
+
+// creates the base filter that should be prepended to all metric filters
+function createBaseFilter(projectId, instanceId) {
+  return 'resource.labels.instance_id="' + instanceId + '" AND ' +
+  'resource.type="spanner_instance" AND ' +
+  'project="' + projectId + '" AND '
 }
 
 function getMaxMetricValue(projectId, spannerInstanceId, metric) {
@@ -204,6 +210,11 @@ async function parseAndEnrichPayload(payload) {
         mIdx = spanners[sIdx].metrics.findIndex(x => x.name === metricOverrides[oIdx].name);
         if(mIdx != -1) {
           spanners[sIdx].metrics[mIdx] = {...spanners[sIdx].metrics[mIdx], ...metricOverrides[oIdx]};
+        }
+        else {
+          var metric = {...metricDefaults, ...metricOverrides[oIdx]};
+          metric.filter = createBaseFilter(spanners[sIdx].projectId, spanners[sIdx].instanceId) + metric.filter;
+          spanners[sIdx].metrics.push(metric);
         }
       }
     }
