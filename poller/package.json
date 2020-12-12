@@ -16,6 +16,7 @@
     },
     "devDependencies": {
         "mocha": "^8.2.0",
+        "mocha-suppress-logs": "^0.2.0",
         "rewire": "^5.0.0",
         "should": "^13.2.3",
         "sinon": "^9.2.0"

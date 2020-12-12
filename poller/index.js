@@ -112,6 +112,27 @@ function createBaseFilter(projectId, instanceId) {
   'project="' + projectId + '" AND '
 }
 
+// checks to make sure required fields are present and populated
+function validateCustomMetric(metric) {
+  if(!metric.name) {
+    log('Missing name parameter for custom metric.', 'INFO');
+    return false;
+  }
+
+  if(!metric.filter) {
+    log('Missing filter parameter for custom metric.', 'INFO');
+    return false;
+  }
+
+  if(!(metric.regional_threshold > 0 || metric.multi_regional_threshold > 0)) {
+    log('Missing regional_threshold or multi_multi_regional_threshold ' +
+        'parameter for custom metric.', 'INFO');
+    return false;
+  }
+
+  return true;
+}
+
 function getMaxMetricValue(projectId, spannerInstanceId, metric) {
   const metricWindow = 5;
   log(`Get max ${metric.name} from ${projectId}/${spannerInstanceId} over ${metricWindow} minutes.`);
@@ -213,8 +234,10 @@ async function parseAndEnrichPayload(payload) {
         }
         else {
           var metric = {...metricDefaults, ...metricOverrides[oIdx]};
-          metric.filter = createBaseFilter(spanners[sIdx].projectId, spanners[sIdx].instanceId) + metric.filter;
-          spanners[sIdx].metrics.push(metric);
+          if(validateCustomMetric(metric)) {
+            metric.filter = createBaseFilter(spanners[sIdx].projectId, spanners[sIdx].instanceId) + metric.filter;
+            spanners[sIdx].metrics.push(metric);
+          }
         }
       }
     }
