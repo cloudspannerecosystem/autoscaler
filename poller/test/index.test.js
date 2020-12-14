@@ -16,11 +16,13 @@
  const rewire = require('rewire');
  const sinon = require('sinon');
  const should = require('should');
+ const suppressLogs = require('mocha-suppress-logs');
 
  const app = rewire('../index.js');
 
  const buildMetrics = app.__get__('buildMetrics');
  const parseAndEnrichPayload = app.__get__('parseAndEnrichPayload');
+ const validateCustomMetric = app.__get__('validateCustomMetric');
 
  describe('#buildMetrics', () => {
     it('should return 3 metrics', () => {
@@ -36,7 +38,33 @@
     });
  });
 
+ describe('#validateCustomMetric', () => {
+    suppressLogs();
+    
+    it('should return false if name is missing', () => {
+        validateCustomMetric({filter: 'my filter', regional_threshold: 10}).should.be.false();
+    });
+
+    it('should return false if filter is blank', () => {
+        validateCustomMetric({name: 'custom_filter', filter: '', regional_threshold: 10}).should.be.false();
+    });
+
+    it('should return false if thresholds are missing', () => {
+        validateCustomMetric({name: 'custom_filter', filter: 'my filter'}).should.be.false();
+    });
+    
+    it('should return false if thresholds are less than equal to 0', () => {
+        validateCustomMetric({name: 'custom_filter', filter: 'my filter', regional_threshold: 0}).should.be.false();
+    });
+
+    it('should return true all fields are present and valid', () => {
+        validateCustomMetric({name: 'custom_filter', filter: 'my filter', multi_regional_threshold: 50}).should.be.true();
+    });
+ });
+
  describe('#parseAndEnrichPayload', () => {
+    suppressLogs();
+    
     it('should return the default for stepSize', async () => {
         const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "minNodes": 10}]';
 
@@ -93,15 +121,27 @@
         unset();
     });
 
-    it('should not do anything if a metric not found', async () => {
-        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "minNodes": 10, "metrics": [{"name": "bogus", "multi_regional_threshold":20}]}]';
+    it('should add a custom metric to the list if metric name is a default metric', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "minNodes": 10, "metrics": [{"filter": "my super cool filter", "name": "bogus", "multi_regional_threshold":20}]}]';
 
         let stub = sinon.stub().resolves({currentNode: 5, regional: true});
         let unset = app.__set__('getSpannerMetadata', stub);
 
         let mergedConfig = await parseAndEnrichPayload(payload);
-        should(mergedConfig[0].metrics[-1]).be.undefined();
+        let idx = mergedConfig[0].metrics.findIndex(x => x.name === 'bogus');
+        (mergedConfig[0].metrics[idx].multi_regional_threshold).should.equal(20);
+        unset();
+    });
 
+    it('should not add a custom metric to the list if the provided metric is not valid', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "minNodes": 10, "metrics": [{"filter": "my super cool filter", "name": "bogus"}]}]';
+
+        let stub = sinon.stub().resolves({currentNode: 5, regional: true});
+        let unset = app.__set__('getSpannerMetadata', stub);
+
+        let mergedConfig = await parseAndEnrichPayload(payload);
+        let idx = mergedConfig[0].metrics.findIndex(x => x.name === 'bogus');
+        idx.should.equal(-1);
         unset();
     });
  });

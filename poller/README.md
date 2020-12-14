@@ -29,7 +29,9 @@
 *   [Metrics parameters](#metrics-parameters)
     *   [Selectors](#selectors)
     *   [Parameters](#parameters)
-*   [Custom thresholds](#custom-thresholds)
+*   [Custom thresholds and metrics](#custom-thresholds-and-metrics)
+    *   [Thresholds](#thresholds)
+    *   [Metrics](#metrics)
 *   [Example configuration](#example-configuration)
 
 ## Overview
@@ -107,39 +109,61 @@ metric is critical to the opertional of the Autoscaler, please refer to
 for a complete discussion on building metric filters and aggregating data
 points.
 
-Key                        | Description
--------------------------- | -----------
-`filter`                   | The [Cloud Spanner metric](spanner-metrics) and [filter](time-series-filters) that should be used when querying for data. The filter needs to include expressions for [Spanner instance resources, instance id](spanner-filter) and project id.
-`reducer`                  | The reducer specifies how the data points should be aggregated when querying for metrics, typically `REDUCE_SUM`. For more details please refer to [Alert Policies - Reducer][alertpolicy-reducer] documentation.
-`aligner`                  | The aligner specifies how the data points should be aligned in the time series, typically `ALIGN_MAX`. For more details please refer to [Alert Policies - Aligner][alertpolicy-aligner] documentation.
-`period`                   | Defines the period of time in units of seconds at which aggregation takes place. Typically the period should be 60.
-`regional_threshold`       | Threshold that should be use when evaluating if a regional instance needs to be scaled in or out.
-`multi_regional_threshold` | Threshold that should be use when evaluating if a multi-regional instance needs to be scaled in or out.
+Key                        | Default      | Description
+-------------------------- | ------------ | -----------
+`filter`                   |              | The [Cloud Spanner metric](spanner-metrics) and [filter](time-series-filters) that should be used when querying for data. The Autoscaler will automatically add the filter expressions for [Spanner instance resources, instance id](spanner-filter) and project id.
+`reducer`                  | `REDUCE_SUM` | The reducer specifies how the data points should be aggregated when querying for metrics, typically `REDUCE_SUM`. For more details please refer to [Alert Policies - Reducer][alertpolicy-reducer] documentation.
+`aligner`                  | `ALIGN_MAX`  | The aligner specifies how the data points should be aligned in the time series, typically `ALIGN_MAX`. For more details please refer to [Alert Policies - Aligner][alertpolicy-aligner] documentation.
+`period`                   | 60           | Defines the period of time in units of seconds at which aggregation takes place. Typically the period should be 60.
+`regional_threshold`       |              | Threshold that should be use when evaluating if a regional instance needs to be scaled in or out.
+`multi_regional_threshold` |              | Threshold that should be use when evaluating if a multi-regional instance needs to be scaled in or out.
 
-## Custom thresholds
+## Custom thresholds and metrics
 
 The Autoscaler determines the number of nodes to be added or
 substracted to an instance based on the
 [Spanner recommended thresholds][spanner-metrics] for High Priority CPU, 24 hour
 rolling average CPU and Storage utilization metrics.
 
-Google recommends using the provided thresholds unchanged. However, in some
-cases you may want to modify these thresholds, for example: if reaching the
-threshold triggers an alert to your operations team, you could make the
-Autoscaler react to a more conservative threshold to avoid alerts being
-triggered.
+Google recommends using the provided metrics and thresholds unchanged. However,
+in some cases you may want to modify these thresholds or use a custom metric,
+for example: if reaching the threshold triggers an alert to your operations
+team, you could make the Autoscaler react to a more conservative threshold to
+avoid alerts being triggered.
+
+### Thresholds
 
 To modify the recommended thresholds, add the metrics parameter to your
 configuration and specify name (`high_priority_cpu`, `rolling_24_hr` and
 `storage`) of the metric to be changed and desired `regional_threshold` or
 `multi_regional_threshold` for your Cloud Spanner instance.
 
+### Metrics
+
+To create a custom metric, add the metrics parameter to your
+configuration specifying the required fields (`name`, `filter`,
+`regional_threshold`, `multi_regional_threshold`). The `period`,
+`reducer` and `aligner` are defaulted but can also be specified in
+the metric definition.
+
+[Cloud Spanner metric](spanner-metrics) and [filter](time-series-filters) that
+should be used when querying for data. The Autoscaler will automatically add
+the filter expressions for [Spanner instance resources, instance id](spanner-filter)
+and project id.
+
 ## Example configuration
 
 ```json
 [
     {
-        "projectId": "my-spanner-project",
+        "projectId": "basic-configuration",
+        "instanceId": "another-spanner1",
+        "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
+        "minNodes": 5,
+        "maxNodes": 30,
+        "scalingMethod": "DIRECT"
+    },{
+        "projectId": "custom-threshold",
         "instanceId": "spanner1",
         "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
         "minNodes": 1,
@@ -151,12 +175,20 @@ configuration and specify name (`high_priority_cpu`, `rolling_24_hr` and
           }
         ]
     },{
-        "projectId": "different-project",
+        "projectId": "custom-metric",
         "instanceId": "another-spanner1",
         "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
         "minNodes": 5,
         "maxNodes": 30,
-        "scalingMethod": "DIRECT"
+        "scalingMethod": "LINEAR",
+        "metrics": [
+          {
+            "name": "my_custom_metric",
+            "fitler": "metric.type=\"spanner.googleapis.com/instance/resource/metric\"",
+            "regional_threshold": 40,
+            "multi_regional_threshold": 30
+          }
+        ]
     }
 ]
 ```
