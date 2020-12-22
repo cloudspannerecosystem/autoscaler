@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <h2 align="center">Autoscaler tool for Cloud Spanner</h2>
-  <img alt="Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
+  <img alt="Autoscaler" src="../resources/BlogHeader_Database_3.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
@@ -29,8 +29,9 @@
 *   [Metrics parameters](#metrics-parameters)
     *   [Selectors](#selectors)
     *   [Parameters](#parameters)
-*   [Custom thresholds and metrics](#custom-thresholds-and-metrics)
+*   [Custom metrics, thresholds and margins](#custom-metrics-thresholds-and-margins)
     *   [Thresholds](#thresholds)
+    *   [Margins](#margins)
     *   [Metrics](#metrics)
 *   [Example configuration](#example-configuration)
 
@@ -45,10 +46,11 @@ PubSub topic including the metrics and part of the configuration for the Spanner
 instance.
 
 The Scaler function will receive the message, compare the metric values with the
-[recommended thresholds][spanner-metrics] and if any of the thresholds are
-exceeded, the Scaler function will adjust the number of nodes in the Spanner
-instance accordingly. Note that the thresholds are different depending if a
-Spanner instance is [regional or multi-region][spanner-regional].
+[recommended thresholds][spanner-metrics], plus minus an [allowed margin](#margins),
+and if any of the values fall outside of this range, the Scaler function will adjust
+the number of nodes in the Spanner instance accordingly. Note that the thresholds
+are different depending if a Spanner instance is
+[regional or multi-region][spanner-regional].
 
 ## Configuration parameters
 
@@ -115,19 +117,21 @@ Key                        | Default      | Description
 `reducer`                  | `REDUCE_SUM` | The reducer specifies how the data points should be aggregated when querying for metrics, typically `REDUCE_SUM`. For more details please refer to [Alert Policies - Reducer][alertpolicy-reducer] documentation.
 `aligner`                  | `ALIGN_MAX`  | The aligner specifies how the data points should be aligned in the time series, typically `ALIGN_MAX`. For more details please refer to [Alert Policies - Aligner][alertpolicy-aligner] documentation.
 `period`                   | 60           | Defines the period of time in units of seconds at which aggregation takes place. Typically the period should be 60.
-`regional_threshold`       |              | Threshold that should be use when evaluating if a regional instance needs to be scaled in or out.
-`multi_regional_threshold` |              | Threshold that should be use when evaluating if a multi-regional instance needs to be scaled in or out.
+`regional_threshold`       |              | Threshold used to evaluate if a regional instance needs to be scaled in or out.
+`multi_regional_threshold` |              | Threshold used to evaluate if a multi-regional instance needs to be scaled in or out.
+`regional_margin`       |      5       | Margin above and below the threshold where the metric value is allowed. If the metric falls outside of the range `[threshold - margin, threshold + margin]`, then the regional instance needs to be scaled in or out.
+`multi_regional_margin` |      5       | Margin above and below the threshold where the metric value is allowed. If the metric falls outside of the range `[threshold - margin, threshold + margin]`, then the multi regional instance needs to be scaled in or out.
 
-## Custom thresholds and metrics
+## Custom metrics, thresholds and margins
 
 The Autoscaler determines the number of nodes to be added or
 substracted to an instance based on the
 [Spanner recommended thresholds][spanner-metrics] for High Priority CPU, 24 hour
 rolling average CPU and Storage utilization metrics.
 
-Google recommends using the provided metrics and thresholds unchanged. However,
-in some cases you may want to modify these thresholds or use a custom metric,
-for example: if reaching the threshold triggers an alert to your operations
+Google recommends using the provided metrics, thresholds and margins unchanged. However,
+in some cases you may want to modify these or use a custom metric,
+for example: if reaching the default upper limit triggers an alert to your operations
 team, you could make the Autoscaler react to a more conservative threshold to
 avoid alerts being triggered.
 
@@ -137,6 +141,23 @@ To modify the recommended thresholds, add the metrics parameter to your
 configuration and specify name (`high_priority_cpu`, `rolling_24_hr` and
 `storage`) of the metric to be changed and desired `regional_threshold` or
 `multi_regional_threshold` for your Cloud Spanner instance.
+
+### Margins
+
+A margin defines an upper and a lower limit around the threshold. An autoscaling
+event will be triggered only if the metric value falls above the upper limit,
+or below the lower limit.
+
+The objective of this parameter is to avoid autoscaling evnts being triggered
+for small workload fluctuations around the threshold. The threshold and metric
+together define a range `[threshold - margin, threshold + margin]`, where the
+metric value is allowed. The smaller the margin, the narrower the range,
+resulting in higher probability that an autoscaling event is triggered.
+
+By default, the margin value is `5` for both regional and multi-regional instances.
+You can change the default value by specifying `regional_margin`
+or `multi_regional_margin` in the metric parameters. Specifying a margin parameter
+for a metric is optional.
 
 ### Metrics
 
@@ -171,7 +192,8 @@ and project id.
         "metrics": [
           {
             "name": "high_priority_cpu",
-            "regional_threshold": 40
+            "regional_threshold": 40,
+            "regional_margin": 3
           }
         ]
     },{
