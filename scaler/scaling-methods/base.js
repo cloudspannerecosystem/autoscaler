@@ -25,19 +25,71 @@
 const OVERLOAD_METRIC = 'high_priority_cpu';
 const OVERLOAD_THRESHOLD = 90;
 
+const RelativeToRange = {
+  BELOW: 'BELOW',
+  WITHIN: 'WITHIN',
+  ABOVE: 'ABOVE'
+}
+
+// https://github.com/cloudspannerecosystem/autoscaler/issues/25
+// Autosclaing is triggered if the metric value is outside of threshold +- margin
+const DEFAULT_THRESHOLD_MARGIN = 5;
+
 const {log} = require('../utils.js');
 
+function getScaleSuggestionMessage(spanner, suggestedNodes, relativeToRange) {
+  if (relativeToRange == RelativeToRange.WITHIN) {
+    return `no change suggested`;
+  } else if (suggestedNodes == spanner.currentNodes) {
+    if (suggestedNodes == spanner.minNodes)
+      return `however current nodes ${spanner.currentNodes} = MIN nodes, therefore no change suggested.`;
+    else if (suggestedNodes == spanner.maxNodes)
+      return `however current nodes ${spanner.currentNodes} = MAX nodes, therefore no change suggested.`;
+    else 
+      return `no change suggested to current ${spanner.currentNodes} nodes.`;
+  } else {
+    return `suggesting to scale from ${spanner.currentNodes} to ${suggestedNodes} nodes.`;
+  }
+}
+
+function getRange(threshold, margin) {
+  var range = { 
+    min: threshold - margin, 
+    max: threshold + margin 
+  };
+
+  if (range.min < 0) range.min = 0;
+  if (range.max > 100) range.max = 100;
+
+  return range;
+}
+
+function metricValueWithinMargin(metric) {
+  if (compareMetricValueWithRange(metric) == RelativeToRange.WITHIN) return true;
+  else return false;
+}
+
+function compareMetricValueWithRange(metric) {
+  var range = getRange(metric.threshold, metric.margin);
+
+  if (metric.value < range.min) return RelativeToRange.BELOW;
+  if (metric.value > range.max) return RelativeToRange.ABOVE;
+  return RelativeToRange.WITHIN;
+}
+
 function logSuggestion(spanner, metric, suggestedNodes) {
-  var aboveOrBelow = (metric.value > metric.threshold ? 'ABOVE' : 'BELOW');
-  var threshold = metric.threshold;
-  var overload = '';
+  const metricDetails = `\t${metric.name}=${metric.value}%,`;
+  const relativeToRange = compareMetricValueWithRange(metric);
+
+  const range = getRange(metric.threshold, metric.margin);
+  const rangeDetails = `${relativeToRange} the range [${range.min}%-${range.max}%]`;
 
   if (metric.name === OVERLOAD_METRIC && spanner.isOverloaded) {
-    threshold = OVERLOAD_THRESHOLD;
-    overload = ' OVERLOAD';
-  }
+    log(`${metricDetails} ABOVE the ${OVERLOAD_THRESHOLD} overload threshold => ${getScaleSuggestionMessage(spanner, suggestedNodes, RelativeToRange.ABOVE)}`);
+  } else  {
+    log(`${metricDetails} ${rangeDetails} => ${getScaleSuggestionMessage(spanner, suggestedNodes, relativeToRange)}`);
+  } 
 
-  log(`\t${metric.name}=${metric.value}, ${aboveOrBelow} the ${threshold}${overload} threshold => suggesting ${suggestedNodes} nodes.`);
 }
 
 function loopThroughSpannerMetrics(spanner, getSuggestedNodes) {
@@ -51,6 +103,11 @@ function loopThroughSpannerMetrics(spanner, getSuggestedNodes) {
     if (metric.name === OVERLOAD_METRIC && metric.value > OVERLOAD_THRESHOLD) {
       spanner.isOverloaded = true;
     }
+
+    if (!metric.hasOwnProperty('margin')) {
+      metric.margin = DEFAULT_THRESHOLD_MARGIN;
+    }
+
     const suggestedNodes = getSuggestedNodes(spanner, metric);
     logSuggestion(spanner, metric, suggestedNodes);
 
@@ -65,5 +122,6 @@ function loopThroughSpannerMetrics(spanner, getSuggestedNodes) {
 
 module.exports = {
   OVERLOAD_METRIC,
-  loopThroughSpannerMetrics
+  loopThroughSpannerMetrics,
+  metricValueWithinMargin
 };

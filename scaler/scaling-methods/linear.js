@@ -23,6 +23,7 @@
 exports.calculateNumNodes = (spanner) => {
   const baseModule = require('./base');
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
-    return Math.ceil(spanner.currentNodes * metric.value / metric.threshold);
+    if (baseModule.metricValueWithinRange(metric)) return spanner.currentNodes;
+    else return Math.ceil(spanner.currentNodes * metric.value / metric.threshold);
   });
 }

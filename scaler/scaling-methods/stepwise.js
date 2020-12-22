@@ -23,7 +23,7 @@
 exports.calculateNumNodes = (spanner) => {
   const baseModule = require('./base');
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
-    if (metric.value == metric.threshold)
+    if (baseModule.metricValueWithinRange(metric))
       return spanner.currentNodes;  // No change
 
     var suggestedStep =

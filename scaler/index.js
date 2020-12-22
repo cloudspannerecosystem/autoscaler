@@ -49,9 +49,9 @@ async function scaleSpannerInstance(spanner, suggestedNodes) {
       'INFO');
 
   const metadata = {
-    // displayName : 'instance' + Math.floor(Math.random() * 100) // For
-    // testing. See next line for actual scaling
-    nodeCount: suggestedNodes
+    // For testing. See next line for actual scaling
+     displayName : 'instance' + Math.floor(Math.random() * 100)
+    //nodeCount: suggestedNodes
   };
 
   const spannerClient = new Spanner({
@@ -156,7 +156,7 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 exports.scaleSpannerInstanceHTTP = async (req, res) => {
   try {
     const payload =
-        '{"minNodes":1,"maxNodes":3,"stepSize":1,"overloadStepSize":5,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":95},{"name":"rolling_24_hr","threshold":90,"value":80},{"name":"storage","threshold":75,"value":80}],"currentNodes":1,"regional":true}';
+        '{"minNodes":1,"maxNodes":3,"stepSize":1,"overloadStepSize":5,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":1,"regional":true}';
 
     await processScalingRequest(JSON.parse(payload));
     res.status(200).end();
