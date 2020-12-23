@@ -11,9 +11,11 @@
   "scripts": {
     "start": "functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
     "debug": "node --inspect node_modules/@google-cloud/functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
-    "test": "mocha --recursive"
+    "test": "mocha --recursive",
+    "mdlint": "cd .. && markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"
   },
   "devDependencies": {
+    "markdownlint": "^0.22.0",
     "mocha": "^8.2.0",
     "mocha-suppress-logs": "^0.2.0",
     "rewire": "^5.0.0",

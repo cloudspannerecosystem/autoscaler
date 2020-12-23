@@ -38,13 +38,13 @@ and adjusts the number of nodes in the Spanner instance accordingly.
 
 ## Scaling methods
 
-The Scaler function supports three scaling methods out of the box: 
+The Scaler function supports three scaling methods out of the box:
 
-*   [STEPWISE](scaling-methods/stepwise.js): This is the default method used by the
-Scaler. It suggests adding or removing nodes using fixed step amount defined by
-the parameter `stepSize`. In an overload situation, when the instance High
-Priority CPU utilization is over 90%, the Scaler uses the `overloadStepSize`
-parameter instead.
+*   [STEPWISE](scaling-methods/stepwise.js): This is the default method used by
+    the Scaler. It suggests adding or removing nodes using fixed step amount
+    defined by the parameter `stepSize`. In an overload situation, when the
+    instance High Priority CPU utilization is over 90%, the Scaler uses the
+    `overloadStepSize` parameter instead.
 
 *   [LINEAR](scaling-methods/linear.js): This method suggests adding or removing
     nodes calculated with a simple linear
