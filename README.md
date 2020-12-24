@@ -42,7 +42,7 @@ number of nodes in the instance.
 The Autoscaler monitors your instances and automatically adds or
 removes nodes to ensure that they stay within the
 [recommended maximums for CPU utilization][spanner-max-cpu] and the
-[recommended limit for storage per node][spanner-max-storage], plus minus an
+[recommended limit for storage per node][spanner-max-storage], plus or minus an
 [allowed margin](poller/README.md#margins). Note that the recommended thresholds
 are different depending if a Spanner instance is
 [regional or multi-region][spanner-regional].
@@ -82,7 +82,7 @@ interaction flow:
     [Scaler Cloud Function][autoscaler-scaler] is created to handle it. \
     Using the chosen [scaling method](scaler/README.md#scaling-methods), the
     Scaler function compares the Spanner instance metrics against the
-    recommended thresholds, plus minus an [allowed margin](poller/README.md#margins)
+    recommended thresholds, plus or minus an [allowed margin](poller/README.md#margins)
     and determines if the instance should be scaled, and the number of nodes
     that it should be scaled to.
 

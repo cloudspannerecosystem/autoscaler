@@ -46,7 +46,7 @@ PubSub topic including the metrics and part of the configuration for the Spanner
 instance.
 
 The Scaler function will receive the message, compare the metric values with the
-[recommended thresholds][spanner-metrics], plus minus an [allowed margin](#margins),
+[recommended thresholds][spanner-metrics], plus or minus an [allowed margin](#margins),
 and if any of the values fall outside of this range, the Scaler function will adjust
 the number of nodes in the Spanner instance accordingly. Note that the thresholds
 are different depending if a Spanner instance is
@@ -148,8 +148,9 @@ A margin defines an upper and a lower limit around the threshold. An autoscaling
 event will be triggered only if the metric value falls above the upper limit,
 or below the lower limit.
 
-The objective of this parameter is to avoid autoscaling evnts being triggered
-for small workload fluctuations around the threshold. The threshold and metric
+The objective of this parameter is to avoid autoscaling events being triggered
+for small workload fluctuations around the threshold, thus creating a smoothing
+effect in autoscaler actions. The threshold and metric
 together define a range `[threshold - margin, threshold + margin]`, where the
 metric value is allowed. The smaller the margin, the narrower the range,
 resulting in higher probability that an autoscaling event is triggered.

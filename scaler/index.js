@@ -44,22 +44,24 @@ function getScalingMethod(methodName) {
   return scalingMethod;
 }
 
+function getNewMetadata(suggestedNodes) {
+  return {
+    // For testing. See next line for actual scaling
+    // displayName : 'instance' + Math.floor(Math.random() * 100)
+    nodeCount: suggestedNodes
+  };
+}
+
 async function scaleSpannerInstance(spanner, suggestedNodes) {
   log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling spanner instance to ${suggestedNodes} nodes -----`,
       'INFO');
-
-  const metadata = {
-    // For testing. See next line for actual scaling
-     displayName : 'instance' + Math.floor(Math.random() * 100)
-    //nodeCount: suggestedNodes
-  };
 
   const spannerClient = new Spanner({
     projectId: spanner.projectId,
   });
 
   return spannerClient.instance(spanner.instanceId)
-      .setMetadata(metadata)
+      .setMetadata(getNewMetadata(suggestedNodes))
       .then(function(data) {
         const operation = data[0];
         log(`Cloud Spanner started the scaling operation: ${operation.name}`);
