@@ -13,18 +13,18 @@
  * limitations under the License
  */
 
- const rewire = require('rewire');
- const sinon = require('sinon');
- const should = require('should');
- const suppressLogs = require('mocha-suppress-logs');
+const rewire = require('rewire');
+const sinon = require('sinon');
+const should = require('should');
+const suppressLogs = require('mocha-suppress-logs');
 
- const app = rewire('../index.js');
+const app = rewire('../index.js');
 
- const buildMetrics = app.__get__('buildMetrics');
- const parseAndEnrichPayload = app.__get__('parseAndEnrichPayload');
- const validateCustomMetric = app.__get__('validateCustomMetric');
+const buildMetrics = app.__get__('buildMetrics');
+const parseAndEnrichPayload = app.__get__('parseAndEnrichPayload');
+const validateCustomMetric = app.__get__('validateCustomMetric');
 
- describe('#buildMetrics', () => {
+describe('#buildMetrics', () => {
     it('should return 3 metrics', () => {
         buildMetrics('fakeProjectId', 'fakeInstanceId').should.have.length(3);
     });
@@ -36,9 +36,9 @@
     it('should insert the instanceId', () => {
         buildMetrics('fakeProjectId', 'fakeInstanceId')[2].filter.should.have.match(/fakeInstanceId/);
     });
- });
+});
 
- describe('#validateCustomMetric', () => {
+describe('#validateCustomMetric', () => {
     suppressLogs();
     
     it('should return false if name is missing', () => {
@@ -60,9 +60,9 @@
     it('should return true all fields are present and valid', () => {
         validateCustomMetric({name: 'custom_filter', filter: 'my filter', multi_regional_threshold: 50}).should.be.true();
     });
- });
+});
 
- describe('#parseAndEnrichPayload', () => {
+describe('#parseAndEnrichPayload', () => {
     suppressLogs();
     
     it('should return the default for stepSize', async () => {
@@ -144,4 +144,4 @@
         idx.should.equal(-1);
         unset();
     });
- });
+});

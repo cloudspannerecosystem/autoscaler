@@ -13,17 +13,15 @@
  * limitations under the License
  */
 
-/*
- * Linear scaling method
- *
- * Suggests adding or removing nodes, calculated with a simple linear cross
- * multiplication.
- */
+const rewire = require('rewire');
+const should = require('should');
 
-exports.calculateNumNodes = (spanner) => {
-  const baseModule = require('./base');
-  return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
-    if (baseModule.metricValueWithinRange(metric)) return spanner.currentNodes;
-    else return Math.ceil(spanner.currentNodes * metric.value / metric.threshold);
-  });
-}
+const app = rewire('../index.js');
+
+const getNewMetadata = app.__get__('getNewMetadata');
+describe('#getNewMetadata', () => {
+    it('should return an object with the nodeCount property set', () => {
+      getNewMetadata(99).should.have.property('nodeCount').which.is.a.Number().and.equal(99);
+    });
+
+});

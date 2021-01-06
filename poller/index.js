@@ -41,6 +41,7 @@ const metricDefaults = {
   aligner: 'ALIGN_MAX',
   reducer: 'REDUCE_SUM'
 }
+const DEFAULT_THRESHOLD_MARGIN = 5;
 
 function log(message, severity = 'DEBUG', payload) {
   // Structured logging
@@ -259,15 +260,27 @@ async function getMetrics(spanner) {
   for (const metric of spanner.metrics) {
     var maxMetricValue =
         await getMaxMetricValue(spanner.projectId, spanner.instanceId, metric);
-    const threshold = (spanner.regional) ? metric.regional_threshold :
-                                           metric.multi_regional_threshold;
 
-    var aboveOrUnder = ((maxMetricValue > threshold) ? 'ABOVE' : 'UNDER');
-    log(`	 ${metric.name} = ${maxMetricValue}, ${aboveOrUnder} the ${threshold} threshold.`);
+    var threshold;
+    var margin;
+    if (spanner.regional) {
+      threshold = metric.regional_threshold;
+      if (!metric.hasOwnProperty('regional_margin')) 
+        metric.regional_margin = DEFAULT_THRESHOLD_MARGIN;
+      margin = metric.regional_margin;
+    } else {
+      threshold = metric.multi_regional_threshold;
+      if (!metric.hasOwnProperty('multi_regional_margin')) 
+        metric.multi_regional_margin = DEFAULT_THRESHOLD_MARGIN;
+      margin = metric.multi_regional_margin;
+    }
+
+    log(`	 ${metric.name} = ${maxMetricValue}, threshold = ${threshold}, margin = ${margin}`);
 
     const metricsObject = {
       name: metric.name,
       threshold: threshold,
+      margin: margin,
       value: maxMetricValue
     };
     metrics.push(metricsObject);

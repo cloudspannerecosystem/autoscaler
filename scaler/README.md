@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <h2 align="center">Autoscaler tool for Cloud Spanner</h2>
-  <img alt="Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
+  <img alt="Autoscaler" src="../resources/BlogHeader_Database_3.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
@@ -31,18 +31,20 @@
 
 The Scaler function receives a message from the Poller function that includes
 the utilization metrics for a single Spanner instance. It compares the metric
-values with the [recommended thresholds][spanner-metrics] and if any of the
-thresholds are exceeded, the Scaler function will adjust the number of nodes in
-the Spanner instance accordingly.
+values with the [recommended thresholds][spanner-metrics], plus or minus an
+[allowed margin](poller/README.md#margins). The Scaler function determines
+if the instance should be scaled, the number of nodes it should be scaled to
+and adjusts the number of nodes in the Spanner instance accordingly.
 
 ## Scaling methods
 
-The Scaler function supports three scaling methods out of the box: *
-[STEPWISE](scaling-methods/stepwise.js): This is the default method used by the
-Scaler. It suggests adding or removing nodes using fixed step amount defined by
-the parameter `stepSize`. In an overload situation, when the instance High
-Priority CPU utilization is over 90%, the Scaler uses the `overloadStepSize`
-parameter instead.
+The Scaler function supports three scaling methods out of the box:
+
+*   [STEPWISE](scaling-methods/stepwise.js): This is the default method used by
+    the Scaler. It suggests adding or removing nodes using fixed step amount
+    defined by the parameter `stepSize`. In an overload situation, when the
+    instance High Priority CPU utilization is over 90%, the Scaler uses the
+    `overloadStepSize` parameter instead.
 
 *   [LINEAR](scaling-methods/linear.js): This method suggests adding or removing
     nodes calculated with a simple linear
@@ -112,7 +114,8 @@ The following is an example:
       {
          "name":"storage",
          "threshold":75,
-         "value":80
+         "value":80,
+         "margin":10
       }
    ],
    "currentNodes":1,

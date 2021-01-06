@@ -4,7 +4,7 @@
     "license": "Apache-2.0",
     "author": "Google Inc.",
     "dependencies": {
-        "@google-cloud/functions-framework": "^1.4.0",
+        "@google-cloud/functions-framework": "^1.7.1",
         "@google-cloud/monitoring": "^1.7.0",
         "@google-cloud/pubsub": "^1.6.0",
         "@google-cloud/spanner": "^3.1.0"
@@ -12,9 +12,11 @@
     "scripts": {
         "start": "functions-framework --target=checkSpannerScaleMetricsHTTP",
         "debug": "node --inspect node_modules/@google-cloud/functions-framework --target=checkSpannerScaleMetricsHTTP",
-        "test": "mocha"
+        "test": "mocha --recursive",
+        "mdlint": "cd .. && markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"        
     },
     "devDependencies": {
+        "markdownlint": "^0.22.0",
         "mocha": "^8.2.0",
         "mocha-suppress-logs": "^0.2.0",
         "rewire": "^5.0.0",

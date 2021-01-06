@@ -1,7 +1,7 @@
 <br />
 <p align="center">
   <h2 align="center">Autoscaler tool for Cloud Spanner</h2>
-  <img alt="Autoscaler" src="https://storage.googleapis.com/gweb-cloudblog-publish/images/Google_Cloud_Spanner_databases.max-2200x2200.jpg">
+  <img alt="Autoscaler" src="resources/BlogHeader_Database_3.max-2200x2200.jpg">
 
   <p align="center">
     An open source tool to autoscale Spanner instances
@@ -42,8 +42,9 @@ number of nodes in the instance.
 The Autoscaler monitors your instances and automatically adds or
 removes nodes to ensure that they stay within the
 [recommended maximums for CPU utilization][spanner-max-cpu] and the
-[recommended limit for storage per node][spanner-max-storage]. Note that the
-recommended thresholds are different depending if a Spanner instance is
+[recommended limit for storage per node][spanner-max-storage], plus or minus an
+[allowed margin](poller/README.md#margins). Note that the recommended thresholds
+are different depending if a Spanner instance is
 [regional or multi-region][spanner-regional].
 
 ## Architecture
@@ -81,8 +82,9 @@ interaction flow:
     [Scaler Cloud Function][autoscaler-scaler] is created to handle it. \
     Using the chosen [scaling method](scaler/README.md#scaling-methods), the
     Scaler function compares the Spanner instance metrics against the
-    recommended thresholds and determines if the instance should be scaled, and
-    the number of nodes that it should be scaled to.
+    recommended thresholds, plus or minus an [allowed margin](poller/README.md#margins)
+    and determines if the instance should be scaled, and the number of nodes
+    that it should be scaled to.
 
 7.  The Scaler function retrieves the time when the instance was last scaled
     from the state data stored in [Cloud Firestore][cloud-firestore] and
