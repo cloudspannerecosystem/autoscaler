@@ -64,7 +64,7 @@ function getRange(threshold, margin) {
   return range;
 }
 
-function metricValueWithinMargin(metric) {
+function metricValueWithinRange(metric) {
   if (compareMetricValueWithRange(metric) == RelativeToRange.WITHIN) return true;
   else return false;
 }
@@ -123,5 +123,5 @@ function loopThroughSpannerMetrics(spanner, getSuggestedNodes) {
 module.exports = {
   OVERLOAD_METRIC,
   loopThroughSpannerMetrics,
-  metricValueWithinMargin
+  metricValueWithinRange
 };

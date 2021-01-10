@@ -150,7 +150,7 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 
     await processScalingRequest(JSON.parse(payload));
   } catch (err) {
-    log(`Failed to process scaling request:\n` + payload, 'ERROR', err);
+    log(`Failed to process scaling request\n`, 'ERROR', err);
   }
 };
 
