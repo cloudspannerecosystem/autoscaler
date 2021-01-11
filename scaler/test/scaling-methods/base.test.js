@@ -35,18 +35,18 @@ describe('#compareMetricValueWithRange', () => {
     });
 });
 
-const metricValueWithinMargin = app.__get__('metricValueWithinMargin');
-describe('#metricValueWithinMargin', () => {
+const metricValueWithinRange = app.__get__('metricValueWithinRange');
+describe('#metricValueWithinRange', () => {
     it('should return true when metric falls within margins', () => {
-        metricValueWithinMargin({value: 63, threshold:65, margin:5}).should.be.true();
+        metricValueWithinRange({value: 63, threshold:65, margin:5}).should.be.true();
     });
 
     it('should return false when metric falls outside of the margins', () => {
-        metricValueWithinMargin({value: 15, threshold:45, margin:10}).should.be.false();
+        metricValueWithinRange({value: 15, threshold:45, margin:10}).should.be.false();
     });
 
     it('should return true when metric falls right at the edge', () => {
-        metricValueWithinMargin({value: 70, threshold:65, margin:5}).should.be.true();
+        metricValueWithinRange({value: 70, threshold:65, margin:5}).should.be.true();
     });
 });
 
