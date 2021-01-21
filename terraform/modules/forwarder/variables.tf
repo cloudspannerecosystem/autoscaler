@@ -31,3 +31,8 @@ variable "local_output_path" {
 variable "target_pubsub_topic" {
   type    = string
 }
+
+variable "prefix" {
+  type = string
+  default = ""
+}

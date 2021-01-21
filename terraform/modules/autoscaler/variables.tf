@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-variable "prefix" {
-  type = string
-  default = ""
-}
-
 variable "project_id" {
   type = string
 }
@@ -37,4 +32,9 @@ variable "forwarder_sa_emails" {
   type    = list(string)
   // Example ["serviceAccount:forwarder_sa@app-project.iam.gserviceaccount.com"]
   default = []
+}
+
+variable "prefix" {
+  type = string
+  default = ""
 }

@@ -40,3 +40,8 @@ variable "pubsub_topic" {
 variable "pubsub_data" {
   type    = string
 }
+
+variable "prefix" {
+  type = string
+  default = ""
+}

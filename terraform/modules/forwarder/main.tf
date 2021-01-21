@@ -18,14 +18,14 @@
 // Service Accounts
 
 resource "google_service_account" "forwarder_sa" {
-  account_id   = "forwarder-sa"
+  account_id   = "${var.prefix!= "" ? "${var.prefix}-" : ""}forwarder-sa"
   display_name = "Autoscaler - PubSub Forwarder Service Account"
 }
 
 // PubSub
 
 resource "google_pubsub_topic" "forwarder_topic" {
-  name = "forwarder-topic"
+  name = "${var.prefix!= "" ? "${var.prefix}-" : ""}forwarder-topic"
 }
 
 resource "google_pubsub_topic_iam_binding" "forwader_pubsub_sub_binding" {
@@ -53,13 +53,13 @@ data "archive_file" "local_forwarder_source" {
 }
 
 resource "google_storage_bucket_object" "gcs_functions_forwarder_source" {
-  name   = "forwarder.${data.archive_file.local_forwarder_source.output_md5}.zip"
+  name   = "${var.prefix!= "" ? "${var.prefix}-" : ""}forwarder.${data.archive_file.local_forwarder_source.output_md5}.zip"
   bucket = google_storage_bucket.bucket_gcf_source.name
   source = data.archive_file.local_forwarder_source.output_path
 }
 
 resource "google_cloudfunctions_function" "forwarder_function" {
-  name = "tf-forwarder-function"
+  name = "${var.prefix!= "" ? "${var.prefix}-" : ""}forwarder-function"
   project = var.project_id
   region = var.region
   available_memory_mb = "256"
