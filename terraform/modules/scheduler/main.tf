@@ -24,6 +24,7 @@ resource "google_cloud_scheduler_job" "poller_job" {
   description = "Poll metrics for main-instance"
   schedule    = var.schedule
   time_zone   = var.time_zone
+  region      = var.region
 
   pubsub_target {
     topic_name = var.pubsub_topic

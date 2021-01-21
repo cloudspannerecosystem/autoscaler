@@ -23,6 +23,11 @@ variable "location" {
   default = "us-central"
 }
 
+variable "region" {
+  type    = string
+  default = "us-central1"
+}
+
 variable "schedule" {
   type    = string
   default = "*/2 * * * *"
