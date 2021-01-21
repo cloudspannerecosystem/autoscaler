@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+variable "prefix" {
+  type = string
+  default = ""
+}
+
 variable "project_id" {
   type = string
 }

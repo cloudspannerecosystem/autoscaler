@@ -18,12 +18,12 @@
 // Service Accounts
 
 resource "google_service_account" "poller_sa" {
-  account_id   = "poller-sa"
+  account_id   = "${var.prefix!= "" ? "${var.prefix}-" : ""}poller-sa"
   display_name = "Autoscaler - Metrics Poller Service Account"
 }
 
 resource "google_service_account" "scaler_sa" {
-  account_id   = "scaler-sa"
+  account_id   = "${var.prefix!= "" ? "${var.prefix}-" : ""}scaler-sa"
   display_name = "Autoscaler - Scaler Function Service Account"
 }
 
@@ -39,7 +39,7 @@ resource "google_project_iam_binding" "scaler_sa_firestore" {
 // PubSub
 
 resource "google_pubsub_topic" "poller_topic" {
-  name = "poller-topic"
+  name = "${var.prefix!= "" ? "${var.prefix}-" : ""}poller-topic"
 }
 
 resource "google_pubsub_topic_iam_binding" "poller_pubsub_sub_binding" {
@@ -59,7 +59,7 @@ resource "google_pubsub_topic_iam_binding" "forwarder_pubsub_pub_binding" {
 }
 
 resource "google_pubsub_topic" "scaler_topic" {
-  name = "scaler-topic"
+  name = "${var.prefix!= "" ? "${var.prefix}-" : ""}scaler-topic"
 }
 
 resource "google_pubsub_topic_iam_binding" "poller_pubsub_pub_binding" {
@@ -96,7 +96,7 @@ data "archive_file" "local_poller_source" {
 }
 
 resource "google_storage_bucket_object" "gcs_functions_poller_source" {
-  name   = "poller.${data.archive_file.local_poller_source.output_md5}.zip"
+  name   = "${var.prefix!= "" ? "${var.prefix}-" : ""}poller.${data.archive_file.local_poller_source.output_md5}.zip"
   bucket = google_storage_bucket.bucket_gcf_source.name
   source = data.archive_file.local_poller_source.output_path
 }
@@ -108,13 +108,13 @@ data "archive_file" "local_scaler_source" {
 }
 
 resource "google_storage_bucket_object" "gcs_functions_scaler_source" {
-  name   = "scaler.${data.archive_file.local_scaler_source.output_md5}.zip"
+  name   = "${var.prefix!= "" ? "${var.prefix}-" : ""}scaler.${data.archive_file.local_scaler_source.output_md5}.zip"
   bucket = google_storage_bucket.bucket_gcf_source.name
   source = data.archive_file.local_scaler_source.output_path
 }
 
 resource "google_cloudfunctions_function" "poller_function" {
-  name = "tf-poller-function"
+  name = "${var.prefix!= "" ? "${var.prefix}-" : ""}poller-function"
   project = var.project_id
   region = var.region
   available_memory_mb = "256"
@@ -130,7 +130,7 @@ resource "google_cloudfunctions_function" "poller_function" {
 }
 
 resource "google_cloudfunctions_function" "scaler_function" {
-  name = "tf-scaler-function"
+  name = "${var.prefix!= "" ? "${var.prefix}-" : ""}scaler-function"
   project = var.project_id
   region = var.region
   available_memory_mb = "256"
