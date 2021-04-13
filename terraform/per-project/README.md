@@ -144,7 +144,8 @@ In this section you prepare your project for deployment.
       pubsub.googleapis.com \
       cloudfunctions.googleapis.com \
       cloudbuild.googleapis.com \
-      cloudscheduler.googleapis.com
+      cloudscheduler.googleapis.com \
+      cloudresourcemanager.googleapis.com
     ```
 
 6.  Create a [service account][service-account] that will be used by Terraform
@@ -269,7 +270,7 @@ in this section.
 
     ```sh
     terraform state show -no-color "google_spanner_instance.${SPANNER_INSTANCE_NAME}" \
-      | grep -vE "(id|num_nodes|state|timeouts).*(=|{)" \
+      | grep -vE "(id|num_nodes|state|timeouts).*(=|\{)" \
       > "${SPANNER_INSTANCE_NAME}.tf"
     ```
 

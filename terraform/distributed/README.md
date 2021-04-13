@@ -146,7 +146,8 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
         firestore.googleapis.com \
         pubsub.googleapis.com \
         cloudfunctions.googleapis.com  \
-        cloudbuild.googleapis.com
+        cloudbuild.googleapis.com \
+        cloudresourcemanager.googleapis.com
     ```
 
 6.  Create a [service account][service-account] that will be used by Terraform
