@@ -36,5 +36,5 @@ variable "forwarder_sa_emails" {
 
 variable "uniform_bucket_level_access" {
   type = bool
-  default = False
+  default = false
 }
