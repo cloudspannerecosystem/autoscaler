@@ -33,3 +33,8 @@ variable "forwarder_sa_emails" {
   // Example ["serviceAccount:forwarder_sa@app-project.iam.gserviceaccount.com"]
   default = []
 }
+
+variable "uniform_bucket_level_access" {
+  type = bool
+  default = False
+}
