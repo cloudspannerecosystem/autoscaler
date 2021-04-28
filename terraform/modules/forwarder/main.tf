@@ -44,6 +44,7 @@ resource "google_storage_bucket" "bucket_gcf_source" {
   storage_class = "REGIONAL"
   location      = var.region
   force_destroy = "true"
+  uniform_bucket_level_access = var.uniform_bucket_level_access
 }
 
 data "archive_file" "local_forwarder_source" {
