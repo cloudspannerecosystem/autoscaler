@@ -207,7 +207,7 @@ and project id.
         "metrics": [
           {
             "name": "my_custom_metric",
-            "fitler": "metric.type=\"spanner.googleapis.com/instance/resource/metric\"",
+            "filter": "metric.type=\"spanner.googleapis.com/instance/resource/metric\"",
             "regional_threshold": 40,
             "multi_regional_threshold": 30
           }
