@@ -32,7 +32,7 @@
 The Scaler function receives a message from the Poller function that includes
 the utilization metrics for a single Spanner instance. It compares the metric
 values with the [recommended thresholds][spanner-metrics], plus or minus an
-[allowed margin](poller/README.md#margins). The Scaler function determines
+[allowed margin](../poller/README.md#margins). The Scaler function determines
 if the instance should be scaled, the number of nodes it should be scaled to
 and adjusts the number of nodes in the Spanner instance accordingly.
 
