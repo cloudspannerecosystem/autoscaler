@@ -9,8 +9,8 @@ jobs:
 
     steps:
     - name: Check out code
-      uses: actions/checkout@master
+      uses: actions/checkout@v2
     - name: Run mdl
-      uses: actionshub/markdownlint@master
+      uses: actionshub/markdownlint@main
       with:
         filesToIgnoreRegex: code\-of\-conduct\.md
