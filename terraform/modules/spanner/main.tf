@@ -38,35 +38,28 @@ resource "google_spanner_database" "database" {
   depends_on = [google_spanner_instance.main]
 }
 
-resource "google_spanner_instance_iam_binding" "spanner_metadata_get_binding" {
+resource "google_spanner_instance_iam_member" "spanner_metadata_get_iam" {
   instance = var.spanner_name
-  role = "roles/spanner.viewer"
-  project      = var.project_id
+  role     = "roles/spanner.viewer"
+  project  = var.project_id
+  member   = "serviceAccount:${var.poller_sa_email}"
 
-  members = [
-    "serviceAccount:${var.poller_sa_email}",
-  ]
   depends_on = [google_spanner_instance.main]
 }
 
-resource "google_spanner_instance_iam_binding" "spanner_admin_binding" {
+resource "google_spanner_instance_iam_member" "spanner_admin_iam" {
   # Allows scaler to change the number of nodes of the Spanner instance
   instance = var.spanner_name
-  role = "roles/spanner.admin"
-  project      = var.project_id
+  role     = "roles/spanner.admin"
+  project  = var.project_id
+  member   = "serviceAccount:${var.scaler_sa_email}"
 
-  members = [
-    "serviceAccount:${var.scaler_sa_email}",
-  ]
   depends_on = [google_spanner_instance.main]
 }
 
-resource "google_project_iam_binding" "poller_sa_cloud_monitoring" {
+resource "google_project_iam_member" "poller_sa_cloud_monitoring" {
   # Allows poller to get Spanner metrics
   role    = "roles/monitoring.viewer"
   project = var.project_id
-
-  members = [
-    "serviceAccount:${var.poller_sa_email}",
-  ]
+  member  = "serviceAccount:${var.poller_sa_email}"
 }

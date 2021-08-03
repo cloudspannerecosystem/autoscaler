@@ -27,13 +27,11 @@ resource "google_service_account" "scaler_sa" {
   display_name = "Autoscaler - Scaler Function Service Account"
 }
 
-resource "google_project_iam_binding" "scaler_sa_firestore" {
+resource "google_project_iam_member" "scaler_sa_firestore" {
   project = var.project_id
   role    = "roles/datastore.user"
 
-  members = [
-    "serviceAccount:${google_service_account.scaler_sa.email}",
-  ]
+  member = "serviceAccount:${google_service_account.scaler_sa.email}"
 }
 
 // PubSub
@@ -42,42 +40,38 @@ resource "google_pubsub_topic" "poller_topic" {
   name = "poller-topic"
 }
 
-resource "google_pubsub_topic_iam_binding" "poller_pubsub_sub_binding" {
+resource "google_pubsub_topic_iam_member" "poller_pubsub_sub_iam" {
   project = var.project_id
-  topic = google_pubsub_topic.poller_topic.name
-  role = "roles/pubsub.subscriber"
-  members = [
-    "serviceAccount:${google_service_account.poller_sa.email}",
-  ]
+  topic   = google_pubsub_topic.poller_topic.name
+  role    = "roles/pubsub.subscriber"
+  member  = "serviceAccount:${google_service_account.poller_sa.email}"
 }
 
-resource "google_pubsub_topic_iam_binding" "forwarder_pubsub_pub_binding" {
+resource "google_pubsub_topic_iam_member" "forwarder_pubsub_pub_iam" {
+  for_each = toset(var.forwarder_sa_emails)
+
   project = var.project_id
-  topic = google_pubsub_topic.poller_topic.name
-  role = "roles/pubsub.publisher"
-  members = var.forwarder_sa_emails
+  topic   = google_pubsub_topic.poller_topic.name
+  role    = "roles/pubsub.publisher"
+  member = each.key
 }
 
 resource "google_pubsub_topic" "scaler_topic" {
   name = "scaler-topic"
 }
 
-resource "google_pubsub_topic_iam_binding" "poller_pubsub_pub_binding" {
+resource "google_pubsub_topic_iam_member" "poller_pubsub_pub_iam" {
   project = var.project_id
-  topic = google_pubsub_topic.scaler_topic.name
-  role = "roles/pubsub.publisher"
-  members = [
-    "serviceAccount:${google_service_account.poller_sa.email}",
-  ]
+  topic   = google_pubsub_topic.scaler_topic.name
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.poller_sa.email}"
 }
 
-resource "google_pubsub_topic_iam_binding" "scaler_pubsub_sub_binding" {
+resource "google_pubsub_topic_iam_member" "scaler_pubsub_sub_iam" {
   project = var.project_id
-  topic = google_pubsub_topic.scaler_topic.name
-  role = "roles/pubsub.subscriber"
-  members = [
-    "serviceAccount:${google_service_account.scaler_sa.email}",
-  ]
+  topic   = google_pubsub_topic.scaler_topic.name
+  role    = "roles/pubsub.subscriber"
+  member  = "serviceAccount:${google_service_account.scaler_sa.email}"
 }
 
 // Cloud Functions
