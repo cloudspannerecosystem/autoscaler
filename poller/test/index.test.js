@@ -84,7 +84,36 @@ describe('#parseAndEnrichPayload', () => {
         let unset = app.__set__('getSpannerMetadata', stub);
 
         let mergedConfig = await parseAndEnrichPayload(payload);
+        (mergedConfig[0].units).should.equal('NODES');
         (mergedConfig[0].minNodes).should.equal(10);
+        (mergedConfig[0].minSize).should.equal(10);
+
+        unset();
+    });
+
+    it('should merge in defaults for processing units', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "units": "PROCESSING_UNITS", "minSize": 200}]';
+
+        let stub = sinon.stub().resolves({currentProcessingUnits: 500, regional: true});
+        let unset = app.__set__('getSpannerMetadata', stub);
+
+        let mergedConfig = await parseAndEnrichPayload(payload);
+        (mergedConfig[0].minSize).should.equal(200);
+        (mergedConfig[0].maxSize).should.equal(2000);
+        (mergedConfig[0].stepSize).should.equal(200);
+        let idx = mergedConfig[0].metrics.findIndex(x => x.name === 'minNodes');
+        idx.should.equal(-1);
+
+        unset();
+    });
+
+    it('should throw if the nodes are specified when units is set to processing units', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "units": "PROCESSING_UNITS", "minNodes": 200}]';
+
+        let stub = sinon.stub().resolves({currentProcessingUnits: 500, regional: true});
+        let unset = app.__set__('getSpannerMetadata', stub);
+
+        await parseAndEnrichPayload(payload).should.be.rejectedWith(Error, {message: 'INVALID CONFIG: units is set to PROCESSING_UNITS, however, minNodes or maxNodes is set, remove minNodes and maxNodes from your configuration.'});
 
         unset();
     });
@@ -142,6 +171,17 @@ describe('#parseAndEnrichPayload', () => {
         let mergedConfig = await parseAndEnrichPayload(payload);
         let idx = mergedConfig[0].metrics.findIndex(x => x.name === 'bogus');
         idx.should.equal(-1);
+        unset();
+    });
+
+    it('should throw if the nodes are specified if units is set something other than nodes or processing units', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "units": "BOGUS", "minNodes": 200}]';
+
+        let stub = sinon.stub().resolves({currentProcessingUnits: 500, regional: true});
+        let unset = app.__set__('getSpannerMetadata', stub);
+
+        await parseAndEnrichPayload(payload).should.be.rejectedWith(Error, {message: 'INVALID CONFIG: BOGUS is invalid. Valid values are NODES or PROCESSING_UNITS'});
+
         unset();
     });
 });
