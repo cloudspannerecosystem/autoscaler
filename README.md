@@ -30,9 +30,9 @@
 
 ## Overview
 
-The Autoscaler tool for Cloud Spanner is a companion tool to Cloud Spanner that allows
-you to automatically increase or reduce the number of nodes or processing units in one
-or more Spanner instances, based on their utilization.
+The Autoscaler tool for Cloud Spanner is a companion tool to Cloud Spanner
+that allows you to automatically increase or reduce the number of nodes or
+processing units in one or more Spanner instances, based on their utilization.
 
 When you create a [Cloud Spanner instance][spanner-instance], you choose the
 number of nodes or processing units that provide compute resources for the
