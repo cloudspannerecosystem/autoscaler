@@ -74,11 +74,14 @@ instructions on how to change the payload.
 
 Key                      | Default Value  | Description
 ------------------------ | -------------- | -----------
-`minNodes`               | 1              | Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
-`maxNodes`               | 3              | Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
+`units`                  | `NODES`        | Specifies the units that capacity will be measured in `NODES` or `PROCESSING_UNITS`.
+`minSize`                | 1 or 100       | Minimum number of Cloud Spanner nodes or processing units that the instance can be scaled IN to.
+`maxSize`                | 3 or 2000      | Maximum number of Cloud Spanner nodes or processing units that the instance can be scaled OUT to.
+`minNodes`               | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
+`maxNodes`               | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
 `scalingMethod`          | `STEPWISE`     | Scaling method that should be used. Options are: `STEPWISE`, `LINEAR`, `DIRECT`. See the [scaling methods section][autoscaler-scaler-methods] in the Scaler function page for more information.
-`stepSize`               | 2              | Number of nodes that should be added or removed when scaling with the `STEPWISE` method.
-`overloadStepSize`       | 5              | Number of nodes that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used.
+`stepSize`               | 2 or 200       | Number of nodes that should be added or removed when scaling with the `STEPWISE` method.
+`overloadStepSize`       | 5 or 500       | Number of nodes that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used.
 `scaleOutCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed.
 `scaleInCoolingMinutes`  | 30             | Minutes to wait after scaling IN or OUT before a scale IN event can be processed.
 `overloadCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed, when the Spanner instance is overloaded. An instance is overloaded if its High Priority CPU utilization is over 90%.
@@ -124,8 +127,8 @@ Key                        | Default      | Description
 
 ## Custom metrics, thresholds and margins
 
-The Autoscaler determines the number of nodes to be added or
-substracted to an instance based on the
+The Autoscaler determines the number of nodes or processing units to be added
+or substracted to an instance based on the
 [Spanner recommended thresholds][spanner-metrics] for High Priority CPU, 24 hour
 rolling average CPU and Storage utilization metrics.
 
@@ -181,15 +184,17 @@ and project id.
         "projectId": "basic-configuration",
         "instanceId": "another-spanner1",
         "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
-        "minNodes": 5,
-        "maxNodes": 30,
+        "units": "NODES",
+        "minSize": 5,
+        "maxSize": 30,
         "scalingMethod": "DIRECT"
     },{
         "projectId": "custom-threshold",
         "instanceId": "spanner1",
         "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
-        "minNodes": 1,
-        "maxNodes": 3,
+        "units": "PROCESSING_UNITS",
+        "minSize": 100,
+        "maxSize": 3000,
         "metrics": [
           {
             "name": "high_priority_cpu",
@@ -201,8 +206,9 @@ and project id.
         "projectId": "custom-metric",
         "instanceId": "another-spanner1",
         "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
-        "minNodes": 5,
-        "maxNodes": 30,
+        "units": "NODES",
+        "minSize": 5,
+        "maxSize": 30,
         "scalingMethod": "LINEAR",
         "metrics": [
           {

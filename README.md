@@ -31,16 +31,16 @@
 ## Overview
 
 The Autoscaler tool for Cloud Spanner is a companion tool to Cloud Spanner that allows
-you to automatically increase or reduce the number of nodes in one or more
-Spanner instances, based on their utilization.
+you to automatically increase or reduce the number of nodes or processing units in one
+or more Spanner instances, based on their utilization.
 
 When you create a [Cloud Spanner instance][spanner-instance], you choose the
-number of nodes that provide compute resources for the instance. As the
-instance's workload changes, Cloud Spanner does *not* automatically adjust the
-number of nodes in the instance.
+number of nodes or processing units that provide compute resources for the
+instance. As the instance's workload changes, Cloud Spanner does *not*
+automatically adjust the number of nodes or processing units in the instance.
 
 The Autoscaler monitors your instances and automatically adds or
-removes nodes to ensure that they stay within the
+removes compute capacity to ensure that they stay within the
 [recommended maximums for CPU utilization][spanner-max-cpu] and the
 [recommended limit for storage per node][spanner-max-storage], plus or minus an
 [allowed margin](poller/README.md#margins). Note that the recommended thresholds
@@ -84,7 +84,7 @@ interaction flow:
     Scaler function compares the Spanner instance metrics against the
     recommended thresholds, plus or minus an [allowed margin](poller/README.md#margins)
     and determines if the instance should be scaled, and the number of nodes
-    that it should be scaled to.
+    or processiing units that it should be scaled to.
 
 7.  The Scaler function retrieves the time when the instance was last scaled
     from the state data stored in [Cloud Firestore][cloud-firestore] and
@@ -146,14 +146,16 @@ After deploying the Autoscaler, you are ready to configure its parameters.
         "projectId": "my-spanner-project",
         "instanceId": "spanner1",
         "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
-        "minNodes": 1,
-        "maxNodes": 3
+        "units": "NODES",
+        "minSize": 1,
+        "maxSize": 3
     },{
         "projectId": "different-project",
         "instanceId": "another-spanner1",
         "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
-        "minNodes": 5,
-        "maxNodes": 30,
+        "units": "PROCESSING_UNITS",
+        "minSize": 500,
+        "maxSize": 3000,
         "scalingMethod": "DIRECT"
     }
 ]
