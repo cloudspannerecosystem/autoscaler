@@ -16,7 +16,6 @@
 const rewire = require('rewire');
 const sinon = require('sinon');
 const should = require('should');
-const suppressLogs = require('mocha-suppress-logs');
 
 const app = rewire('../index.js');
 
@@ -39,7 +38,6 @@ describe('#buildMetrics', () => {
 });
 
 describe('#validateCustomMetric', () => {
-    suppressLogs();
     
     it('should return false if name is missing', () => {
         validateCustomMetric({filter: 'my filter', regional_threshold: 10}).should.be.false();
@@ -63,7 +61,6 @@ describe('#validateCustomMetric', () => {
 });
 
 describe('#parseAndEnrichPayload', () => {
-    suppressLogs();
     
     it('should return the default for stepSize', async () => {
         const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "minNodes": 10}]';
