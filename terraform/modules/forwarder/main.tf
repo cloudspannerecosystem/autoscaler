@@ -28,13 +28,11 @@ resource "google_pubsub_topic" "forwarder_topic" {
   name = "forwarder-topic"
 }
 
-resource "google_pubsub_topic_iam_binding" "forwader_pubsub_sub_binding" {
+resource "google_pubsub_topic_iam_member" "forwader_pubsub_sub_binding" {
   project = var.project_id
-  topic = google_pubsub_topic.forwarder_topic.name
-  role = "roles/pubsub.subscriber"
-  members = [
-    "serviceAccount:${google_service_account.forwarder_sa.email}",
-  ]
+  topic   = google_pubsub_topic.forwarder_topic.name
+  role    = "roles/pubsub.subscriber"
+  member  = "serviceAccount:${google_service_account.forwarder_sa.email}"
 }
 
 // Cloud Functions
@@ -44,6 +42,7 @@ resource "google_storage_bucket" "bucket_gcf_source" {
   storage_class = "REGIONAL"
   location      = var.region
   force_destroy = "true"
+  uniform_bucket_level_access = var.uniform_bucket_level_access
 }
 
 data "archive_file" "local_forwarder_source" {

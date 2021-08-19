@@ -31,3 +31,8 @@ variable "local_output_path" {
 variable "target_pubsub_topic" {
   type    = string
 }
+
+variable "uniform_bucket_level_access" {
+  type = bool
+  default = false
+}
