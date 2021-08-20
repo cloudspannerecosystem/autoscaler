@@ -85,7 +85,6 @@ describe('#parseAndEnrichPayload', () => {
 
         let mergedConfig = await parseAndEnrichPayload(payload);
         (mergedConfig[0].units).should.equal('NODES');
-        (mergedConfig[0].minNodes).should.equal(10);
         (mergedConfig[0].minSize).should.equal(10);
 
         unset();

@@ -37,11 +37,9 @@ const nodesDefaults = {
   units: 'NODES',
   minSize: 1,
   maxSize: 3,
-  minNodes: 1,
-  maxNodes: 3,
   stepSize: 2,
   overloadStepSize: 5,
-}
+};
 const processingUnitsDefaults = {
   units: 'PROCESSING_UNITS',
   minSize: 100,
@@ -258,16 +256,15 @@ async function parseAndEnrichPayload(payload) {
       spanners[sIdx] = {...nodesDefaults, ...spanners[sIdx]};
 
       // if minNodes and maxNodes are not default and differ from minSize/maxSize
-      // we need to provide a depercation warning and set minSize/maxSize for to
-      // help the scaler function
+      // provide a deprecation warning and set minSize/maxSize for the scaler function
       if(spanners[sIdx].minNodes && spanners[sIdx].minSize != spanners[sIdx].minNodes) {
-        log('DEPRECATION: minNodes is deprecated. Values will be copied to minSize.',
+        log(`DEPRECATION: minNodes is deprecated, remove minNodes from your config and instead use: units = 'NODES' and minSize = ${spanners[sIdx].minNodes}`,
            'WARNING');
         spanners[sIdx].minSize = spanners[sIdx].minNodes;
       }
 
       if(spanners[sIdx].maxNodes && spanners[sIdx].maxSize != spanners[sIdx].maxNodes) {
-        log('DEPRECATION: maxNodes are deprecated. Values will be copied to maxSize.',
+        log(`DEPRECATION: maxNodes are deprecated, remove maxNodes from your config and instead use: units = 'NODES' and minSize = ${spanners[sIdx].maxNodes}`,
            'WARNING');
         spanners[sIdx].maxSize = spanners[sIdx].maxNodes;
       }

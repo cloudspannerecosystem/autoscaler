@@ -75,18 +75,18 @@ instructions on how to change the payload.
 Key                      | Default Value  | Description
 ------------------------ | -------------- | -----------
 `units`                  | `NODES`        | Specifies the units that capacity will be measured in `NODES` or `PROCESSING_UNITS`.
-`minSize`                | 1 or 100       | Minimum number of Cloud Spanner nodes or processing units that the instance can be scaled IN to.
-`maxSize`                | 3 or 2000      | Maximum number of Cloud Spanner nodes or processing units that the instance can be scaled OUT to.
-`minNodes`               | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
-`maxNodes`               | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
+`minSize`                | 1 N or 100 PU  | Minimum number of Cloud Spanner nodes or processing units that the instance can be scaled IN to.
+`maxSize`                | 3 N or 2000 PU | Maximum number of Cloud Spanner nodes or processing units that the instance can be scaled OUT to.
 `scalingMethod`          | `STEPWISE`     | Scaling method that should be used. Options are: `STEPWISE`, `LINEAR`, `DIRECT`. See the [scaling methods section][autoscaler-scaler-methods] in the Scaler function page for more information.
-`stepSize`               | 2 or 200       | Number of nodes that should be added or removed when scaling with the `STEPWISE` method.
-`overloadStepSize`       | 5 or 500       | Number of nodes that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used.
+`stepSize`               | 2 N or 200 PU  | Number of nodes that should be added or removed when scaling with the `STEPWISE` method.
+`overloadStepSize`       | 5 N or 500 PU  | Number of nodes that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used.
 `scaleOutCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed.
 `scaleInCoolingMinutes`  | 30             | Minutes to wait after scaling IN or OUT before a scale IN event can be processed.
 `overloadCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed, when the Spanner instance is overloaded. An instance is overloaded if its High Priority CPU utilization is over 90%.
 `stateProjectId`         | `${projectId}` | The project ID where the Autoscaler state will be persisted. By default it is persisted using [Cloud Firestore][cloud-firestore] in the same project as the Spanner instance.
 `metrics`                | Array          | Array of objects that can override the values in the metrics used to decide when the Cloud Spanner instance should be scaled IN or OUT. Refer to the [metrics definition table](#metrics-parameters) to see the fields used for defining metrics.
+`minNodes` (DEPRECATED)  | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
+`maxNodes` (DEPRECATED)  | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
 
 ## Metrics parameters
 
