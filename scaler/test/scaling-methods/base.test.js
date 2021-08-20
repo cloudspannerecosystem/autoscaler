@@ -16,7 +16,6 @@
 const rewire = require('rewire');
 const should = require('should');
 const sinon = require('sinon');
-const suppressLogs = require('mocha-suppress-logs');
 
 const app = rewire('../../scaling-methods/base.js');
 
@@ -121,7 +120,6 @@ function getSpannerJSON() {
 
 const loopThroughSpannerMetrics = app.__get__('loopThroughSpannerMetrics');
 describe('#loopThroughSpannerMetrics', () => {
-    suppressLogs();
 
     it('should add a default margin to each metric', () => {
         var spanner = getSpannerJSON();
