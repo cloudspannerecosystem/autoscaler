@@ -26,6 +26,7 @@
 const {Spanner} = require('@google-cloud/spanner');
 const {log, convertMillisecToHumanReadable} = require('./utils.js');
 const State = require('./state.js');
+const SizeHelper = require('./size-helper.js');
 
 function getScalingMethod(methodName) {
   const SCALING_METHODS_FOLDER = './scaling-methods/';
@@ -118,14 +119,22 @@ function withinCooldownPeriod(spanner, suggestedNodes, autoscalerState, now) {
   }
 }
 
+function getSuggestedSize(spanner) {
+  const scalingMethod = getScalingMethod(spanner.scalingMethod);
+  if (scalingMethod.calculateSize)
+    return scalingMethod.calculateumSize(spanner);
+  else
+    return scalingMethod.calculateNumNodes(spanner);
+}
+
 async function processScalingRequest(spanner) {
   log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling request received`,
       'INFO', spanner);
 
-  const suggestedNodes =
-      getScalingMethod(spanner.scalingMethod).calculateNumNodes(spanner);
+  spanner.size = new SizeHelper(spanner);
+  const suggestedSize = 1; //getSuggestedSize(spanner);
   if (suggestedNodes == spanner.currentNodes) {
-    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.currentNodes} nodes, no scaling needed at the moment`,
+    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.size.currentStr}, no scaling needed at the moment`,
         'INFO');
     return;
   }
