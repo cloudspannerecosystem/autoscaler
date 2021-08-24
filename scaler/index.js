@@ -122,7 +122,7 @@ function withinCooldownPeriod(spanner, suggestedNodes, autoscalerState, now) {
 function getSuggestedSize(spanner) {
   const scalingMethod = getScalingMethod(spanner.scalingMethod);
   if (scalingMethod.calculateSize)
-    return scalingMethod.calculateumSize(spanner);
+    return scalingMethod.calculateSize(spanner);
   else
     return scalingMethod.calculateNumNodes(spanner);
 }
@@ -132,7 +132,7 @@ async function processScalingRequest(spanner) {
       'INFO', spanner);
 
   spanner.size = new SizeHelper(spanner);
-  const suggestedSize = 1; //getSuggestedSize(spanner);
+  const suggestedSize = getSuggestedSize(spanner);
   if (suggestedSize == spanner.size.current.valueOf()) {
     log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.size.current.toString()}, no scaling needed at the moment`,
         'INFO');
