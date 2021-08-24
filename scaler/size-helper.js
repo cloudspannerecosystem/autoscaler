@@ -21,7 +21,7 @@
 
 class SizeHelper {
   constructor(spannerParameters) {
-    this.units = (this._units == 'NODES')? "nodes": "processing units";
+    this.units = (spannerParameters.units == 'NODES') ? "nodes" : "processing units";
     this.min = new Parameter(spannerParameters.minSize, this.units)
     this.max = new Parameter(spannerParameters.maxSize, this.units);
     this.step = new Parameter(spannerParameters.stepSize, this.units);

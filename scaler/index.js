@@ -133,11 +133,12 @@ async function processScalingRequest(spanner) {
 
   spanner.size = new SizeHelper(spanner);
   const suggestedSize = 1; //getSuggestedSize(spanner);
-  if (suggestedNodes == spanner.currentNodes) {
-    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.size.currentStr}, no scaling needed at the moment`,
+  if (suggestedSize == spanner.size.current.valueOf()) {
+    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.size.current.toString()}, no scaling needed at the moment`,
         'INFO');
     return;
   }
+  process.exit(0);
 
   var autoscalerState = new State(spanner);
   if (!withinCooldownPeriod(
@@ -167,7 +168,8 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 exports.scaleSpannerInstanceHTTP = async (req, res) => {
   try {
     const payload =
-        '{"minNodes":1,"maxNodes":3,"stepSize":1,"overloadStepSize":5,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":1,"regional":true}';
+        '{"units": "NODES", "minNodes":"1", "maxNodes":"3", "minSize":1, "maxSize":3,"stepSize":1,"overloadStepSize":5,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":1,"currentProcessingUnits":1000,"regional":true}';    
+        //'{"minNodes":1,"maxNodes":3,"stepSize":1,"overloadStepSize":5,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":1,"regional":true}';
 
     await processScalingRequest(JSON.parse(payload));
     res.status(200).end();
