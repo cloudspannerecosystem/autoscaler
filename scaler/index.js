@@ -45,16 +45,15 @@ function getScalingMethod(methodName) {
   return scalingMethod;
 }
 
-function getNewMetadata(suggestedNodes) {
-  return {
-    // For testing. See next line for actual scaling
-    // displayName : 'instance' + Math.floor(Math.random() * 100)
-    nodeCount: suggestedNodes
-  };
+function getNewMetadata(suggestedSize, units) {
+  //return (units == 'NODES') ? { nodeCount: suggestedSize } : { processingUnits: suggestedSize };
+  
+  // For testing. Use previous line for actual scaling
+  return { displayName : 'instance' + Math.floor(Math.random() * 100) }
 }
 
-async function scaleSpannerInstance(spanner, suggestedNodes) {
-  log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling spanner instance to ${suggestedNodes} nodes -----`,
+async function scaleSpannerInstance(spanner, suggestedSize) {
+  log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling spanner instance to ${suggestedSize} ${spanner.size.units} -----`,
       'INFO');
 
   const spannerClient = new Spanner({
@@ -62,16 +61,16 @@ async function scaleSpannerInstance(spanner, suggestedNodes) {
   });
 
   return spannerClient.instance(spanner.instanceId)
-      .setMetadata(getNewMetadata(suggestedNodes))
+      .setMetadata(getNewMetadata(suggestedSize, spanner.units))
       .then(function(data) {
         const operation = data[0];
         log(`Cloud Spanner started the scaling operation: ${operation.name}`);
       });
 }
 
-function withinCooldownPeriod(spanner, suggestedNodes, autoscalerState, now) {
+function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
   const MS_IN_1_MIN = 60000;
-  const scaleOutSuggested = (suggestedNodes - spanner.currentNodes > 0);
+  const scaleOutSuggested = (suggestedSize - spanner.size.current.valueOf() > 0);
   var operation;
   var cooldownPeriodOver;
   var duringOverload = '';
@@ -138,14 +137,13 @@ async function processScalingRequest(spanner) {
         'INFO');
     return;
   }
-  process.exit(0);
 
   var autoscalerState = new State(spanner);
   if (!withinCooldownPeriod(
-          spanner, suggestedNodes, await autoscalerState.get(),
+          spanner, suggestedSize, await autoscalerState.get(),
           autoscalerState.now)) {
     try {
-      await scaleSpannerInstance(spanner, suggestedNodes);
+      await scaleSpannerInstance(spanner, suggestedSize);
       await autoscalerState.set();
     } catch (err) {
       log(`----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt.`,

@@ -115,7 +115,7 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   }
 
   maxSuggestedSize = Math.min(maxSuggestedSize, spanner.size.max.valueOf());
-  log()`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${spanner.size.units}`;
+  log(`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${spanner.size.units}`);
   return maxSuggestedSize;
 }
 
