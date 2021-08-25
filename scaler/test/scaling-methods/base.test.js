@@ -16,6 +16,7 @@
 const rewire = require('rewire');
 const should = require('should');
 const sinon = require('sinon');
+const SizeHelper = require('../../size-helper');
 
 const app = rewire('../../scaling-methods/base.js');
 
@@ -71,6 +72,11 @@ describe('#getRange', () => {
 
 });
 
+function addSizeHelperTo(spanner) {
+    spanner.size = new SizeHelper(spanner);
+    return spanner
+}
+
 const getScaleSuggestionMessage = app.__get__('getScaleSuggestionMessage');
 describe('#getScaleSuggestionMessage', () => {
     it('should suggest no change when metric value within range', () => {
@@ -78,33 +84,34 @@ describe('#getScaleSuggestionMessage', () => {
     });
 
     it('should suggest no change when current nodes == MIN', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:2, minNodes: 2}, 2, '')
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:2, minSize: 2}), 2, '')
         msg.should.containEql('no change');
         msg.should.containEql('MIN nodes');
     });
 
     it('should suggest no change when current nodes == MAX', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:8, maxNodes: 8}, 8, '');
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:8, maxSize: 8}), 8, '');
         msg.should.containEql('no change');
         msg.should.containEql('MAX nodes');
     });
 
     it('should suggest no change when current nodes == suggested nodes', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:8, maxNodes: 20}, 8, '')
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:8, maxSize: 20}), 8, '')
         msg.should.containEql('no change');
         msg.should.not.containEql('MAX nodes');
     });
 
     it('should suggest to scale when current nodes != suggested nodes', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:5}, 8, '')
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:5}), 8, '')
         msg.should.containEql('suggesting to scale');
     });
 
 }); 
 
 function getSpannerJSON() {
-    return { 
-        minNodes: 1, 
+    spanner = {
+        units : 'NODES', 
+        minSize: 1, 
         metrics: [{
             name: 'high_priority_cpu',
             threshold:65,
@@ -116,6 +123,8 @@ function getSpannerJSON() {
         }
         ]
     };
+    spanner.size = new SizeHelper(spanner);
+    return spanner;
 }
 
 const loopThroughSpannerMetrics = app.__get__('loopThroughSpannerMetrics');

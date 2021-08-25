@@ -46,10 +46,10 @@ function getScalingMethod(methodName) {
 }
 
 function getNewMetadata(suggestedSize, units) {
-  //return (units == 'NODES') ? { nodeCount: suggestedSize } : { processingUnits: suggestedSize };
+  return (units == 'NODES') ? { nodeCount: suggestedSize } : { processingUnits: suggestedSize };
   
   // For testing. Use previous line for actual scaling
-  return { displayName : 'instance' + Math.floor(Math.random() * 100) }
+  //return { displayName : 'instance' + Math.floor(Math.random() * 100) }
 }
 
 async function scaleSpannerInstance(spanner, suggestedSize) {
