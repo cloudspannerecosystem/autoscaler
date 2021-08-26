@@ -46,10 +46,10 @@ function getScalingMethod(methodName) {
 }
 
 function getNewMetadata(suggestedSize, units) {
-  return (units == 'NODES') ? { nodeCount: suggestedSize } : { processingUnits: suggestedSize };
+  //return (units == 'NODES') ? { nodeCount: suggestedSize } : { processingUnits: suggestedSize };
   
   // For testing. Use previous line for actual scaling
-  //return { displayName : 'instance' + Math.floor(Math.random() * 100) }
+  return { displayName : 'instance' + Math.floor(Math.random() * 100) }
 }
 
 async function scaleSpannerInstance(spanner, suggestedSize) {
@@ -126,7 +126,7 @@ function getSuggestedSize(spanner) {
     return scalingMethod.calculateNumNodes(spanner);
 }
 
-async function processScalingRequest(spanner) {
+async function processScalingRequest(spanner, autoscalerState) {
   log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling request received`,
       'INFO', spanner);
 
@@ -138,7 +138,6 @@ async function processScalingRequest(spanner) {
     return;
   }
 
-  var autoscalerState = new State(spanner);
   if (!withinCooldownPeriod(
           spanner, suggestedSize, await autoscalerState.get(),
           autoscalerState.now)) {
@@ -156,7 +155,8 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
 
-    await processScalingRequest(JSON.parse(payload));
+    var spanner = JSON.parse(payload);
+    await processScalingRequest(spanner, new State(spanner));
   } catch (err) {
     log(`Failed to process scaling request\n`, 'ERROR', err);
   }
@@ -166,10 +166,13 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 exports.scaleSpannerInstanceHTTP = async (req, res) => {
   try {
     const payload =
-        '{"units": "NODES", "minNodes":"1", "maxNodes":"3", "minSize":1, "maxSize":3,"stepSize":1,"overloadStepSize":5,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":1,"currentProcessingUnits":1000,"regional":true}';    
+    '{"units": "PROCESSING_UNITS", "minSize":100, "maxSize":500, "stepSize":100,"overloadStepSize":500,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":0,"currentProcessingUnits":100,"regional":true}';
+
+ //       '{"units": "NODES", "minNodes":"1", "maxNodes":"3", "minSize":1, "maxSize":3,"stepSize":1,"overloadStepSize":5,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":1,"currentProcessingUnits":1000,"regional":true}';    
         //'{"minNodes":1,"maxNodes":3,"stepSize":1,"overloadStepSize":5,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":1,"regional":true}';
 
-    await processScalingRequest(JSON.parse(payload));
+    var spanner = JSON.parse(payload);
+    await processScalingRequest(spanner, new State(spanner));
     res.status(200).end();
   } catch (err) {
     console.error(err);

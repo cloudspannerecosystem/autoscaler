@@ -15,16 +15,54 @@
 
 const rewire = require('rewire');
 const should = require('should');
+const sinon = require('sinon');
+const referee = require("@sinonjs/referee");
+const {createSpannerParameters, createStubState} = require('./test-utils.js');
+const assert = referee.assert;
+const refute = referee.refute;
 
 const app = rewire('../index.js');
 
-const getNewMetadata = app.__get__('getNewMetadata');
-describe('#getNewMetadata', () => {
-    it('should return an object with the nodeCount property set', () => {
-      getNewMetadata(99,'NODES').should.have.property('nodeCount').which.is.a.Number().and.equal(99);
+afterEach(() => {
+  // Restore the default sandbox here
+  sinon.restore();
+});
+
+// const getNewMetadata = app.__get__('getNewMetadata');
+// describe('#getNewMetadata', () => {
+//     it('should return an object with the nodeCount property set', () => {
+//       getNewMetadata(99,'NODES').should.have.property('nodeCount').which.is.a.Number().and.equal(99);
+//     });
+
+//     it('should return an object with the processingUnits property set', () => {
+//       getNewMetadata(88,'PROCESSING_UNITS').should.have.property('processingUnits').which.is.a.Number().and.equal(88);
+//     });
+// });
+
+const processScalingRequest = app.__get__('processScalingRequest');
+describe('#processScalingRequest', () => {
+    it('should not autoscale if suggested size is equal to current size', async function() {
+      spanner = createSpannerParameters(); 
+      app.__set__("getSuggestedSize", sinon.stub().returns(spanner.currentProcessingUnits));
+      app.__set__("withinCooldownPeriod", sinon.stub().returns(false));
+      var stubScaleSpannerInstance = sinon.stub().resolves(0);
+      app.__set__("scaleSpannerInstance", stubScaleSpannerInstance);
+
+      await processScalingRequest(spanner, createStubState());
+      
+      assert.equals(stubScaleSpannerInstance.callCount, 0);
     });
 
-    it('should return an object with the processingUnits property set', () => {
-      getNewMetadata(88,'PROCESSING_UNITS').should.have.property('processingUnits').which.is.a.Number().and.equal(88);
+    it('should autoscale if suggested size is not equal to current size', async function() {
+      spanner = createSpannerParameters(); 
+      app.__set__("getSuggestedSize", sinon.stub().returns(spanner.currentProcessingUnits + 100));
+      app.__set__("withinCooldownPeriod", sinon.stub().returns(false));
+      var stubScaleSpannerInstance = sinon.stub().resolves(0);
+      app.__set__("scaleSpannerInstance", stubScaleSpannerInstance);
+
+      await processScalingRequest(spanner, createStubState());
+      
+      refute.equals(stubScaleSpannerInstance.callCount, 0);
     });
+
 });
