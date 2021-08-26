@@ -83,27 +83,62 @@ describe('#getScaleSuggestionMessage', () => {
         getScaleSuggestionMessage({}, 999, 'WITHIN').should.containEql('no change');
     });
 
+    // NODES -------------------------------------------------- 
     it('should suggest no change when current nodes == MIN', () => {
         var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:2, minSize: 2}), 2, '')
         msg.should.containEql('no change');
         msg.should.containEql('MIN nodes');
+        msg.should.not.containEql('processing units');
     });
 
     it('should suggest no change when current nodes == MAX', () => {
         var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:8, maxSize: 8}), 8, '');
         msg.should.containEql('no change');
         msg.should.containEql('MAX nodes');
+        msg.should.not.containEql('processing units');
     });
 
     it('should suggest no change when current nodes == suggested nodes', () => {
         var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:8, maxSize: 20}), 8, '')
         msg.should.containEql('no change');
         msg.should.not.containEql('MAX nodes');
+        msg.should.not.containEql('processing units');
     });
 
     it('should suggest to scale when current nodes != suggested nodes', () => {
         var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:5}), 8, '')
         msg.should.containEql('suggesting to scale');
+        msg.should.containEql('nodes');
+        msg.should.not.containEql('processing units');
+    });
+
+    // PROCESSING_UNITS ---------------------------------------
+    it('should suggest no change when current processing units == MIN', () => {
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentProcessingUnits:200, minSize: 200}), 200, '')
+        msg.should.containEql('no change');
+        msg.should.containEql('MIN processing units');
+        msg.should.not.containEql('nodes');
+    });
+
+    it('should suggest no change when current processing units == MAX', () => {
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentProcessingUnits:800, maxSize: 800}), 800, '');
+        msg.should.containEql('no change');
+        msg.should.containEql('MAX processing units');
+        msg.should.not.containEql('nodes');
+    });
+
+    it('should suggest no change when current processing units == suggested processing units', () => {
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentProcessingUnits:800, maxSize: 2000}), 800, '')
+        msg.should.containEql('no change');
+        msg.should.not.containEql('MAX processing units');
+        msg.should.not.containEql('nodes');
+    });
+
+    it('should suggest to scale when current processing units != suggested processing units', () => {
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentProcessingUnits:500}), 800, '')
+        msg.should.containEql('suggesting to scale');
+        msg.should.containEql('processing units');
+        msg.should.not.containEql('nodes');
     });
 
 }); 
