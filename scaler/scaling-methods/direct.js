@@ -16,14 +16,14 @@
 /*
  * Direct scaling method
  *
- * Suggests scaling to the number of nodes specified by maxNodes.
+ * Suggests scaling to the number of nodes or processing units specified by maxSize.
  * Useful to scale an instance in preparation for a batch job,
- * and and to scale it back after the job is finished.
+ * and to scale it back after the job is finished.
  */
 const {log} = require('../utils.js');
 
-exports.calculateNumNodes = (spanner) => {
-  log(`---- DIRECT node suggestions for ${spanner.projectId}/${spanner.instanceId}----`);
-  log(`	Final DIRECT suggestion: ${spanner.maxNodes} nodes`);
-  return spanner.maxNodes;
+exports.calculateSize = (spanner) => {
+  log(`---- DIRECT size suggestions for ${spanner.projectId}/${spanner.instanceId}----`);
+  log(`	Final DIRECT suggestion: ${spanner.size.max.toString()}`);
+  return spanner.size.max.valueOf();
 }

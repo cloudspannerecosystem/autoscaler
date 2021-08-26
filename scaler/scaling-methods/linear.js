@@ -16,14 +16,17 @@
 /*
  * Linear scaling method
  *
- * Suggests adding or removing nodes, calculated with a simple linear cross
- * multiplication.
+ * Suggests adding or removing nodes or processing units, 
+ * calculated with a cross multiplication.
+ * For processing units, it rounds to nearest 100 if suggestion is
+ * under 1000, or to nearest 1000 otherwise.
  */
+const {maybeRound} = require('../utils.js');
 
-exports.calculateNumNodes = (spanner) => {
+exports.calculateSize = (spanner) => {
   const baseModule = require('./base');
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
-    if (baseModule.metricValueWithinRange(metric)) return spanner.currentNodes;
-    else return Math.ceil(spanner.currentNodes * metric.value / metric.threshold);
+    if (baseModule.metricValueWithinRange(metric)) return spanner.size.current.valueOf();
+    else return maybeRound(Math.ceil(spanner.size.current.valueOf() * metric.value / metric.threshold), spanner.units);
   });
 }

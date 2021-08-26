@@ -28,16 +28,16 @@ afterEach(() => {
   sinon.restore();
 });
 
-// const getNewMetadata = app.__get__('getNewMetadata');
-// describe('#getNewMetadata', () => {
-//     it('should return an object with the nodeCount property set', () => {
-//       getNewMetadata(99,'NODES').should.have.property('nodeCount').which.is.a.Number().and.equal(99);
-//     });
+const getNewMetadata = app.__get__('getNewMetadata');
+describe('#getNewMetadata', () => {
+    it('should return an object with the nodeCount property set', () => {
+      getNewMetadata(99,'NODES').should.have.property('nodeCount').which.is.a.Number().and.equal(99);
+    });
 
-//     it('should return an object with the processingUnits property set', () => {
-//       getNewMetadata(88,'PROCESSING_UNITS').should.have.property('processingUnits').which.is.a.Number().and.equal(88);
-//     });
-// });
+    it('should return an object with the processingUnits property set', () => {
+      getNewMetadata(88,'PROCESSING_UNITS').should.have.property('processingUnits').which.is.a.Number().and.equal(88);
+    });
+});
 
 const processScalingRequest = app.__get__('processScalingRequest');
 describe('#processScalingRequest', () => {

@@ -37,6 +37,8 @@ const nodesDefaults = {
   units: 'NODES',
   minSize: 1,
   maxSize: 3,
+  minNodes: 1,
+  maxNodes: 3,
   stepSize: 2,
   overloadStepSize: 5,
 };
