@@ -13,6 +13,7 @@
  * limitations under the License
  */
 const sinon = require('sinon');
+const SizeHelper = require('../size-helper.js');
 const State = require('../state.js');
 
 const DEFAULT_SPANNER_PARAMS = {
@@ -49,8 +50,11 @@ const DEFAULT_SPANNER_PARAMS = {
     "regional":true
 };
 
-function createSpannerParameters(overrideParams) {
-  return {...DEFAULT_SPANNER_PARAMS, ...overrideParams};
+function createSpannerParameters(overrideParams, addSizeHelper) {
+   spannerParameters = {...DEFAULT_SPANNER_PARAMS, ...overrideParams};
+   if (addSizeHelper) 
+      spannerParameters.size = new SizeHelper(spannerParameters);
+   return spannerParameters;
 }
 
 function createStubState() {
