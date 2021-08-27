@@ -22,20 +22,24 @@
  * For processing units, it rounds to nearest 100 if suggestion is
  * under 1000, or to nearest 1000 otherwise.
  */
+const baseModule = require('./base');
 const {maybeRound} = require('../utils.js');
 
-exports.calculateSize = (spanner) => {
-  const baseModule = require('./base');
+function calculateSize(spanner) {
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
     if (baseModule.metricValueWithinRange(metric))
       return spanner.size.current.valueOf();  // No change
 
     var suggestedStep =
-        (metric.value > metric.threshold ? spanner.stepSize :
-                                           -spanner.stepSize);
+        (metric.value > metric.threshold ? spanner.size.step.valueOf():
+                                           -spanner.size.step.valueOf());
     if (metric.name === baseModule.OVERLOAD_METRIC && spanner.isOverloaded)
-      suggestedStep = spanner.overloadStepSize;
+      suggestedStep = spanner.size.overloadStep.valueOf();
 
     return maybeRound(Math.max(spanner.size.current.valueOf() + suggestedStep, spanner.size.min.valueOf()), spanner.units);
   });
 }
+
+module.exports = {
+  calculateSize
+};

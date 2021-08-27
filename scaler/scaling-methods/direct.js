@@ -22,8 +22,12 @@
  */
 const {log} = require('../utils.js');
 
-exports.calculateSize = (spanner) => {
+function calculateSize(spanner) {
   log(`---- DIRECT size suggestions for ${spanner.projectId}/${spanner.instanceId}----`);
   log(`	Final DIRECT suggestion: ${spanner.size.max.toString()}`);
   return spanner.size.max.valueOf();
 }
+
+module.exports = {
+  calculateSize
+};

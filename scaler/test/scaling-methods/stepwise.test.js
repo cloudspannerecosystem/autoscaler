@@ -19,8 +19,9 @@ const sinon = require('sinon');
 const referee = require("@sinonjs/referee");
 const assert = referee.assert;
 const {createSpannerParameters} = require('../test-utils.js');
+const {OVERLOAD_METRIC, OVERLOAD_THRESHOLD} = require('../../scaling-methods/base.js');
 
-const app = rewire('../../scaling-methods/linear.js');
+const app = rewire('../../scaling-methods/stepwise.js');
 
 afterEach(() => {
   // Restore the default sandbox here
@@ -35,7 +36,7 @@ function stubBaseModule(spanner, metric, metricValueWithinRange) {
 }
 
 const calculateSize = app.__get__('calculateSize');
-describe('#linear.calculateSize', () => {
+describe('#stepwise.calculateSize', () => {
   it('should return current size if the metric is within range', () => {
     const spanner = createSpannerParameters({currentProcessingUnits : 700}, true);
     const callbackStub = stubBaseModule(spanner, {}, true);
@@ -44,36 +45,38 @@ describe('#linear.calculateSize', () => {
     assert.equals(callbackStub.callCount, 1);
   });
 
-  it('should return higher value of processing units if the metric is higher and not within range', () => {
-    const spanner = createSpannerParameters({currentProcessingUnits : 700}, true);
-    const callbackStub = stubBaseModule(spanner, {value : 75, threshold : 65}, false);
+  it('should return number of processing units increased by stepSize if the metric is higher and not within range', () => {
+    const spanner = createSpannerParameters({currentProcessingUnits : 700, stepSize : 100}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 85, threshold : 65}, false);
 
-    calculateSize(spanner).should.equal(900);
+    calculateSize(spanner).should.equal(800);
     assert.equals(callbackStub.callCount, 1);
   });
 
-  it('should return higher value of nodes if the metric higher and is not within range', () => {
-    const spanner = createSpannerParameters({units : 'NODES', currentNodes: 7}, true);
-    const callbackStub = stubBaseModule(spanner, {value : 75, threshold : 65}, false);
-
-    calculateSize(spanner).should.equal(9);
-    assert.equals(callbackStub.callCount, 1);
-  });
-
-  it('should return lower value of processing units if the metric is lower and not within range', () => {
-    const spanner = createSpannerParameters({currentProcessingUnits : 700}, true);
-    const callbackStub = stubBaseModule(spanner, {value : 55, threshold : 65}, false);
+  it('should return number of processing units decreased by stepSize if the metric is lower and not within range', () => {
+    const spanner = createSpannerParameters({currentProcessingUnits : 700, stepSize : 100}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 15, threshold : 65}, false);
 
     calculateSize(spanner).should.equal(600);
     assert.equals(callbackStub.callCount, 1);
   });
 
+  it('should return the number of processing units increased by overloadStepSize if the instance is overloaded', () => {
+    const spanner = createSpannerParameters(
+      {currentProcessingUnits : 300, stepSize : 100, overloadStepSize : 600, isOverloaded : true}, true);
+    const callbackStub = stubBaseModule(spanner, 
+      {value : OVERLOAD_THRESHOLD + 1, threshold : 65, name : OVERLOAD_METRIC}, false);
+
+    calculateSize(spanner).should.equal(900);
+    assert.equals(callbackStub.callCount, 1);
+  });
+
   it('should return the number of processing units rounded to next 1000 if over 1000', () => {
-    const spanner = createSpannerParameters({currentProcessingUnits : 900}, true);
+    const spanner = createSpannerParameters({currentProcessingUnits : 800, stepSize : 400}, true);
     const callbackStub = stubBaseModule(spanner, {value : 85, threshold : 65}, false);
 
     calculateSize(spanner).should.equal(2000);
     assert.equals(callbackStub.callCount, 1);
   });
-  
+
 });

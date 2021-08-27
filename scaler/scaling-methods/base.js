@@ -121,6 +121,7 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
 
 module.exports = {
   OVERLOAD_METRIC,
+  OVERLOAD_THRESHOLD,
   loopThroughSpannerMetrics,
   metricValueWithinRange
 };
