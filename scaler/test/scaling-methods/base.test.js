@@ -84,14 +84,14 @@ describe('#getScaleSuggestionMessage', () => {
     });
 
     // NODES -------------------------------------------------- 
-    it('should suggest no change when current nodes == MIN', () => {
+    it('should suggest no change when current nodes reached MIN', () => {
         var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:2, minSize: 2}), 2, '')
         msg.should.containEql('no change');
         msg.should.containEql('MIN nodes');
         msg.should.not.containEql('processing units');
     });
 
-    it('should suggest no change when current nodes == MAX', () => {
+    it('should suggest no change when current nodes reached MAX', () => {
         var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:8, maxSize: 8}), 8, '');
         msg.should.containEql('no change');
         msg.should.containEql('MAX nodes');
@@ -113,14 +113,14 @@ describe('#getScaleSuggestionMessage', () => {
     });
 
     // PROCESSING_UNITS ---------------------------------------
-    it('should suggest no change when current processing units == MIN', () => {
+    it('should suggest no change when current processing units reached MIN', () => {
         var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentProcessingUnits:200, minSize: 200}), 200, '')
         msg.should.containEql('no change');
         msg.should.containEql('MIN processing units');
         msg.should.not.containEql('nodes');
     });
 
-    it('should suggest no change when current processing units == MAX', () => {
+    it('should suggest no change when current processing units reached MAX', () => {
         var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentProcessingUnits:800, maxSize: 800}), 800, '');
         msg.should.containEql('no change');
         msg.should.containEql('MAX processing units');

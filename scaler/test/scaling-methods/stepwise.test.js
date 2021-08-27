@@ -45,7 +45,7 @@ describe('#stepwise.calculateSize', () => {
     assert.equals(callbackStub.callCount, 1);
   });
 
-  it('should return number of processing units increased by stepSize if the metric is higher and not within range', () => {
+  it('should return number of processing units increased by stepSize if the metric is above range', () => {
     const spanner = createSpannerParameters({currentProcessingUnits : 700, stepSize : 100}, true);
     const callbackStub = stubBaseModule(spanner, {value : 85, threshold : 65}, false);
 
@@ -53,7 +53,7 @@ describe('#stepwise.calculateSize', () => {
     assert.equals(callbackStub.callCount, 1);
   });
 
-  it('should return number of processing units decreased by stepSize if the metric is lower and not within range', () => {
+  it('should return number of processing units decreased by stepSize if the metric is below range', () => {
     const spanner = createSpannerParameters({currentProcessingUnits : 700, stepSize : 100}, true);
     const callbackStub = stubBaseModule(spanner, {value : 15, threshold : 65}, false);
 

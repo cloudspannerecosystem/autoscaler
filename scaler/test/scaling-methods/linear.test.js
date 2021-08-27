@@ -44,7 +44,7 @@ describe('#linear.calculateSize', () => {
     assert.equals(callbackStub.callCount, 1);
   });
 
-  it('should return higher value of processing units if the metric is higher and not within range', () => {
+  it('should return higher value of processing units if the metric is above range', () => {
     const spanner = createSpannerParameters({currentProcessingUnits : 700}, true);
     const callbackStub = stubBaseModule(spanner, {value : 75, threshold : 65}, false);
 
@@ -52,7 +52,7 @@ describe('#linear.calculateSize', () => {
     assert.equals(callbackStub.callCount, 1);
   });
 
-  it('should return higher value of nodes if the metric higher and is not within range', () => {
+  it('should return higher value of nodes if the metric above range', () => {
     const spanner = createSpannerParameters({units : 'NODES', currentNodes: 7}, true);
     const callbackStub = stubBaseModule(spanner, {value : 75, threshold : 65}, false);
 
@@ -60,7 +60,7 @@ describe('#linear.calculateSize', () => {
     assert.equals(callbackStub.callCount, 1);
   });
 
-  it('should return lower value of processing units if the metric is lower and not within range', () => {
+  it('should return lower value of processing units if the metric is below range', () => {
     const spanner = createSpannerParameters({currentProcessingUnits : 700}, true);
     const callbackStub = stubBaseModule(spanner, {value : 55, threshold : 65}, false);
 
