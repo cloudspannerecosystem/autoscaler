@@ -17,7 +17,7 @@
  * Base module that encapsulates functionality common to scaling methods:
  * * Loop through the Spanner metrics
  * * Determine if the Spanner instance is overloaded
- * * Log suggestions per metric
+ * * Log sizing suggestions per metric
  */
 
 // Only the high_priority_cpu metric is used to determine if an overload
@@ -40,15 +40,15 @@ const {log} = require('../utils.js');
 function getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange) {
   if (relativeToRange == RelativeToRange.WITHIN) {
     return `no change suggested`;
-  } else if (suggestedSize == spanner.size.current.valueOf()) {
-    if (suggestedSize == spanner.size.min.valueOf())
-      return `however current ${spanner.size.current.toString()} = MIN ${spanner.size.units}, therefore no change suggested.`;
-    else if (suggestedSize == spanner.size.max.valueOf())
-      return `however current ${spanner.size.current.toString()} = MAX ${spanner.size.units}, therefore no change suggested.`;
+  } else if (suggestedSize == spanner.size.current) {
+    if (suggestedSize == spanner.minSize)
+      return `however current ${spanner.size.toString(spanner.size.current)} = MIN ${spanner.size.units}, therefore no change suggested.`;
+    else if (suggestedSize == spanner.maxSize)
+      return `however current ${spanner.size.toString(spanner.size.current)} = MAX ${spanner.size.units}, therefore no change suggested.`;
     else 
-      return `no change suggested to current ${spanner.size.current.toString()}.`;
+      return `no change suggested to current ${spanner.size.toString(spanner.size.current)}.`;
   } else {
-    return `suggesting to scale from ${spanner.size.current.valueOf()} to ${suggestedSize} ${spanner.size.units}.`;
+    return `suggesting to scale from ${spanner.size.current} to ${suggestedSize} ${spanner.size.units}.`;
   }
 }
 
@@ -94,9 +94,9 @@ function logSuggestion(spanner, metric, suggestedSize) {
 
 function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   log(`---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} size suggestions----`);
-  log(`	Min=${spanner.size.min.valueOf()}, Current=${spanner.size.current.valueOf()}, Max=${spanner.size.max.valueOf()} ${spanner.size.units}`);
+  log(`	Min=${spanner.minSize}, Current=${spanner.size.current}, Max=${spanner.maxSize} ${spanner.size.units}`);
 
-  var maxSuggestedSize = spanner.size.min.valueOf();
+  var maxSuggestedSize = spanner.minSize;
   spanner.isOverloaded = false;
 
   for (const metric of spanner.metrics) {
@@ -114,7 +114,7 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
     maxSuggestedSize = Math.max(maxSuggestedSize, suggestedSize);
   }
 
-  maxSuggestedSize = Math.min(maxSuggestedSize, spanner.size.max.valueOf());
+  maxSuggestedSize = Math.min(maxSuggestedSize, spanner.maxSize);
   log(`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${spanner.size.units}`);
   return maxSuggestedSize;
 }

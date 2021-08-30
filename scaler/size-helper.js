@@ -21,28 +21,18 @@
 
 class SizeHelper {
   constructor(spannerParameters) {
-    this.units = (spannerParameters.units == 'NODES') ? "nodes" : "processing units";
-    this.min = new Parameter(spannerParameters.minSize, this.units)
-    this.max = new Parameter(spannerParameters.maxSize, this.units);
-    this.step = new Parameter(spannerParameters.stepSize, this.units);
-    this.overloadStep = new Parameter(spannerParameters.overloadStepSize, this.units);
-    this.current = new Parameter(spannerParameters.units == 'NODES'? spannerParameters.currentNodes : spannerParameters.currentProcessingUnits, this.units);
-  }
-}
-
-class Parameter {
-  constructor(value, units) {
-    this._value = value;
-    this._units = units;
+    this._units = spannerParameters.units;
+    this.current = spannerParameters.units == 'NODES'? spannerParameters.currentNodes : spannerParameters.currentProcessingUnits; 
   }
 
-  toString() {
-    return `${this._value} ${this._units}`;
+  get units () {
+    return this._units.toLowerCase().replace(/_/g,' ');
   }
 
-  valueOf() {
-    return this._value;
+  toString(sizeValue) {
+    return `${sizeValue} ${this.units}`;
   }
+
 }
 
 module.exports = SizeHelper;

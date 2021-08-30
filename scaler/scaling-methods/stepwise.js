@@ -28,15 +28,15 @@ const {maybeRound} = require('../utils.js');
 function calculateSize(spanner) {
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
     if (baseModule.metricValueWithinRange(metric))
-      return spanner.size.current.valueOf();  // No change
+      return spanner.size.current;  // No change
 
     var suggestedStep =
-        (metric.value > metric.threshold ? spanner.size.step.valueOf():
-                                           -spanner.size.step.valueOf());
+        (metric.value > metric.threshold ? spanner.stepSize:
+                                           -spanner.stepSize);
     if (metric.name === baseModule.OVERLOAD_METRIC && spanner.isOverloaded)
-      suggestedStep = spanner.size.overloadStep.valueOf();
+      suggestedStep = spanner.overloadStepSize;
 
-    return maybeRound(Math.max(spanner.size.current.valueOf() + suggestedStep, spanner.size.min.valueOf()), spanner.units);
+    return maybeRound(Math.max(spanner.size.current + suggestedStep, spanner.minSize), spanner.units);
   });
 }
 

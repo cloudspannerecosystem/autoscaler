@@ -70,7 +70,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
 
 function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
   const MS_IN_1_MIN = 60000;
-  const scaleOutSuggested = (suggestedSize - spanner.size.current.valueOf() > 0);
+  const scaleOutSuggested = (suggestedSize - spanner.size.current > 0);
   var operation;
   var cooldownPeriodOver;
   var duringOverload = '';
@@ -132,8 +132,8 @@ async function processScalingRequest(spanner, autoscalerState) {
 
   spanner.size = new SizeHelper(spanner);
   const suggestedSize = getSuggestedSize(spanner);
-  if (suggestedSize == spanner.size.current.valueOf()) {
-    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.size.current.toString()}, no scaling needed at the moment`,
+  if (suggestedSize == spanner.size.current) {
+    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.size.toString(spanner.size.current)}, no scaling needed at the moment`,
         'INFO');
     return;
   }
