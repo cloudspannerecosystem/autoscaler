@@ -41,15 +41,15 @@ function getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange) {
   if (relativeToRange == RelativeToRange.WITHIN) {
     return `no change suggested`;
   } else if (suggestedSize == spanner.currentSize) {
-    const currentSizeStr = "current" + spanner.size.toString(spanner.currentSize);
+    const currentSizeStr = `current ${spanner.currentSize} ${spanner.units}`; 
     if (suggestedSize == spanner.minSize)
-      return `however ${currentSizeStr} = MIN ${spanner.size.units}, therefore no change suggested.`;
+      return `however ${currentSizeStr} = MIN ${spanner.units}, therefore no change suggested.`;
     else if (suggestedSize == spanner.maxSize)
-      return `however ${currentSizeStr} = MAX ${spanner.size.units}, therefore no change suggested.`;
+      return `however ${currentSizeStr} = MAX ${spanner.units}, therefore no change suggested.`;
     else 
       return `no change suggested to ${currentSizeStr}.`;
   } else {
-    return `suggesting to scale from ${spanner.currentSize} to ${suggestedSize} ${spanner.size.units}.`;
+    return `suggesting to scale from ${spanner.currentSize} to ${suggestedSize} ${spanner.units}.`;
   }
 }
 
@@ -95,7 +95,7 @@ function logSuggestion(spanner, metric, suggestedSize) {
 
 function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   log(`---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} size suggestions----`);
-  log(`	Min=${spanner.minSize}, Current=${spanner.currentSize}, Max=${spanner.maxSize} ${spanner.size.units}`);
+  log(`	Min=${spanner.minSize}, Current=${spanner.currentSize}, Max=${spanner.maxSize} ${spanner.units}`);
 
   var maxSuggestedSize = spanner.minSize;
   spanner.isOverloaded = false;
@@ -116,7 +116,7 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   }
 
   maxSuggestedSize = Math.min(maxSuggestedSize, spanner.maxSize);
-  log(`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${spanner.size.units}`);
+  log(`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${spanner.units}`);
   return maxSuggestedSize;
 }
 

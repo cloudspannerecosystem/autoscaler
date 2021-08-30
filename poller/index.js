@@ -205,9 +205,10 @@ function getSpannerMetadata(projectId, spannerInstanceId) {
     log(`Config:          ${metadata['config'].split('/').pop()}`);
 
     const spannerMetadata = {
+      currentSize: (spanner.units == 'NODES') ? metadata['nodeCount'] : metadata['processingUnits'],
+      regional: metadata['config'].split('/').pop().startsWith('regional'),
+      // DEPRECATED
       currentNodes: metadata['nodeCount'],
-      currentProcessingUnits: metadata['processingUnits'],
-      regional: metadata['config'].split('/').pop().startsWith('regional')
     };
 
     return spannerMetadata;

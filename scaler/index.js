@@ -26,7 +26,6 @@
 const {Spanner} = require('@google-cloud/spanner');
 const {log, convertMillisecToHumanReadable} = require('./utils.js');
 const State = require('./state.js');
-const SizeHelper = require('./size-helper.js');
 
 function getScalingMethod(methodName) {
   const SCALING_METHODS_FOLDER = './scaling-methods/';
@@ -53,7 +52,7 @@ function getNewMetadata(suggestedSize, units) {
 }
 
 async function scaleSpannerInstance(spanner, suggestedSize) {
-  log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling spanner instance to ${suggestedSize} ${spanner.size.units} -----`,
+  log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling spanner instance to ${suggestedSize} ${spanner.units} -----`,
       'INFO');
 
   const spannerClient = new Spanner({
@@ -130,10 +129,9 @@ async function processScalingRequest(spanner, autoscalerState) {
   log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling request received`,
       'INFO', spanner);
 
-  spanner.size = new SizeHelper(spanner);
   const suggestedSize = getSuggestedSize(spanner);
   if (suggestedSize == spanner.currentSize) {
-    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.size.toString(spanner.currentSize)}, no scaling needed at the moment`,
+    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.currentSize} ${spanner.units}, no scaling needed at the moment`,
         'INFO');
     return;
   }
