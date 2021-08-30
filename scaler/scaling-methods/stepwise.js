@@ -28,7 +28,7 @@ const {maybeRound} = require('../utils.js');
 function calculateSize(spanner) {
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
     if (baseModule.metricValueWithinRange(metric))
-      return spanner.size.current;  // No change
+      return spanner.currentSize;  // No change
 
     var suggestedStep =
         (metric.value > metric.threshold ? spanner.stepSize:
@@ -36,7 +36,7 @@ function calculateSize(spanner) {
     if (metric.name === baseModule.OVERLOAD_METRIC && spanner.isOverloaded)
       suggestedStep = spanner.overloadStepSize;
 
-    return maybeRound(Math.max(spanner.size.current + suggestedStep, spanner.minSize), spanner.units);
+    return maybeRound(Math.max(spanner.currentSize + suggestedStep, spanner.minSize), spanner.units);
   });
 }
 

@@ -40,15 +40,16 @@ const {log} = require('../utils.js');
 function getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange) {
   if (relativeToRange == RelativeToRange.WITHIN) {
     return `no change suggested`;
-  } else if (suggestedSize == spanner.size.current) {
+  } else if (suggestedSize == spanner.currentSize) {
+    const currentSizeStr = "current" + spanner.size.toString(spanner.currentSize);
     if (suggestedSize == spanner.minSize)
-      return `however current ${spanner.size.toString(spanner.size.current)} = MIN ${spanner.size.units}, therefore no change suggested.`;
+      return `however ${currentSizeStr} = MIN ${spanner.size.units}, therefore no change suggested.`;
     else if (suggestedSize == spanner.maxSize)
-      return `however current ${spanner.size.toString(spanner.size.current)} = MAX ${spanner.size.units}, therefore no change suggested.`;
+      return `however ${currentSizeStr} = MAX ${spanner.size.units}, therefore no change suggested.`;
     else 
-      return `no change suggested to current ${spanner.size.toString(spanner.size.current)}.`;
+      return `no change suggested to ${currentSizeStr}.`;
   } else {
-    return `suggesting to scale from ${spanner.size.current} to ${suggestedSize} ${spanner.size.units}.`;
+    return `suggesting to scale from ${spanner.currentSize} to ${suggestedSize} ${spanner.size.units}.`;
   }
 }
 
@@ -94,7 +95,7 @@ function logSuggestion(spanner, metric, suggestedSize) {
 
 function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   log(`---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} size suggestions----`);
-  log(`	Min=${spanner.minSize}, Current=${spanner.size.current}, Max=${spanner.maxSize} ${spanner.size.units}`);
+  log(`	Min=${spanner.minSize}, Current=${spanner.currentSize}, Max=${spanner.maxSize} ${spanner.size.units}`);
 
   var maxSuggestedSize = spanner.minSize;
   spanner.isOverloaded = false;

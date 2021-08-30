@@ -43,7 +43,7 @@ const processScalingRequest = app.__get__('processScalingRequest');
 describe('#processScalingRequest', () => {
     it('should not autoscale if suggested size is equal to current size', async function() {
       spanner = createSpannerParameters(); 
-      app.__set__("getSuggestedSize", sinon.stub().returns(spanner.currentProcessingUnits));
+      app.__set__("getSuggestedSize", sinon.stub().returns(spanner.currentSize));
       app.__set__("withinCooldownPeriod", sinon.stub().returns(false));
       var stubScaleSpannerInstance = sinon.stub().resolves(0);
       app.__set__("scaleSpannerInstance", stubScaleSpannerInstance);
@@ -55,7 +55,7 @@ describe('#processScalingRequest', () => {
 
     it('should autoscale if suggested size is not equal to current size', async function() {
       spanner = createSpannerParameters(); 
-      app.__set__("getSuggestedSize", sinon.stub().returns(spanner.currentProcessingUnits + 100));
+      app.__set__("getSuggestedSize", sinon.stub().returns(spanner.currentSize + 100));
       app.__set__("withinCooldownPeriod", sinon.stub().returns(false));
       var stubScaleSpannerInstance = sinon.stub().resolves(0);
       app.__set__("scaleSpannerInstance", stubScaleSpannerInstance);

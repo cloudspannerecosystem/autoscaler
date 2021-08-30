@@ -70,7 +70,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
 
 function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
   const MS_IN_1_MIN = 60000;
-  const scaleOutSuggested = (suggestedSize - spanner.size.current > 0);
+  const scaleOutSuggested = (suggestedSize - spanner.currentSize > 0);
   var operation;
   var cooldownPeriodOver;
   var duringOverload = '';
@@ -132,8 +132,8 @@ async function processScalingRequest(spanner, autoscalerState) {
 
   spanner.size = new SizeHelper(spanner);
   const suggestedSize = getSuggestedSize(spanner);
-  if (suggestedSize == spanner.size.current) {
-    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.size.toString(spanner.size.current)}, no scaling needed at the moment`,
+  if (suggestedSize == spanner.currentSize) {
+    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.size.toString(spanner.currentSize)}, no scaling needed at the moment`,
         'INFO');
     return;
   }
@@ -166,7 +166,7 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 exports.scaleSpannerInstanceHTTP = async (req, res) => {
   try {
     const payload =
-    '{"units": "PROCESSING_UNITS", "minSize":100, "maxSize":500, "stepSize":100,"overloadStepSize":500,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":0,"currentProcessingUnits":100,"regional":true}';
+    '{"units": "PROCESSING_UNITS", "minSize":100, "maxSize":500, "stepSize":100,"overloadStepSize":500,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":0,"currentSize":100,"regional":true}';
 
     var spanner = JSON.parse(payload);
     await processScalingRequest(spanner, new State(spanner));

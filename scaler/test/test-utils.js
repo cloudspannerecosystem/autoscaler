@@ -46,7 +46,7 @@ const DEFAULT_SPANNER_PARAMS = {
        }
     ],
     "currentNodes":0,
-    "currentProcessingUnits":100,
+    "currentSize":100,
     "regional":true
 };
 

@@ -22,7 +22,6 @@
 class SizeHelper {
   constructor(spannerParameters) {
     this._units = spannerParameters.units;
-    this.current = spannerParameters.units == 'NODES'? spannerParameters.currentNodes : spannerParameters.currentProcessingUnits; 
   }
 
   get units () {

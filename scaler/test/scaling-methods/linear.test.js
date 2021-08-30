@@ -37,7 +37,7 @@ function stubBaseModule(spanner, metric, metricValueWithinRange) {
 const calculateSize = app.__get__('calculateSize');
 describe('#linear.calculateSize', () => {
   it('should return current size if the metric is within range', () => {
-    const spanner = createSpannerParameters({currentProcessingUnits : 700}, true);
+    const spanner = createSpannerParameters({currentSize : 700}, true);
     const callbackStub = stubBaseModule(spanner, {}, true);
 
     calculateSize(spanner).should.equal(700);
@@ -45,7 +45,7 @@ describe('#linear.calculateSize', () => {
   });
 
   it('should return higher value of processing units if the metric is above range', () => {
-    const spanner = createSpannerParameters({currentProcessingUnits : 700}, true);
+    const spanner = createSpannerParameters({currentSize : 700}, true);
     const callbackStub = stubBaseModule(spanner, {value : 75, threshold : 65}, false);
 
     calculateSize(spanner).should.equal(900);
@@ -53,7 +53,7 @@ describe('#linear.calculateSize', () => {
   });
 
   it('should return higher value of nodes if the metric above range', () => {
-    const spanner = createSpannerParameters({units : 'NODES', currentNodes: 7}, true);
+    const spanner = createSpannerParameters({units : 'NODES', currentSize: 7}, true);
     const callbackStub = stubBaseModule(spanner, {value : 75, threshold : 65}, false);
 
     calculateSize(spanner).should.equal(9);
@@ -61,7 +61,7 @@ describe('#linear.calculateSize', () => {
   });
 
   it('should return lower value of processing units if the metric is below range', () => {
-    const spanner = createSpannerParameters({currentProcessingUnits : 700}, true);
+    const spanner = createSpannerParameters({currentSize : 700}, true);
     const callbackStub = stubBaseModule(spanner, {value : 55, threshold : 65}, false);
 
     calculateSize(spanner).should.equal(600);
@@ -69,7 +69,7 @@ describe('#linear.calculateSize', () => {
   });
 
   it('should return the number of processing units rounded to next 1000 if over 1000', () => {
-    const spanner = createSpannerParameters({currentProcessingUnits : 900}, true);
+    const spanner = createSpannerParameters({currentSize : 900}, true);
     const callbackStub = stubBaseModule(spanner, {value : 85, threshold : 65}, false);
 
     calculateSize(spanner).should.equal(2000);

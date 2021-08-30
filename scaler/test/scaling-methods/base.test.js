@@ -85,28 +85,28 @@ describe('#getScaleSuggestionMessage', () => {
 
     // NODES -------------------------------------------------- 
     it('should suggest no change when current nodes reached MIN', () => {
-        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:2, minSize: 2}), 2, '')
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentSize:2, minSize: 2}), 2, '')
         msg.should.containEql('no change');
         msg.should.containEql('MIN nodes');
         msg.should.not.containEql('processing units');
     });
 
     it('should suggest no change when current nodes reached MAX', () => {
-        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:8, maxSize: 8}), 8, '');
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentSize:8, maxSize: 8}), 8, '');
         msg.should.containEql('no change');
         msg.should.containEql('MAX nodes');
         msg.should.not.containEql('processing units');
     });
 
     it('should suggest no change when current nodes == suggested nodes', () => {
-        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:8, maxSize: 20}), 8, '')
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentSize:8, maxSize: 20}), 8, '')
         msg.should.containEql('no change');
         msg.should.not.containEql('MAX nodes');
         msg.should.not.containEql('processing units');
     });
 
     it('should suggest to scale when current nodes != suggested nodes', () => {
-        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentNodes:5}), 8, '')
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'NODES', currentSize:5}), 8, '')
         msg.should.containEql('suggesting to scale');
         msg.should.containEql('nodes');
         msg.should.not.containEql('processing units');
@@ -114,28 +114,28 @@ describe('#getScaleSuggestionMessage', () => {
 
     // PROCESSING_UNITS ---------------------------------------
     it('should suggest no change when current processing units reached MIN', () => {
-        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentProcessingUnits:200, minSize: 200}), 200, '')
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentSize:200, minSize: 200}), 200, '')
         msg.should.containEql('no change');
         msg.should.containEql('MIN processing units');
         msg.should.not.containEql('nodes');
     });
 
     it('should suggest no change when current processing units reached MAX', () => {
-        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentProcessingUnits:800, maxSize: 800}), 800, '');
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentSize:800, maxSize: 800}), 800, '');
         msg.should.containEql('no change');
         msg.should.containEql('MAX processing units');
         msg.should.not.containEql('nodes');
     });
 
     it('should suggest no change when current processing units == suggested processing units', () => {
-        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentProcessingUnits:800, maxSize: 2000}), 800, '')
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentSize:800, maxSize: 2000}), 800, '')
         msg.should.containEql('no change');
         msg.should.not.containEql('MAX processing units');
         msg.should.not.containEql('nodes');
     });
 
     it('should suggest to scale when current processing units != suggested processing units', () => {
-        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentProcessingUnits:500}), 800, '')
+        var msg = getScaleSuggestionMessage(addSizeHelperTo({units:'PROCESSING_UNITS', currentSize:500}), 800, '')
         msg.should.containEql('suggesting to scale');
         msg.should.containEql('processing units');
         msg.should.not.containEql('nodes');
