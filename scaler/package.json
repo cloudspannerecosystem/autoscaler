@@ -11,7 +11,7 @@
   "scripts": {
     "start": "functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
     "debug": "node --inspect node_modules/@google-cloud/functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
-    "test": "mocha --recursive --require mocha-suppress-logs",
+    "test": "nyc --reporter=text mocha --recursive --require mocha-suppress-logs",
     "mdlint": "cd .. && markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"
   },
   "devDependencies": {
@@ -19,6 +19,7 @@
     "markdownlint": "^0.23.0",
     "mocha": "^9.0.3",
     "mocha-suppress-logs": "^0.3.1",
+    "nyc": "^15.1.0",
     "rewire": "^5.0.0",
     "should": "^13.2.3",
     "sinon": "^11.1.2"
