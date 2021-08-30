@@ -17,21 +17,29 @@
  * Stepwise scaling method
  *
  * Default method used by the scaler.
- * Suggests adding or removing nodes using fixed step amount.
+ * Suggests adding or removing nodes or processing units
+ * using a fixed step size.
+ * For processing units, it rounds to nearest 100 if suggestion is
+ * under 1000, or to nearest 1000 otherwise.
  */
+const baseModule = require('./base');
+const {maybeRound} = require('../utils.js');
 
-exports.calculateNumNodes = (spanner) => {
-  const baseModule = require('./base');
+function calculateSize(spanner) {
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
     if (baseModule.metricValueWithinRange(metric))
-      return spanner.currentNodes;  // No change
+      return spanner.currentSize;  // No change
 
     var suggestedStep =
-        (metric.value > metric.threshold ? spanner.stepSize :
+        (metric.value > metric.threshold ? spanner.stepSize:
                                            -spanner.stepSize);
     if (metric.name === baseModule.OVERLOAD_METRIC && spanner.isOverloaded)
       suggestedStep = spanner.overloadStepSize;
 
-    return Math.max(spanner.currentNodes + suggestedStep, spanner.minNodes);
+    return maybeRound(Math.max(spanner.currentSize + suggestedStep, spanner.minSize), spanner.units);
   });
 }
+
+module.exports = {
+  calculateSize
+};

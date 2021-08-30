@@ -37,6 +37,8 @@ const nodesDefaults = {
   units: 'NODES',
   minSize: 1,
   maxSize: 3,
+  minNodes: 1,
+  maxNodes: 3,
   stepSize: 2,
   overloadStepSize: 5,
 };
@@ -203,9 +205,10 @@ function getSpannerMetadata(projectId, spannerInstanceId) {
     log(`Config:          ${metadata['config'].split('/').pop()}`);
 
     const spannerMetadata = {
+      currentSize: (spanner.units == 'NODES') ? metadata['nodeCount'] : metadata['processingUnits'],
+      regional: metadata['config'].split('/').pop().startsWith('regional'),
+      // DEPRECATED
       currentNodes: metadata['nodeCount'],
-      currentProcessingUnits: metadata['processingUnits'],
-      regional: metadata['config'].split('/').pop().startsWith('regional')
     };
 
     return spannerMetadata;

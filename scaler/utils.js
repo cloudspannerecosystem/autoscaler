@@ -59,7 +59,17 @@ function convertMillisecToHumanReadable(millisec) {
   }
 }
 
+function maybeRound(suggestedSize, units) {
+  if (units == 'NODES') 
+    return suggestedSize;
+  else {
+    const roundTo = (suggestedSize < 1000) ? 100 : 1000;
+    return Math.ceil(suggestedSize/roundTo)*roundTo;
+  }
+}
+
 module.exports = {
   log,
-  convertMillisecToHumanReadable
+  convertMillisecToHumanReadable,
+  maybeRound
 };
