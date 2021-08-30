@@ -16,7 +16,6 @@
 const rewire = require('rewire');
 const should = require('should');
 const sinon = require('sinon');
-const suppressLogs = require('mocha-suppress-logs');
 
 const app = rewire('../../scaling-methods/base.js');
 
@@ -78,34 +77,70 @@ describe('#getScaleSuggestionMessage', () => {
         getScaleSuggestionMessage({}, 999, 'WITHIN').should.containEql('no change');
     });
 
-    it('should suggest no change when current nodes == MIN', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:2, minNodes: 2}, 2, '')
+    // NODES -------------------------------------------------- 
+    it('should suggest no change when current nodes reached MIN', () => {
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:2, minSize: 2}, 2, '')
         msg.should.containEql('no change');
-        msg.should.containEql('MIN nodes');
+        msg.should.containEql('MIN NODES');
+        msg.should.not.containEql('PROCESSING_UNITS');
     });
 
-    it('should suggest no change when current nodes == MAX', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:8, maxNodes: 8}, 8, '');
+    it('should suggest no change when current nodes reached MAX', () => {
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:8, maxSize: 8}, 8, '');
         msg.should.containEql('no change');
-        msg.should.containEql('MAX nodes');
+        msg.should.containEql('MAX NODES');
+        msg.should.not.containEql('PROCESSING_UNITS');
     });
 
     it('should suggest no change when current nodes == suggested nodes', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:8, maxNodes: 20}, 8, '')
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:8, maxSize: 20}, 8, '')
         msg.should.containEql('no change');
-        msg.should.not.containEql('MAX nodes');
+        msg.should.not.containEql('MAX NODES');
+        msg.should.not.containEql('PROCESSING_UNITS');
     });
 
     it('should suggest to scale when current nodes != suggested nodes', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:5}, 8, '')
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:5}, 8, '')
         msg.should.containEql('suggesting to scale');
+        msg.should.containEql('NODES');
+        msg.should.not.containEql('PROCESSING_UNITS');
+    });
+
+    // PROCESSING_UNITS ---------------------------------------
+    it('should suggest no change when current PROCESSING_UNITS reached MIN', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:200, minSize: 200}, 200, '')
+        msg.should.containEql('no change');
+        msg.should.containEql('MIN PROCESSING_UNITS');
+        msg.should.not.containEql('NODES');
+    });
+
+    it('should suggest no change when current PROCESSING_UNITS reached MAX', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:800, maxSize: 800}, 800, '');
+        msg.should.containEql('no change');
+        msg.should.containEql('MAX PROCESSING_UNITS');
+        msg.should.not.containEql('NODES');
+    });
+
+    it('should suggest no change when current PROCESSING_UNITS == suggested PROCESSING_UNITS', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:800, maxSize: 2000}, 800, '')
+        msg.should.containEql('no change');
+        msg.should.not.containEql('MAX PROCESSING_UNITS');
+        msg.should.not.containEql('NODES');
+    });
+
+    it('should suggest to scale when current PROCESSING_UNITS != suggested PROCESSING_UNITS', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:500}, 800, '')
+        msg.should.containEql('suggesting to scale');
+        msg.should.containEql('PROCESSING_UNITS');
+        msg.should.not.containEql('NODES');
     });
 
 }); 
 
 function getSpannerJSON() {
-    return { 
-        minNodes: 1, 
+    spanner = {
+        units : 'NODES', 
+        minSize: 1, 
         metrics: [{
             name: 'high_priority_cpu',
             threshold:65,
@@ -117,11 +152,11 @@ function getSpannerJSON() {
         }
         ]
     };
+    return spanner;
 }
 
 const loopThroughSpannerMetrics = app.__get__('loopThroughSpannerMetrics');
 describe('#loopThroughSpannerMetrics', () => {
-    suppressLogs();
 
     it('should add a default margin to each metric', () => {
         var spanner = getSpannerJSON();

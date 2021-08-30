@@ -32,3 +32,6 @@ terraform/*/build
 terraform/*/*.json
 terraform/*/*/build
 terraform/*/*/*.json
+
+# Code coverage report
+.nyc_output

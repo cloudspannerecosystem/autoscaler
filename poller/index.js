@@ -27,20 +27,33 @@ const {Spanner} = require('@google-cloud/spanner');
 // GCP service clients
 const metricsClient = new monitoring.MetricServiceClient();
 const pubSub = new PubSub();
-const spannerDefaults = {
+const baseDefaults = {
+  units: 'NODES',
+  scaleOutCoolingMinutes: 5,
+  scaleInCoolingMinutes: 30,
+  scalingMethod: 'STEPWISE'
+};
+const nodesDefaults = {
+  units: 'NODES',
+  minSize: 1,
+  maxSize: 3,
   minNodes: 1,
   maxNodes: 3,
   stepSize: 2,
   overloadStepSize: 5,
-  scaleOutCoolingMinutes: 5,
-  scaleInCoolingMinutes: 30,
-  scalingMethod: 'STEPWISE'
+};
+const processingUnitsDefaults = {
+  units: 'PROCESSING_UNITS',
+  minSize: 100,
+  maxSize: 2000,
+  stepSize: 200,
+  overloadStepSize: 500
 };
 const metricDefaults = {
   period: 60,
   aligner: 'ALIGN_MAX',
   reducer: 'REDUCE_SUM'
-}
+};
 const DEFAULT_THRESHOLD_MARGIN = 5;
 
 function log(message, severity = 'DEBUG', payload) {
@@ -186,13 +199,16 @@ function getSpannerMetadata(projectId, spannerInstanceId) {
 
   return spannerInstance.getMetadata().then(data => {
     const metadata = data[0];
-    log(`DisplayName: ${metadata['displayName']}`);
-    log(`NodeCount:   ${metadata['nodeCount']}`);
-    log(`Config:      ${metadata['config'].split('/').pop()}`);
+    log(`DisplayName:     ${metadata['displayName']}`);
+    log(`NodeCount:       ${metadata['nodeCount']}`);
+    log(`ProcessingUnits: ${metadata['processingUnits']}`);
+    log(`Config:          ${metadata['config'].split('/').pop()}`);
 
     const spannerMetadata = {
+      currentSize: (spanner.units == 'NODES') ? metadata['nodeCount'] : metadata['processingUnits'],
+      regional: metadata['config'].split('/').pop().startsWith('regional'),
+      // DEPRECATED
       currentNodes: metadata['nodeCount'],
-      regional: metadata['config'].split('/').pop().startsWith('regional')
     };
 
     return spannerMetadata;
@@ -221,9 +237,45 @@ async function parseAndEnrichPayload(payload) {
   for (var sIdx = 0; sIdx < spanners.length; sIdx++) {
     const metricOverrides = spanners[sIdx].metrics;
 
+    // assemble the config
     // merge in the defaults
-    spanners[sIdx] = {...spannerDefaults, ...spanners[sIdx]};
+    spanners[sIdx] = {...baseDefaults, ...spanners[sIdx]};
 
+    // handle processing units and deprecation of minNodes/maxNodes
+    if(spanners[sIdx].units.toUpperCase() == 'PROCESSING_UNITS') {
+      spanners[sIdx].units = spanners[sIdx].units.toUpperCase();
+      // merge in the processing units defaults
+      spanners[sIdx] = {...processingUnitsDefaults, ...spanners[sIdx]};
+
+      // minNodes and maxNodes should not be used with processing units. If
+      // they are set the config is invalid.
+      if(spanners[sIdx].minNodes || spanners[sIdx].maxNodes ) {
+        throw new Error('INVALID CONFIG: units is set to PROCESSING_UNITS, however, minNodes or maxNodes is set, remove minNodes and maxNodes from your configuration.');
+      }
+    }
+    else if(spanners[sIdx].units.toUpperCase() == 'NODES') {
+      spanners[sIdx].units = spanners[sIdx].units.toUpperCase();
+      // merge in the processing units defaults
+      spanners[sIdx] = {...nodesDefaults, ...spanners[sIdx]};
+
+      // if minNodes and maxNodes are not default and differ from minSize/maxSize
+      // provide a deprecation warning and set minSize/maxSize for the scaler function
+      if(spanners[sIdx].minNodes && spanners[sIdx].minSize != spanners[sIdx].minNodes) {
+        log(`DEPRECATION: minNodes is deprecated, remove minNodes from your config and instead use: units = 'NODES' and minSize = ${spanners[sIdx].minNodes}`,
+           'WARNING');
+        spanners[sIdx].minSize = spanners[sIdx].minNodes;
+      }
+
+      if(spanners[sIdx].maxNodes && spanners[sIdx].maxSize != spanners[sIdx].maxNodes) {
+        log(`DEPRECATION: maxNodes are deprecated, remove maxNodes from your config and instead use: units = 'NODES' and minSize = ${spanners[sIdx].maxNodes}`,
+           'WARNING');
+        spanners[sIdx].maxSize = spanners[sIdx].maxNodes;
+      }
+    }
+    else
+      throw new Error(`INVALID CONFIG: ${spanners[sIdx].units} is invalid. Valid values are NODES or PROCESSING_UNITS`);
+
+    // assemble the metrics
     spanners[sIdx].metrics =
       buildMetrics(spanners[sIdx].projectId, spanners[sIdx].instanceId);
     // merge in custom thresholds
