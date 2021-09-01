@@ -40,16 +40,15 @@ const {log} = require('../utils.js');
 function getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange) {
   if (relativeToRange == RelativeToRange.WITHIN) {
     return `no change suggested`;
-  } else if (suggestedSize == spanner.currentSize) {
-    const currentSizeStr = `current ${spanner.currentSize} ${spanner.units}`; 
-    if (suggestedSize == spanner.minSize)
-      return `however ${currentSizeStr} = MIN ${spanner.units}, therefore no change suggested.`;
-    else if (suggestedSize == spanner.maxSize)
-      return `however ${currentSizeStr} = MAX ${spanner.units}, therefore no change suggested.`;
+  } else if (suggestedSize <= spanner.maxSize && suggestedSize >= spanner.minSize) {
+    if (suggestedSize == spanner.currentSize)
+      return `the suggested size is equal to the current size: ${spanner.currentSize} ${spanner.units}`;
     else 
-      return `no change suggested to ${currentSizeStr}.`;
-  } else {
-    return `suggesting to scale from ${spanner.currentSize} to ${suggestedSize} ${spanner.units}.`;
+      return `suggesting to scale from ${spanner.currentSize} to ${suggestedSize} ${spanner.units}.`;
+  } else if (suggestedSize > spanner.maxSize) {
+    return `however, cannot scale to ${suggestedSize} because it is higher than MAX ${spanner.maxSize} ${spanner.units}`
+  } else if (suggestedSize < spanner.minSize) {
+    return `however, cannot scale to ${suggestedSize} because it is lower than MIN ${spanner.minSize} ${spanner.units}`
   }
 }
 

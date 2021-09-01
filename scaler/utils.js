@@ -59,12 +59,15 @@ function convertMillisecToHumanReadable(millisec) {
   }
 }
 
-function maybeRound(suggestedSize, units) {
+function maybeRound(suggestedSize, units, label='') {
   if (units == 'NODES') 
     return suggestedSize;
   else {
     const roundTo = (suggestedSize < 1000) ? 100 : 1000;
-    return Math.ceil(suggestedSize/roundTo)*roundTo;
+    const roundedSize = Math.ceil(suggestedSize/roundTo)*roundTo;
+    if (roundedSize != suggestedSize)
+      log(`\t${label}: Suggested ${suggestedSize}, rounded to ${roundedSize} ${units}`);
+    return roundedSize;
   }
 }
 

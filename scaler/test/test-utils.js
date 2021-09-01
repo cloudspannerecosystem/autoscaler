@@ -13,44 +13,11 @@
  * limitations under the License
  */
 const sinon = require('sinon');
+const fs = require('fs');
 const State = require('../state.js');
 
-const DEFAULT_SPANNER_PARAMS = {
-    "units":"PROCESSING_UNITS",
-    "minSize":100,
-    "maxSize":2000,
-    "stepSize":200,
-    "overloadStepSize":500,
-    "scaleOutCoolingMinutes":5,
-    "scaleInCoolingMinutes":30,
-    "scalingMethod":"STEPWISE",
-    "projectId":"spanner-scaler",
-    "instanceId":"autoscale-test",
-    "metrics":[
-       {
-          "name":"high_priority_cpu",
-          "threshold":65,
-          "value":85,
-          "margin":15
-       },
-       {
-          "name":"rolling_24_hr",
-          "threshold":90,
-          "value":70
-       },
-       {
-          "name":"storage",
-          "threshold":75,
-          "value":80
-       }
-    ],
-    "currentNodes":0,
-    "currentSize":100,
-    "regional":true
-};
-
 function createSpannerParameters(overrideParams) {
-   return {...DEFAULT_SPANNER_PARAMS, ...overrideParams};
+   return {...JSON.parse(fs.readFileSync('./test/sample-parameters.json')), ...overrideParams};
 }
 
 function createStubState() {
