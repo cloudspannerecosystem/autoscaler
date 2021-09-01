@@ -26,7 +26,7 @@
 const {Spanner} = require('@google-cloud/spanner');
 const {log, convertMillisecToHumanReadable} = require('./utils.js');
 const State = require('./state.js');
-const {createSpannerParameters} = require('./test/test-utils');
+const fs = require('fs');
 
 function getScalingMethod(methodName) {
   const SCALING_METHODS_FOLDER = './scaling-methods/';
@@ -165,8 +165,9 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 // For testing with: https://cloud.google.com/functions/docs/functions-framework
 exports.scaleSpannerInstanceHTTP = async (req, res) => {
   try {
-    const spanner = createSpannerParameters({});
+    const payload = fs.readFileSync('./test/sample-parameters.json');
 
+    var spanner = JSON.parse(payload);
     await processScalingRequest(spanner, new State(spanner));
     res.status(200).end();
   } catch (err) {
