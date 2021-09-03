@@ -55,5 +55,13 @@ module "scheduler" {
 
   project_id   = var.project_id
   pubsub_topic = module.forwarder.forwarder_topic
-  pubsub_data  = base64encode(jsonencode([{"projectId": "${var.project_id}", "instanceId": "${module.spanner.spanner_name}", "scalerPubSubTopic": "${data.terraform_remote_state.autoscaler.outputs.scaler_topic}", "minNodes": 1, "maxNodes": 3, "stateProjectId": "${var.state_project_id}"}]))
+  pubsub_data  = base64encode(jsonencode([{
+    "projectId": "${var.project_id}",
+    "instanceId": "${module.spanner.spanner_name}",
+    "scalerPubSubTopic": "${data.terraform_remote_state.autoscaler.outputs.scaler_topic}",
+    "units": "NODES",
+    "minSize": 1,
+    "maxSize": 3,
+    "stateProjectId": "${var.state_project_id}"
+  }]))
 }
