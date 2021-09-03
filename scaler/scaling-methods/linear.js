@@ -27,7 +27,7 @@ const {maybeRound} = require('../utils.js');
 function calculateSize(spanner) {
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
     if (baseModule.metricValueWithinRange(metric)) return spanner.currentSize;
-    else return maybeRound(Math.ceil(spanner.currentSize * metric.value / metric.threshold), spanner.units);
+    else return maybeRound(Math.ceil(spanner.currentSize * metric.value / metric.threshold), spanner.units, metric.name);
   });
 }
 

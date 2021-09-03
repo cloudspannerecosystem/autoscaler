@@ -26,6 +26,7 @@
 const {Spanner} = require('@google-cloud/spanner');
 const {log, convertMillisecToHumanReadable} = require('./utils.js');
 const State = require('./state.js');
+const fs = require('fs');
 
 function getScalingMethod(methodName) {
   const SCALING_METHODS_FOLDER = './scaling-methods/';
@@ -45,10 +46,11 @@ function getScalingMethod(methodName) {
 }
 
 function getNewMetadata(suggestedSize, units) {
-  return (units == 'NODES') ? { nodeCount: suggestedSize } : { processingUnits: suggestedSize };
+  metadata = (units == 'NODES') ? { nodeCount: suggestedSize } : { processingUnits: suggestedSize };
   
-  // For testing. Use previous line for actual scaling
-  //return { displayName : 'instance' + Math.floor(Math.random() * 100) }
+  // For testing:
+  // metadata = { displayName : 'a' + Math.floor(Math.random() * 100) + '_' + suggestedSize + '_' + units }; 
+  return metadata; 
 }
 
 async function scaleSpannerInstance(spanner, suggestedSize) {
@@ -163,8 +165,7 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 // For testing with: https://cloud.google.com/functions/docs/functions-framework
 exports.scaleSpannerInstanceHTTP = async (req, res) => {
   try {
-    const payload =
-    '{"units": "PROCESSING_UNITS", "minSize":100, "maxSize":500, "stepSize":100,"overloadStepSize":500,"scaleOutCoolingMinutes":5,"scaleInCoolingMinutes":30,"scalingMethod":"STEPWISE","projectId":"spanner-scaler","instanceId":"autoscale-test","scalerPubSubTopic":"projects/spanner-scaler/topics/test-scaling","metrics":[{"name":"high_priority_cpu","threshold":65,"value":85, "margin": 15},{"name":"rolling_24_hr","threshold":90,"value":70},{"name":"storage","threshold":75,"value":80}],"currentNodes":0,"currentSize":100,"regional":true}';
+    const payload = fs.readFileSync('./test/sample-parameters.json');
 
     var spanner = JSON.parse(payload);
     await processScalingRequest(spanner, new State(spanner));

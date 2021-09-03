@@ -36,7 +36,7 @@ function calculateSize(spanner) {
     if (metric.name === baseModule.OVERLOAD_METRIC && spanner.isOverloaded)
       suggestedStep = spanner.overloadStepSize;
 
-    return maybeRound(Math.max(spanner.currentSize + suggestedStep, spanner.minSize), spanner.units);
+    return maybeRound(Math.max(spanner.currentSize + suggestedStep, spanner.minSize), spanner.units, metric.name);
   });
 }
 

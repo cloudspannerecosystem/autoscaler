@@ -78,59 +78,59 @@ describe('#getScaleSuggestionMessage', () => {
     });
 
     // NODES -------------------------------------------------- 
-    it('should suggest no change when current nodes reached MIN', () => {
-        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:2, minSize: 2}, 2, '')
-        msg.should.containEql('no change');
-        msg.should.containEql('MIN NODES');
+    it('should not suggest scaling when nodes suggestion is equal to current', () => {
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 3, '')
+        msg.should.containEql('size is equal to the current size');
+        msg.should.containEql('NODES');
         msg.should.not.containEql('PROCESSING_UNITS');
     });
 
-    it('should suggest no change when current nodes reached MAX', () => {
-        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:8, maxSize: 8}, 8, '');
-        msg.should.containEql('no change');
-        msg.should.containEql('MAX NODES');
-        msg.should.not.containEql('PROCESSING_UNITS');
-    });
-
-    it('should suggest no change when current nodes == suggested nodes', () => {
-        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:8, maxSize: 20}, 8, '')
-        msg.should.containEql('no change');
-        msg.should.not.containEql('MAX NODES');
-        msg.should.not.containEql('PROCESSING_UNITS');
-    });
-
-    it('should suggest to scale when current nodes != suggested nodes', () => {
-        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:5}, 8, '')
+    it('should suggest scaling when nodes suggestion is not equal to current', () => {
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 5, '');
         msg.should.containEql('suggesting to scale');
         msg.should.containEql('NODES');
         msg.should.not.containEql('PROCESSING_UNITS');
     });
 
+    it('should indicate scaling is not possible if nodes suggestion is above max', () => {
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 9, '');
+        msg.should.containEql('higher than MAX');
+        msg.should.containEql('NODES');
+        msg.should.not.containEql('PROCESSING_UNITS');
+    });
+
+    it('should indicate scaling is not possible if nodes suggestion is below min', () => {
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 1, '');
+        msg.should.containEql('lower than MIN');
+        msg.should.containEql('NODES');
+        msg.should.not.containEql('PROCESSING_UNITS');
+    });
+
     // PROCESSING_UNITS ---------------------------------------
-    it('should suggest no change when current PROCESSING_UNITS reached MIN', () => {
-        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:200, minSize: 200}, 200, '')
-        msg.should.containEql('no change');
-        msg.should.containEql('MIN PROCESSING_UNITS');
+    it('should not suggest scaling when processing units suggestion is equal to current', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 300, '')
+        msg.should.containEql('size is equal to the current size');
+        msg.should.containEql('PROCESSING_UNITS');
         msg.should.not.containEql('NODES');
     });
 
-    it('should suggest no change when current PROCESSING_UNITS reached MAX', () => {
-        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:800, maxSize: 800}, 800, '');
-        msg.should.containEql('no change');
-        msg.should.containEql('MAX PROCESSING_UNITS');
-        msg.should.not.containEql('NODES');
-    });
-
-    it('should suggest no change when current PROCESSING_UNITS == suggested PROCESSING_UNITS', () => {
-        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:800, maxSize: 2000}, 800, '')
-        msg.should.containEql('no change');
-        msg.should.not.containEql('MAX PROCESSING_UNITS');
-        msg.should.not.containEql('NODES');
-    });
-
-    it('should suggest to scale when current PROCESSING_UNITS != suggested PROCESSING_UNITS', () => {
-        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:500}, 800, '')
+    it('should suggest scaling when processing units suggestion is not equal to current', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 500, '');
         msg.should.containEql('suggesting to scale');
+        msg.should.containEql('PROCESSING_UNITS');
+        msg.should.not.containEql('NODES');
+    });
+
+    it('should indicate scaling is not possible if processing units suggestion is above max', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 900, '');
+        msg.should.containEql('higher than MAX');
+        msg.should.containEql('PROCESSING_UNITS');
+        msg.should.not.containEql('NODES');
+    });
+
+    it('should indicate scaling is not possible if processing units suggestion is below min', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 100, '');
+        msg.should.containEql('lower than MIN');
         msg.should.containEql('PROCESSING_UNITS');
         msg.should.not.containEql('NODES');
     });
