@@ -126,15 +126,19 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     project:
 
     ```sh
-    export AUTO_SCALER_PROJECT_ID=<INSERT_YOUR_PROJECT_ID>
-    gcloud config set project "${AUTO_SCALER_PROJECT_ID}"
+    export AUTOSCALER_PROJECT_ID=<INSERT_YOUR_PROJECT_ID>
+    gcloud config set project "${AUTOSCALER_PROJECT_ID}"
     ```
 
 4.  Choose the [region and zone][region-and-zone] and
     [App Engine Location][app-engine-location] where the Autoscaler
-    infrastructure will be located. `sh export AUTO_SCALER_REGION=us-central1
-    export AUTO_SCALER_ZONE=us-central1-c export
-    AUTO_SCALER_APP_ENGINE_LOCATION=us-central`
+    infrastructure will be located.
+
+    ```sh
+    export AUTOSCALER_REGION=us-central1
+    export AUTOSCALER_ZONE=us-central1-c
+    export AUTOSCALER_APP_ENGINE_LOCATION=us-central
+    ```
 
 5.  Enable the required Cloud APIs :
 
@@ -160,8 +164,8 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
 7.  Give the project owner role to the service account
 
     ```sh
-    gcloud projects add-iam-policy-binding "${AUTO_SCALER_PROJECT_ID}" \
-      --member "serviceAccount:terraformer@${AUTO_SCALER_PROJECT_ID}.iam.gserviceaccount.com" \
+    gcloud projects add-iam-policy-binding "${AUTOSCALER_PROJECT_ID}" \
+      --member "serviceAccount:terraformer@${AUTOSCALER_PROJECT_ID}.iam.gserviceaccount.com" \
       --role roles/owner
     ```
 
@@ -169,15 +173,15 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
 
     ```sh
     gcloud iam service-accounts keys create \
-      --iam-account "terraformer@${AUTO_SCALER_PROJECT_ID}.iam.gserviceaccount.com" "${AUTOSCALER_DIR}/key.json"
+      --iam-account "terraformer@${AUTOSCALER_PROJECT_ID}.iam.gserviceaccount.com" "${AUTOSCALER_DIR}/key.json"
     ```
 
 9.  If your project does not have a [Firestore][firestore] instance yet, create
     one
 
     ```sh
-    gcloud app create --region="${AUTO_SCALER_APP_ENGINE_LOCATION}"
-    gcloud alpha firestore databases create --region="${AUTO_SCALER_APP_ENGINE_LOCATION}"
+    gcloud app create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
+    gcloud alpha firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
 ### Deploy the Autoscaler
@@ -186,10 +190,10 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     corresponding Terraform environment variables
 
     ```sh
-    export TF_VAR_project_id="${AUTO_SCALER_PROJECT_ID}"
-    export TF_VAR_region="${AUTO_SCALER_REGION}"
-    export TF_VAR_zone="${AUTO_SCALER_ZONE}"
-    export TF_VAR_location="${AUTO_SCALER_APP_ENGINE_LOCATION}"
+    export TF_VAR_project_id="${AUTOSCALER_PROJECT_ID}"
+    export TF_VAR_region="${AUTOSCALER_REGION}"
+    export TF_VAR_zone="${AUTOSCALER_ZONE}"
+    export TF_VAR_location="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
 2.  Change directory into the Terraform scaler-project directory and initialize
@@ -233,8 +237,13 @@ topic and function in the project where the Spanner instances live.
 
 4.  Choose the [region and zone][region-and-zone] and
     [App Engine Location][app-engine-location] where the Application project
-    will be located. `sh export APP_REGION=us-central1 export
-    APP_ZONE=us-central1-c export APP_APP_ENGINE_LOCATION=us-central`
+    will be located.
+
+    ```sh
+    export APP_REGION=us-central1
+    export APP_ZONE=us-central1-c
+    export APP_APP_ENGINE_LOCATION=us-central
+    ```
 
 5.  Use the following command to enable the Cloud APIs:
 
@@ -295,7 +304,7 @@ topic and function in the project where the Spanner instances live.
     each instance.
 
     ```sh
-    export TF_VAR_state_project_id="${AUTO_SCALER_PROJECT_ID}"
+    export TF_VAR_state_project_id="${AUTOSCALER_PROJECT_ID}"
     ```
 
 3.  If you want to create a new Spanner instance for testing the Autoscaler, set
@@ -341,13 +350,15 @@ topic and function in the project where the Spanner instances live.
 ### Authorize the Forwarder function to publish to the Poller topic
 
 1.  Switch back to the Autoscaler project and ensure that Terraform variables
-    are correctly set. ```sh cd "${AUTOSCALER_DIR}"
+    are correctly set.
 
     ```sh
-    export TF_VAR_project_id="${AUTO_SCALER_PROJECT_ID}"
-    export TF_VAR_region="${AUTO_SCALER_REGION}"
-    export TF_VAR_zone="${AUTO_SCALER_ZONE}"
-    export TF_VAR_location="${AUTO_SCALER_APP_ENGINE_LOCATION}"
+    cd "${AUTOSCALER_DIR}"
+
+    export TF_VAR_project_id="${AUTOSCALER_PROJECT_ID}"
+    export TF_VAR_region="${AUTOSCALER_REGION}"
+    export TF_VAR_zone="${AUTOSCALER_ZONE}"
+    export TF_VAR_location="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
 2.  Set the Terraform variables for your Forwarder service accounts, updating

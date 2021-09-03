@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-provider "google" {
-    version = ">3.5.0"
+terraform {
+  required_providers {
+    google = {
+      version = ">3.5.0"
+    }
+  }
+}
 
+provider "google" {
     credentials = file("${var.creds_file}")
 
     project = var.project_id
@@ -45,5 +51,13 @@ module "scheduler" {
 
   project_id   = var.project_id
   pubsub_topic = module.autoscaler.poller_topic
-  pubsub_data  = base64encode(jsonencode([{"projectId": "${var.project_id}", "instanceId": "${module.spanner.spanner_name}", "scalerPubSubTopic": "${module.autoscaler.scaler_topic}", "minNodes": 1, "maxNodes": 10, "scalingMethod": "LINEAR"}]))
+  pubsub_data  = base64encode(jsonencode([{
+    "projectId": "${var.project_id}",
+    "instanceId": "${module.spanner.spanner_name}",
+    "scalerPubSubTopic": "${module.autoscaler.scaler_topic}",
+    "units": "NODES",
+    "minSize": 1
+    "maxSize": 3,
+    "scalingMethod": "LINEAR"
+  }]))
 }
