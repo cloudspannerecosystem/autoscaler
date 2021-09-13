@@ -187,7 +187,7 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
   });
 }
 
-function getSpannerMetadata(projectId, spannerInstanceId) {
+function getSpannerMetadata(projectId, spannerInstanceId, units) {
   log(`----- ${projectId}/${spannerInstanceId}: Getting Metadata -----`,
       'INFO');
 
@@ -205,7 +205,7 @@ function getSpannerMetadata(projectId, spannerInstanceId) {
     log(`Config:          ${metadata['config'].split('/').pop()}`);
 
     const spannerMetadata = {
-      currentSize: (spanner.units == 'NODES') ? metadata['nodeCount'] : metadata['processingUnits'],
+      currentSize: (units == 'NODES') ? metadata['nodeCount'] : metadata['processingUnits'],
       regional: metadata['config'].split('/').pop().startsWith('regional'),
       // DEPRECATED
       currentNodes: metadata['nodeCount'],
@@ -298,7 +298,7 @@ async function parseAndEnrichPayload(payload) {
     // merge in the current Spanner state
     spanners[sIdx] = {
       ...spanners[sIdx],
-      ...await getSpannerMetadata(spanners[sIdx].projectId, spanners[sIdx].instanceId)
+      ...await getSpannerMetadata(spanners[sIdx].projectId, spanners[sIdx].instanceId, spanners[sIdx].units.toUpperCase())
     };
   }
 
