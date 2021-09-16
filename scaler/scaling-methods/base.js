@@ -17,7 +17,7 @@
  * Base module that encapsulates functionality common to scaling methods:
  * * Loop through the Spanner metrics
  * * Determine if the Spanner instance is overloaded
- * * Log node suggestions per metric
+ * * Log sizing suggestions per metric
  */
 
 // Only the high_priority_cpu metric is used to determine if an overload
@@ -37,18 +37,18 @@ const DEFAULT_THRESHOLD_MARGIN = 5;
 
 const {log} = require('../utils.js');
 
-function getScaleSuggestionMessage(spanner, suggestedNodes, relativeToRange) {
+function getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange) {
   if (relativeToRange == RelativeToRange.WITHIN) {
     return `no change suggested`;
-  } else if (suggestedNodes == spanner.currentNodes) {
-    if (suggestedNodes == spanner.minNodes)
-      return `however current nodes ${spanner.currentNodes} = MIN nodes, therefore no change suggested.`;
-    else if (suggestedNodes == spanner.maxNodes)
-      return `however current nodes ${spanner.currentNodes} = MAX nodes, therefore no change suggested.`;
+  } else if (suggestedSize <= spanner.maxSize && suggestedSize >= spanner.minSize) {
+    if (suggestedSize == spanner.currentSize)
+      return `the suggested size is equal to the current size: ${spanner.currentSize} ${spanner.units}`;
     else 
-      return `no change suggested to current ${spanner.currentNodes} nodes.`;
-  } else {
-    return `suggesting to scale from ${spanner.currentNodes} to ${suggestedNodes} nodes.`;
+      return `suggesting to scale from ${spanner.currentSize} to ${suggestedSize} ${spanner.units}.`;
+  } else if (suggestedSize > spanner.maxSize) {
+    return `however, cannot scale to ${suggestedSize} because it is higher than MAX ${spanner.maxSize} ${spanner.units}`
+  } else if (suggestedSize < spanner.minSize) {
+    return `however, cannot scale to ${suggestedSize} because it is lower than MIN ${spanner.minSize} ${spanner.units}`
   }
 }
 
@@ -77,7 +77,7 @@ function compareMetricValueWithRange(metric) {
   return RelativeToRange.WITHIN;
 }
 
-function logSuggestion(spanner, metric, suggestedNodes) {
+function logSuggestion(spanner, metric, suggestedSize) {
   const metricDetails = `\t${metric.name}=${metric.value}%,`;
   const relativeToRange = compareMetricValueWithRange(metric);
 
@@ -85,18 +85,18 @@ function logSuggestion(spanner, metric, suggestedNodes) {
   const rangeDetails = `${relativeToRange} the range [${range.min}%-${range.max}%]`;
 
   if (metric.name === OVERLOAD_METRIC && spanner.isOverloaded) {
-    log(`${metricDetails} ABOVE the ${OVERLOAD_THRESHOLD} overload threshold => ${getScaleSuggestionMessage(spanner, suggestedNodes, RelativeToRange.ABOVE)}`);
+    log(`${metricDetails} ABOVE the ${OVERLOAD_THRESHOLD} overload threshold => ${getScaleSuggestionMessage(spanner, suggestedSize, RelativeToRange.ABOVE)}`);
   } else  {
-    log(`${metricDetails} ${rangeDetails} => ${getScaleSuggestionMessage(spanner, suggestedNodes, relativeToRange)}`);
+    log(`${metricDetails} ${rangeDetails} => ${getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange)}`);
   } 
 
 }
 
-function loopThroughSpannerMetrics(spanner, getSuggestedNodes) {
-  log(`---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} node suggestions----`);
-  log(`	Nodes: Min=${spanner.minNodes}, Current=${spanner.currentNodes}, Max=${spanner.maxNodes}`);
+function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
+  log(`---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} size suggestions----`);
+  log(`	Min=${spanner.minSize}, Current=${spanner.currentSize}, Max=${spanner.maxSize} ${spanner.units}`);
 
-  var maxSuggestedNodes = spanner.minNodes;
+  var maxSuggestedSize = spanner.minSize;
   spanner.isOverloaded = false;
 
   for (const metric of spanner.metrics) {
@@ -108,20 +108,20 @@ function loopThroughSpannerMetrics(spanner, getSuggestedNodes) {
       metric.margin = DEFAULT_THRESHOLD_MARGIN;
     }
 
-    const suggestedNodes = getSuggestedNodes(spanner, metric);
-    logSuggestion(spanner, metric, suggestedNodes);
+    const suggestedSize = getSuggestedSize(spanner, metric);
+    logSuggestion(spanner, metric, suggestedSize);
 
-    maxSuggestedNodes = Math.max(maxSuggestedNodes, suggestedNodes);
+    maxSuggestedSize = Math.max(maxSuggestedSize, suggestedSize);
   }
 
-  maxSuggestedNodes = Math.min(maxSuggestedNodes, spanner.maxNodes);
-  log('\t=> Final ' + spanner.scalingMethod +
-      ' suggestion: ' + maxSuggestedNodes + ' nodes');
-  return maxSuggestedNodes;
+  maxSuggestedSize = Math.min(maxSuggestedSize, spanner.maxSize);
+  log(`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${spanner.units}`);
+  return maxSuggestedSize;
 }
 
 module.exports = {
   OVERLOAD_METRIC,
+  OVERLOAD_THRESHOLD,
   loopThroughSpannerMetrics,
   metricValueWithinRange
 };

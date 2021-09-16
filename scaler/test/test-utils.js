@@ -12,22 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
+const sinon = require('sinon');
+const fs = require('fs');
+const State = require('../state.js');
 
-/*
- * Direct scaling method
- *
- * Suggests scaling to the number of nodes or processing units specified by maxSize.
- * Useful to scale an instance in preparation for a batch job,
- * and to scale it back after the job is finished.
- */
-const {log} = require('../utils.js');
+function createSpannerParameters(overrideParams) {
+   return {...JSON.parse(fs.readFileSync('./test/sample-parameters.json')), ...overrideParams};
+}
 
-function calculateSize(spanner) {
-  log(`---- DIRECT size suggestions for ${spanner.projectId}/${spanner.instanceId}----`);
-  log(`	Final DIRECT suggestion: ${spanner.maxSize} + ${spanner.units}}`);
-  return spanner.maxSize;
+function createStubState() {
+  var stubState = new State(spanner);
+  sinon.stub(stubState, "get").resolves(0);
+  sinon.stub(stubState, "set").resolves(0);
+  sinon.stub(stubState, "now").value(Date.now());
+  return stubState;
 }
 
 module.exports = {
-  calculateSize
+  createSpannerParameters,
+  createStubState
 };

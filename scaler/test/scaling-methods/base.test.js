@@ -16,7 +16,6 @@
 const rewire = require('rewire');
 const should = require('should');
 const sinon = require('sinon');
-const suppressLogs = require('mocha-suppress-logs');
 
 const app = rewire('../../scaling-methods/base.js');
 
@@ -78,34 +77,70 @@ describe('#getScaleSuggestionMessage', () => {
         getScaleSuggestionMessage({}, 999, 'WITHIN').should.containEql('no change');
     });
 
-    it('should suggest no change when current nodes == MIN', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:2, minNodes: 2}, 2, '')
-        msg.should.containEql('no change');
-        msg.should.containEql('MIN nodes');
+    // NODES -------------------------------------------------- 
+    it('should not suggest scaling when nodes suggestion is equal to current', () => {
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 3, '')
+        msg.should.containEql('size is equal to the current size');
+        msg.should.containEql('NODES');
+        msg.should.not.containEql('PROCESSING_UNITS');
     });
 
-    it('should suggest no change when current nodes == MAX', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:8, maxNodes: 8}, 8, '');
-        msg.should.containEql('no change');
-        msg.should.containEql('MAX nodes');
-    });
-
-    it('should suggest no change when current nodes == suggested nodes', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:8, maxNodes: 20}, 8, '')
-        msg.should.containEql('no change');
-        msg.should.not.containEql('MAX nodes');
-    });
-
-    it('should suggest to scale when current nodes != suggested nodes', () => {
-        var msg = getScaleSuggestionMessage({currentNodes:5}, 8, '')
+    it('should suggest scaling when nodes suggestion is not equal to current', () => {
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 5, '');
         msg.should.containEql('suggesting to scale');
+        msg.should.containEql('NODES');
+        msg.should.not.containEql('PROCESSING_UNITS');
+    });
+
+    it('should indicate scaling is not possible if nodes suggestion is above max', () => {
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 9, '');
+        msg.should.containEql('higher than MAX');
+        msg.should.containEql('NODES');
+        msg.should.not.containEql('PROCESSING_UNITS');
+    });
+
+    it('should indicate scaling is not possible if nodes suggestion is below min', () => {
+        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 1, '');
+        msg.should.containEql('lower than MIN');
+        msg.should.containEql('NODES');
+        msg.should.not.containEql('PROCESSING_UNITS');
+    });
+
+    // PROCESSING_UNITS ---------------------------------------
+    it('should not suggest scaling when processing units suggestion is equal to current', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 300, '')
+        msg.should.containEql('size is equal to the current size');
+        msg.should.containEql('PROCESSING_UNITS');
+        msg.should.not.containEql('NODES');
+    });
+
+    it('should suggest scaling when processing units suggestion is not equal to current', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 500, '');
+        msg.should.containEql('suggesting to scale');
+        msg.should.containEql('PROCESSING_UNITS');
+        msg.should.not.containEql('NODES');
+    });
+
+    it('should indicate scaling is not possible if processing units suggestion is above max', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 900, '');
+        msg.should.containEql('higher than MAX');
+        msg.should.containEql('PROCESSING_UNITS');
+        msg.should.not.containEql('NODES');
+    });
+
+    it('should indicate scaling is not possible if processing units suggestion is below min', () => {
+        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 100, '');
+        msg.should.containEql('lower than MIN');
+        msg.should.containEql('PROCESSING_UNITS');
+        msg.should.not.containEql('NODES');
     });
 
 }); 
 
 function getSpannerJSON() {
-    return { 
-        minNodes: 1, 
+    spanner = {
+        units : 'NODES', 
+        minSize: 1, 
         metrics: [{
             name: 'high_priority_cpu',
             threshold:65,
@@ -117,11 +152,11 @@ function getSpannerJSON() {
         }
         ]
     };
+    return spanner;
 }
 
 const loopThroughSpannerMetrics = app.__get__('loopThroughSpannerMetrics');
 describe('#loopThroughSpannerMetrics', () => {
-    suppressLogs();
 
     it('should add a default margin to each metric', () => {
         var spanner = getSpannerJSON();

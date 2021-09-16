@@ -5,7 +5,7 @@
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
-    Automatically increase or reduce nodes in one Spanner instance
+    Automatically increase or reduce the size of one Spanner instance
     <br />
     <a href="../README.md">Home</a>
     ·
@@ -33,46 +33,48 @@ The Scaler function receives a message from the Poller function that includes
 the utilization metrics for a single Spanner instance. It compares the metric
 values with the [recommended thresholds][spanner-metrics], plus or minus an
 [allowed margin](poller/README.md#margins). The Scaler function determines
-if the instance should be scaled, the number of nodes it should be scaled to
-and adjusts the number of nodes in the Spanner instance accordingly.
+if the instance should be scaled, the number of nodes or processing units
+it should be scaled to and adjusts the size of the Spanner instance accordingly.
 
 ## Scaling methods
 
 The Scaler function supports three scaling methods out of the box:
 
 *   [STEPWISE](scaling-methods/stepwise.js): This is the default method used by
-    the Scaler. It suggests adding or removing nodes using fixed step amount
-    defined by the parameter `stepSize`. In an overload situation, when the
-    instance High Priority CPU utilization is over 90%, the Scaler uses the
-    `overloadStepSize` parameter instead.
+    the Scaler. It suggests adding or removing nodes or processing units using
+    a fixed step amount defined by the parameter `stepSize`. In an overload
+    situation, when the instance High Priority CPU utilization is over 90%, the
+     Scaler uses the `overloadStepSize` parameter instead.
 
 *   [LINEAR](scaling-methods/linear.js): This method suggests adding or removing
-    nodes calculated with a simple linear
+    nodes or processing units calculated with a simple linear
     [cross multiplication][cross-multiplication]. This way, the new number of
-    nodes is [directly proportional][directly-proportional] to the current
-    resource utilization.
+    nodes or processing units is [directly proportional][directly-proportional]
+    to the current resource utilization.
 
 *   [DIRECT](scaling-methods/direct.js): This method suggests scaling to the
-    number of nodes specified by the `maxNodes` parameter. It does NOT take in
-    account the current utilization metrics. It is useful to scale an instance
-    in preparation for a batch job and and to scale it back after the job is
-    finished.
+    number of nodes or processing units specified by the `maxSize` parameter.
+    It does NOT take in account the current utilization metrics. It is useful
+    to scale an instance in preparation for a batch job and and to scale it back
+    after the job is finished.
 
 ### Custom scaling methods
 
 You can define you own scaling method by creating a new file in the
-`scaling-methods` directory. Your file must export a `calculateNumNodes`
+`scaling-methods` directory. Your file must export a `calculateSize`
 function that receives an object and returns an integer. The input object
 contains the message payload received from the Poller function. See
 [more information](#parameters) about the message payload.
 
 ```js
-exports.calculateNumNodes = (spanner) => {
-  console.log('---- MY_METHOD node suggestions for ' + spanner.projectId + "/" + spanner.instanceId + '----');
+exports.calculateSize = (spanner) => {
+  console.log('---- MY_METHOD suggestions for ' + spanner.projectId + "/" + spanner.instanceId + '----');
   //...
-  return 42;
+  return 400;
  }
 ```
+
+The function `calculateNumNodes` is deprecated.
 
 ## Parameters
 
@@ -82,18 +84,19 @@ configuration. The parameters that the Scaler receives are a subset of the
 function.
 
 The messages sent to the Scaler function from the Poller function include this
-subset, the Spanner instance metrics, the current number of nodes and a flag to
-indicate if the Spanner instance is
+subset, the Spanner instance metrics, the current size in number of nodes or
+processing units and a flag to indicate if the Spanner instance is
 [regional or multi-regional][spanner-regional].
 
 The following is an example:
 
 ```json
 {
-   "minNodes":1,
-   "maxNodes":3,
-   "stepSize":1,
-   "overloadStepSize":5,
+   "units":"PROCESSING_UNITS",
+   "minSize":100,
+   "maxSize":2000,
+   "stepSize":200,
+   "overloadStepSize":500,
    "scaleOutCoolingMinutes":5,
    "scaleInCoolingMinutes":30,
    "scalingMethod":"STEPWISE",
@@ -104,24 +107,26 @@ The following is an example:
       {
          "name":"high_priority_cpu",
          "threshold":65,
-         "value":95
+         "value":85,
+         "margin":15
       },
       {
          "name":"rolling_24_hr",
          "threshold":90,
-         "value":80
+         "value":70
       },
       {
          "name":"storage",
          "threshold":75,
          "value":80,
-         "margin":10
       }
    ],
-   "currentNodes":1,
+   "currentSize":100,
    "regional":true
 }
 ```
+
+The parameters `minNodes`, `maxNodes` and `currentNodes` are deprecated.
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
