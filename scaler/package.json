@@ -5,7 +5,6 @@
   "author": "Google Inc.",
   "dependencies": {
     "@google-cloud/firestore": "^4.14.1",
-    "@google-cloud/functions-framework": "^1.9.0",
     "@google-cloud/spanner": "^5.13.1"
   },
   "scripts": {
