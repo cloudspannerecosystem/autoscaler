@@ -21,6 +21,7 @@ resource "google_spanner_instance" "main" {
   config       = "regional-${var.region}"
   display_name = var.spanner_name
   project      = var.project_id
+  processing_units = 100
 }
 
 resource "google_spanner_database" "database" {
