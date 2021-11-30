@@ -4,8 +4,8 @@
     "license": "Apache-2.0",
     "author": "Google Inc.",
     "dependencies": {
-        "@google-cloud/functions-framework": "^1.7.1",
-        "@google-cloud/pubsub": "^1.7.3"
+        "@google-cloud/functions-framework": "^2.0.0",
+        "@google-cloud/pubsub": "^2.16.6"
     },
     "scripts": {
         "start": "functions-framework --target=forwardFromHTTP",
