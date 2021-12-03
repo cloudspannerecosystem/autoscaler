@@ -24,7 +24,7 @@ resource "google_spanner_instance" "main" {
   processing_units = 100
 
   lifecycle {
-    ignore_changes = ["num_nodes", "processing_units"]
+    ignore_changes = [num_nodes, processing_units]
   }
 }
 
