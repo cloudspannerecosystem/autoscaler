@@ -38,3 +38,14 @@ variable "forwarder_sa_emails" {
   // Example ["serviceAccount:forwarder_sa@app-project.iam.gserviceaccount.com"]
   default = []
 }
+
+variable "terraform_dashboard" {
+  description = "If set to true, Terraform will create a Cloud Monitoring dashboard including important Spanner metrics."
+  type        = bool
+  default     = true
+}
+
+variable "dashboard_threshold_spanner_config" {
+  description = "The Spanner configuration to set the threshold value to be displayed on the dashboard, either 'REGIONAL' or 'MULTI_REGIONAL'."
+  type        = string
+}

@@ -61,3 +61,11 @@ module "scheduler" {
     "scalingMethod": "LINEAR"
   }]))
 }
+
+module "monitoring" {
+  count   = var.terraform_dashboard ? 1 : 0
+  source  = "../modules/monitoring"
+
+  project_id = var.project_id
+  config     = var.dashboard_threshold_spanner_config
+}
