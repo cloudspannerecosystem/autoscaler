@@ -84,6 +84,7 @@ Key                      | Default Value  | Description
 `scaleInCoolingMinutes`  | 30             | Minutes to wait after scaling IN or OUT before a scale IN event can be processed.
 `overloadCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed, when the Spanner instance is overloaded. An instance is overloaded if its High Priority CPU utilization is over 90%.
 `stateProjectId`         | `${projectId}` | The project ID where the Autoscaler state will be persisted. By default it is persisted using [Cloud Firestore][cloud-firestore] in the same project as the Spanner instance.
+`stateDatabase`          | Object         | An Object that can override the database for managing the state of autoscale. The default database is Firestore. Refer to the [state database](#state-database) to see for the detail.
 `metrics`                | Array          | Array of objects that can override the values in the metrics used to decide when the Cloud Spanner instance should be scaled IN or OUT. Refer to the [metrics definition table](#metrics-parameters) to see the fields used for defining metrics.
 `minNodes` (DEPRECATED)  | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
 `maxNodes` (DEPRECATED)  | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
@@ -175,6 +176,35 @@ the metric definition.
 should be used when querying for data. The Autoscaler will automatically add
 the filter expressions for [Spanner instance resources, instance id](spanner-filter)
 and project id.
+
+## State Database
+
+The table describes the objects used to specify the database for managing the state of autoscale. 
+
+Key                        | Default      | Description
+-------------------------- | ------------ | -----------
+`name`                     | `firestore`  | Name of the database for managing the state of autoscale. By default, Firestore is used. The currently supported values are `firestore` and `spanner`.
+
+### State Managing in Cloud Spanner
+
+If the value of `name` is `spanner`, the following values are required.
+
+Key                        | Description
+-------------------------- | -----------
+`instanceId`               | The instance id of Cloud Spanner which you want to manage the state.
+`databaseId`               | The database id of Cloud Spanner instance which you want to manage the state.
+
+When using Cloud Spanner to manage the state, 
+a table with the following DDL is created at runtime.
+
+```
+CREATE TABLE spannerAutoscaler (
+  id STRING(MAX),
+  lastScalingTimestamp TIMESTAMP,
+  createdOn TIMESTAMP,
+  updatedOn TIMESTAMP,
+) PRIMARY KEY (id)
+```
 
 ## Example configuration
 
