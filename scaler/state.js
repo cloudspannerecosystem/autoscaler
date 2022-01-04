@@ -98,11 +98,10 @@ class StateSpanner {
     const query = {
       columns: ['lastScalingTimestamp', 'createdOn'],
       keySet: {
-        all: true,
-      },
-      limit: 1,
-    };
-    this.table = await this.getTable();
+        keys: [{values: [{stringValue: this.rowId()}]}]
+      }
+    }
+    this.table = await this.getTable() // make sure the table exists
     const [rows] = await this.table.read(query)
     if (rows.length == 0) {
       this.data = await this.init();
@@ -170,10 +169,14 @@ class StateSpanner {
     return this.spanner.table('spannerAutoscaler');
   }
 
+  rowId() {
+    return `projects/${this.projectId}/instances/${this.instanceId}/databases/${this.databaseId}`;
+  }
+
   async updateState(rowData) {
     const row = JSON.parse(JSON.stringify(rowData));
     // for Centralized or Distributed projects, rows have a unique key.
-    row.id = `projects/${this.projectId}/instances/${this.instanceId}/databases/${this.databaseId}`;
+    row.id = this.rowId();
     // converts TIMESTAMP type columns to ISO format string for registration
     Object.keys(row).forEach(key => {
       if (row[key] instanceof Date) {
