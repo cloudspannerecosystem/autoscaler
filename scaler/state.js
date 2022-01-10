@@ -82,7 +82,7 @@ class StateSpanner {
     this.instanceId = spanner.stateDatabase.instanceId;
     this.databaseId = spanner.stateDatabase.databaseId;
     const s = new Spanner({projectId: this.projectId});
-    this.spanner = s.instance(this.instanceId).database(this.databaseId);
+    this.table = s.instance(this.instanceId).database(this.databaseId).table('spannerAutoscaler');
   }
 
   async init() {
@@ -101,7 +101,6 @@ class StateSpanner {
         keys: [{values: [{stringValue: this.rowId()}]}]
       }
     }
-    this.table = await this.getTable() // make sure the table exists
     const [rows] = await this.table.read(query)
     if (rows.length == 0) {
       this.data = await this.init();
@@ -136,37 +135,6 @@ class StateSpanner {
 
   get now() {
     return Date.now();
-  }
-
-  async checkIfTableExists() {
-    return await this.spanner.getSchema().then(function(data) {
-      const statements = data[0];
-      const matcher = new RegExp(/CREATE TABLE spannerAutoScaler \(/, 'i');
-      const matches = statements.filter(function (statement) {
-          return matcher.test(statement);
-      });
-      return matches.length == 1;
-    }).catch(function(err) {
-      return false;
-    });
-  }
-
-  async createTable() {
-    const request = [`CREATE TABLE spannerAutoscaler (
-      id STRING(MAX),
-      lastScalingTimestamp TIMESTAMP,
-      createdOn TIMESTAMP,
-      updatedOn TIMESTAMP,
-    ) PRIMARY KEY (id)`];
-    const [operation] = await this.spanner.updateSchema(request);
-    await operation.promise();
-  }
-
-  async getTable() {
-    if (!await this.checkIfTableExists()) {
-      await this.createTable(); // make sure the state table exists
-    }
-    return this.spanner.table('spannerAutoscaler');
   }
 
   rowId() {

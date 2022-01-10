@@ -178,6 +178,10 @@ In this section you prepare your project for deployment.
     gcloud alpha firestore databases create --region="${APP_ENGINE_LOCATION}"
     ```
 
+    Alternatively, if you want to use your own spanner to manage
+    the state of autoscale, skip this step
+    and perform step 3 in [Deploying the Autoscaler](#Deploying-the-Autoscaler).
+
 ## Deploying the Autoscaler
 
 1.  Set the project ID, region and zone in the corresponding Terraform
@@ -208,20 +212,32 @@ In this section you prepare your project for deployment.
     For more information on how to make your Spanner instance to be managed by
     Terraform, see [Import your Spanner instances](#import-your-spanner-instances)
 
-3.  Change directory into the Terraform per-project directory and initialize it.
+3. If you want to manage the state of autoscale in your own Spanner instance,
+   please create the following table in advance.
+
+   ```sql
+   CREATE TABLE spannerAutoscaler (
+      id STRING(MAX),
+      lastScalingTimestamp TIMESTAMP,
+      createdOn TIMESTAMP,
+      updatedOn TIMESTAMP,
+   ) PRIMARY KEY (id)
+   ```
+
+4.  Change directory into the Terraform per-project directory and initialize it.
 
     ```sh
     cd "${AUTOSCALER_DIR}"
     terraform init
     ```
 
-4.  Import the existing AppEngine application into Terraform state
+5.  Import the existing AppEngine application into Terraform state
 
     ```sh
     terraform import module.scheduler.google_app_engine_application.app "${PROJECT_ID}"
     ```
 
-5.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
+6.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
     reviewing the resources that Terraform intends to create.
 
     ```sh

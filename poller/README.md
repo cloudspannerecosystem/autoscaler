@@ -179,7 +179,8 @@ and project id.
 
 ## State Database
 
-The table describes the objects used to specify the database for managing the state of autoscale. 
+The table describes the objects used to specify the database
+for managingthe state of autoscale.
 
 Key                        | Default      | Description
 -------------------------- | ------------ | -----------
@@ -194,10 +195,10 @@ Key                        | Description
 `instanceId`               | The instance id of Cloud Spanner which you want to manage the state.
 `databaseId`               | The database id of Cloud Spanner instance which you want to manage the state.
 
-When using Cloud Spanner to manage the state, 
+When using Cloud Spanner to manage the state,
 a table with the following DDL is created at runtime.
 
-```
+```sql
 CREATE TABLE spannerAutoscaler (
   id STRING(MAX),
   lastScalingTimestamp TIMESTAMP,
