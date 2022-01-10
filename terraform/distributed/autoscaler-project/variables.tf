@@ -45,7 +45,17 @@ variable "terraform_dashboard" {
   default     = true
 }
 
-variable "dashboard_threshold_spanner_config" {
-  description = "The Spanner configuration to set the threshold value to be displayed on the dashboard, either 'REGIONAL' or 'MULTI_REGIONAL'."
-  type        = string
+variable "dashboard_threshold_high_priority_cpu_percentage" {
+  description = "Threshold value related to the High Priority CPU utilization."
+  type        = number
+}
+
+variable "dashboard_threshold_rolling_24_hr_percentage" {
+  description = "Threshold value related to the Rolling(Smoothed) 24 hours CPU utilization."
+  type        = number
+}
+
+variable "dashboard_threshold_storage_percentage" {
+  description = "Threshold value related to the Storage utization."
+  type        = number
 }

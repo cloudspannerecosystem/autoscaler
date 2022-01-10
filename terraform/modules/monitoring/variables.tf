@@ -18,7 +18,17 @@ variable "project_id" {
   type   = string
 }
 
-variable "config" {
-  description = "The type of the instance's configuration. The value only 'REGIONAL' or 'MULTI_REGIONAL' can be accepted."
-  type   = string
+variable "dashboard_threshold_high_priority_cpu_percentage" {
+  description = "Threshold value related to the High Priority CPU utilization."
+  type        = number
+}
+
+variable "dashboard_threshold_rolling_24_hr_percentage" {
+  description = "Threshold value related to the Rolling(Smoothed) 24 hours CPU utilization."
+  type        = number
+}
+
+variable "dashboard_threshold_storage_percentage" {
+  description = "Threshold value related to the Storage utization."
+  type        = number
 }

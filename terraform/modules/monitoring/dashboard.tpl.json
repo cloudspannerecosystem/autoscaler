@@ -34,9 +34,9 @@
             ],
             "thresholds": [
               {
-                "label": "Recommended max per instance（${thresholds_high_priority_cpu * 100}%)",
+                "label": "Recommended max per instance（${thresholds_high_priority_cpu_percentage}%)",
                 "targetAxis": "Y1",
-                "value": ${thresholds_high_priority_cpu}
+                "value": ${thresholds_high_priority_cpu_percentage}
               }
             ],
             "timeshiftDuration": "0s",
@@ -80,9 +80,9 @@
             ],
             "thresholds": [
               {
-                "label": "Recommended max per instance(90%)",
+                "label": "Recommended max per instance(${thresholds_rolling_24hr_cpu_percentage}%)",
                 "targetAxis": "Y1",
-                "value": 0.90
+                "value": ${thresholds_rolling_24hr_cpu_percentage}
               }
             ],
             "timeshiftDuration": "0s",
@@ -126,9 +126,9 @@
             ],
             "thresholds": [
               {
-                "label": "Recommended max per instance(75%)",
+                "label": "Recommended max per instance(${thresholds_storage_percentage}%)",
                 "targetAxis": "Y1",
-                "value": 0.75
+                "value": ${thresholds_storage_percentage}
               }
             ],
             "timeshiftDuration": "0s",
