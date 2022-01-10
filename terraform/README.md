@@ -30,6 +30,7 @@
 
 *   [Table of Contents](#table-of-contents)
 *   [Overview](#overview)
+*   [Monitoring](#monitoring)
 
 ## Overview
 
@@ -59,3 +60,12 @@ operational needs.
     instances want to manage only the Autoscaler configuration parameters for
     their instances, but the rest of the Autoscaler infrastructure is managed by
     a central team
+
+## Monitoring
+
+The [monitoring](./modules/monitoring) module is an optioal module for monitoring,
+and creates the following resources.
+
+*   Cloud Monitoring Dashboard: a starter dashboard users could deploy to get
+    started. This dashboard has 4 metrics: High CPU utilization, Smoothed CPU
+    utilization, Storage utilization and Processing units.
