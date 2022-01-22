@@ -16,6 +16,8 @@
     <a href="../forwarder/README.md">Forwarder function</a>
     ·
     Terraform configuration
+    ·
+    Monitoring
     <br />
     <a href="per-project/README.md">Per-Project</a>
     ·

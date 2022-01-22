@@ -16,6 +16,8 @@
     Forwarder function
     ·
     <a href="../terraform/README.md">Terraform configuration</a>
+    ·
+    <a href="../terraform/README.md#Monitoring">Monitoring</a>
   </p>
 </p>
 
