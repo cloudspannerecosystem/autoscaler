@@ -63,7 +63,7 @@ operational needs.
 
 ## Monitoring
 
-The [monitoring](./modules/monitoring) module is an optioal module for monitoring,
+The [monitoring](./modules/monitoring) module is an optional module for monitoring,
 and creates the following resources.
 
 *   Cloud Monitoring Dashboard: a starter dashboard users could deploy to get

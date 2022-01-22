@@ -67,7 +67,7 @@ variable "dashboard_threshold_rolling_24_hr_percentage" {
 }
 
 variable "dashboard_threshold_storage_percentage" {
-  description = "Threshold value related to the Storage utization."
+  description = "Threshold value related to the Storage utilization."
   type        = number
 }
 
