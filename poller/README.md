@@ -84,7 +84,7 @@ Key                      | Default Value  | Description
 `scaleInCoolingMinutes`  | 30             | Minutes to wait after scaling IN or OUT before a scale IN event can be processed.
 `overloadCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed, when the Spanner instance is overloaded. An instance is overloaded if its High Priority CPU utilization is over 90%.
 `stateProjectId`         | `${projectId}` | The project ID where the Autoscaler state will be persisted. By default it is persisted using [Cloud Firestore][cloud-firestore] in the same project as the Spanner instance.
-`stateDatabase`          | Object         | An Object that can override the database for managing the state of autoscale. The default database is Firestore. Refer to the [state database](#state-database) to see for the detail.
+`stateDatabase`          | Object         | An Object that can override the database for managing the state of the Autoscaler. The default database is Firestore. Refer to the [state database](#state-database) for details.
 `metrics`                | Array          | Array of objects that can override the values in the metrics used to decide when the Cloud Spanner instance should be scaled IN or OUT. Refer to the [metrics definition table](#metrics-parameters) to see the fields used for defining metrics.
 `minNodes` (DEPRECATED)  | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
 `maxNodes` (DEPRECATED)  | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
@@ -180,11 +180,11 @@ and project id.
 ## State Database
 
 The table describes the objects used to specify the database
-for managingthe state of autoscale.
+for managing the state of the Autoscaler.
 
 Key                        | Default      | Description
 -------------------------- | ------------ | -----------
-`name`                     | `firestore`  | Name of the database for managing the state of autoscale. By default, Firestore is used. The currently supported values are `firestore` and `spanner`.
+`name`                     | `firestore`  | Name of the database for managing the state of the Autoscaler. By default, Firestore is used. The currently supported values are `firestore` and `spanner`.
 
 ### State Managing in Cloud Spanner
 

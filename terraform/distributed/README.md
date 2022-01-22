@@ -176,16 +176,23 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
       --iam-account "terraformer@${AUTOSCALER_PROJECT_ID}.iam.gserviceaccount.com" "${AUTOSCALER_DIR}/key.json"
     ```
 
-9.  If your project does not have a [Firestore][firestore] instance yet, create
-    one
+9. Create a Google App Engine app, to enable the APIs for Cloud Scheduler and Firestore.
 
     ```sh
     gcloud app create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
+    ```
+
+10. Create database to store the state of the Autoscaler. 
+    State can be stored in either Firestore or Cloud Spanner.
+
+    In case you want to use Firestore, create a new instance
+    if your project does not have yet.
+
+    ```sh
     gcloud alpha firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
-    Alternatively, if you want to use your own spanner to manage
-    the state of autoscale, skip this step
+    In case you want to use Cloud Spanner, skip this step
     and perform step 4 in [Deploying the Autoscaler](#Deploy-the-Application-infrastructure).
 
 ### Deploy the Autoscaler
@@ -331,7 +338,7 @@ topic and function in the project where the Spanner instances live.
     Terraform, see
     [Import your Spanner instances](../per-project/README.md#import-your-spanner-instances)
 
-4. If you want to manage the state of autoscale in your own Spanner instance,
+4. If you want to manage the state of the Autoscaler in your own Cloud Spanner instance,
    please create the following table in advance.
 
    ```sql
