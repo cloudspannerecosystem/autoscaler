@@ -170,24 +170,25 @@ In this section you prepare your project for deployment.
       --iam-account "terraformer@${PROJECT_ID}.iam.gserviceaccount.com" "${AUTOSCALER_DIR}/key.json"
     ```
 
-9. Create a Google App Engine app, to enable the APIs for Cloud Scheduler and Firestore.
+9.  Create a Google App Engine app, to enable the APIs
+    for Cloud Scheduler and Firestore
 
     ```sh
     gcloud app create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
-10. Create database to store the state of the Autoscaler. 
-    State can be stored in either Firestore or Cloud Spanner.
+10.  Create database to store the state of the Autoscaler.
+     State can be stored in either Firestore or Cloud Spanner.
 
-    In case you want to use Firestore, create a new instance
-    if your project does not have yet.
+     In case you want to use Firestore, create a new instance
+     if your project does not have yet.
 
-    ```sh
-    gcloud alpha firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
-    ```
+     ```sh
+     gcloud alpha firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
+     ```
 
-    In case you want to use Cloud Spanner, skip this step
-    and perform step 4 in [Deploying the Autoscaler](#Deploy-the-Application-infrastructure).
+     In case you want to use Cloud Spanner, skip this step
+     and perform step 4 in [Deploying the Autoscaler](#Deploy-the-Application-infrastructure).
 
 ## Deploying the Autoscaler
 
@@ -219,17 +220,17 @@ In this section you prepare your project for deployment.
     For more information on how to make your Spanner instance to be managed by
     Terraform, see [Import your Spanner instances](#import-your-spanner-instances)
 
-3. If you want to manage the state of the Autoscaler in your own Cloud Spanner instance,
-   please create the following table in advance.
+3.  If you want to manage the state of the Autoscaler in your own Cloud Spanner instance,
+    please create the following table in advance.
 
-   ```sql
-   CREATE TABLE spannerAutoscaler (
-      id STRING(MAX),
-      lastScalingTimestamp TIMESTAMP,
-      createdOn TIMESTAMP,
-      updatedOn TIMESTAMP,
-   ) PRIMARY KEY (id)
-   ```
+    ```sql
+    CREATE TABLE spannerAutoscaler (
+       id STRING(MAX),
+       lastScalingTimestamp TIMESTAMP,
+       createdOn TIMESTAMP,
+       updatedOn TIMESTAMP,
+    ) PRIMARY KEY (id)
+    ```
 
 4.  Change directory into the Terraform per-project directory and initialize it.
 
