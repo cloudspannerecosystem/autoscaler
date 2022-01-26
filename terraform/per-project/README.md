@@ -170,13 +170,25 @@ In this section you prepare your project for deployment.
       --iam-account "terraformer@${PROJECT_ID}.iam.gserviceaccount.com" "${AUTOSCALER_DIR}/key.json"
     ```
 
-9.  If your project does not have a [Firestore][firestore] instance yet, create
-    one
+9.  Create a Google App Engine app, to enable the APIs
+    for Cloud Scheduler and Firestore
 
     ```sh
-    gcloud app create --region="${APP_ENGINE_LOCATION}"
-    gcloud alpha firestore databases create --region="${APP_ENGINE_LOCATION}"
+    gcloud app create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
+
+10.  Create database to store the state of the Autoscaler.
+     State can be stored in either Firestore or Cloud Spanner.
+
+     In case you want to use Firestore, create a new instance
+     if your project does not have yet.
+
+     ```sh
+     gcloud alpha firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
+     ```
+
+     In case you want to use Cloud Spanner, skip this step
+     and perform step 4 in [Deploying the Autoscaler](#Deploy-the-Application-infrastructure).
 
 ## Deploying the Autoscaler
 
@@ -208,20 +220,32 @@ In this section you prepare your project for deployment.
     For more information on how to make your Spanner instance to be managed by
     Terraform, see [Import your Spanner instances](#import-your-spanner-instances)
 
-3.  Change directory into the Terraform per-project directory and initialize it.
+3.  If you want to manage the state of the Autoscaler in your own Cloud Spanner instance,
+    please create the following table in advance.
+
+    ```sql
+    CREATE TABLE spannerAutoscaler (
+       id STRING(MAX),
+       lastScalingTimestamp TIMESTAMP,
+       createdOn TIMESTAMP,
+       updatedOn TIMESTAMP,
+    ) PRIMARY KEY (id)
+    ```
+
+4.  Change directory into the Terraform per-project directory and initialize it.
 
     ```sh
     cd "${AUTOSCALER_DIR}"
     terraform init
     ```
 
-4.  Import the existing AppEngine application into Terraform state
+5.  Import the existing AppEngine application into Terraform state
 
     ```sh
     terraform import module.scheduler.google_app_engine_application.app "${PROJECT_ID}"
     ```
 
-5.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
+6.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
     reviewing the resources that Terraform intends to create.
 
     ```sh
