@@ -13,7 +13,9 @@
     ·
     <a href="../poller/README.md">Poller function</a>
     ·
-    Terraform configuration
+    <a href="../README.md">Terraform configuration</a>
+    ·
+    <a href="../README.md#Monitoring">Monitoring</a>
     <br />
       <a href="../per-project/README.md">Per-Project</a>
       ·

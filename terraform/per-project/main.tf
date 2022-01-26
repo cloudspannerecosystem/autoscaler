@@ -61,3 +61,13 @@ module "scheduler" {
     "scalingMethod": "LINEAR"
   }]))
 }
+
+module "monitoring" {
+  count   = var.terraform_dashboard ? 1 : 0
+  source  = "../modules/monitoring"
+
+  project_id                                       = var.project_id
+  dashboard_threshold_high_priority_cpu_percentage = var.dashboard_threshold_high_priority_cpu_percentage
+  dashboard_threshold_rolling_24_hr_percentage     = var.dashboard_threshold_rolling_24_hr_percentage
+  dashboard_threshold_storage_percentage           = var.dashboard_threshold_storage_percentage
+}

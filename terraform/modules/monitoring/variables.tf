@@ -15,43 +15,7 @@
  */
 
 variable "project_id" {
-  type = string
-}
-
-variable "creds_file" {
-  type = string
-  default = "key.json"
-}
-
-variable "region" {
-  type    = string
-  default = "us-central1"
-}
-
-variable "zone" {
-  type    = string
-  default = "us-central1-c"
-}
-
-variable "spanner_name" {
-  type    = string
-  default = "autoscale-test"
-}
-
-variable "terraform_spanner" {
-  description = "If set to true, Terraform will create a Cloud Spanner instance and DB."
-  type    = bool
-  default = false
-}
-
-variable "state_project_id" {
-  type    = string
-}
-
-variable "terraform_dashboard" {
-  description = "If set to true, Terraform will create a Cloud Monitoring dashboard including important Spanner metrics."
-  type        = bool
-  default     = true
+  type   = string
 }
 
 variable "dashboard_threshold_high_priority_cpu_percentage" {

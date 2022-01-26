@@ -38,3 +38,24 @@ variable "forwarder_sa_emails" {
   // Example ["serviceAccount:forwarder_sa@app-project.iam.gserviceaccount.com"]
   default = []
 }
+
+variable "terraform_dashboard" {
+  description = "If set to true, Terraform will create a Cloud Monitoring dashboard including important Spanner metrics."
+  type        = bool
+  default     = true
+}
+
+variable "dashboard_threshold_high_priority_cpu_percentage" {
+  description = "Threshold value related to the High Priority CPU utilization."
+  type        = number
+}
+
+variable "dashboard_threshold_rolling_24_hr_percentage" {
+  description = "Threshold value related to the Rolling(Smoothed) 24 hours CPU utilization."
+  type        = number
+}
+
+variable "dashboard_threshold_storage_percentage" {
+  description = "Threshold value related to the Storage utilization."
+  type        = number
+}
