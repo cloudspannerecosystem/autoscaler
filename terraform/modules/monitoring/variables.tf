@@ -21,17 +21,17 @@ variable "project_id" {
 variable "dashboard_threshold_high_priority_cpu_percentage" {
   description = "Threshold value related to the High Priority CPU utilization."
   type        = number
-  default     = .65
+  default     = 0.65
 }
 
 variable "dashboard_threshold_rolling_24_hr_percentage" {
   description = "Threshold value related to the Rolling(Smoothed) 24 hours CPU utilization."
   type        = number
-  default     = .9
+  default     = 0.9
 }
 
 variable "dashboard_threshold_storage_percentage" {
   description = "Threshold value related to the Storage utilization."
   type        = number
-  default     = .75
+  default     = 0.75
 }
