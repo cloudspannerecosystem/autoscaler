@@ -34,7 +34,7 @@
 The Scaler function receives a message from the Poller function that includes
 the utilization metrics for a single Spanner instance. It compares the metric
 values with the [recommended thresholds][spanner-metrics], plus or minus an
-[allowed margin](poller/README.md#margins). The Scaler function determines
+[allowed margin][autoscaler-margins]. The Scaler function determines
 if the instance should be scaled, the number of nodes or processing units
 it should be scaled to and adjusts the size of the Spanner instance accordingly.
 
@@ -133,6 +133,7 @@ The parameters `minNodes`, `maxNodes` and `currentNodes` are deprecated.
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
 [spanner-metrics]: https://cloud.google.com/spanner/docs/monitoring-cloud#create-alert
+[autoscaler-margins]: ../poller/README.md#margins
 [autoscaler-poller-parameters]: ../poller/README.md#configuration-parameters
 [spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
 [directly-proportional]: https://en.wikipedia.org/wiki/Proportionality_(mathematics)#Direct_proportionality
