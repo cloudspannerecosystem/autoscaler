@@ -230,3 +230,5 @@ The Autoscaler is not officially covered by the Google Cloud Spanner product sup
 [cloud-scheduler-console]: https://console.cloud.google.com/cloudscheduler/
 [json]: https://www.json.org/json-en.html
 [spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
+[new-issue]: https://github.com/cloudspannerecosystem/autoscaler/issues/new
+[new-pr]: https://github.com/cloudspannerecosystem/autoscaler/compare
