@@ -198,6 +198,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ```
 
+## Getting Support
+
+The Autoscaler is a [Cloud Spanner Ecosystem](https://www.cloudspannerecosystem.dev/about)
+project based on open source contributions. We'd love for you to
+[report issues, file feature requests][new-issue], and [send pull requests][new-pr]
+(see [Contributing](README.md#contributing)). The Autoscaler is not officially
+covered by the Google Cloud Spanner product support.
+
 ## Contributing
 
 *   [Contributing guidelines][contributing-guidelines]
@@ -223,3 +231,5 @@ limitations under the License.
 [cloud-scheduler-console]: https://console.cloud.google.com/cloudscheduler/
 [json]: https://www.json.org/json-en.html
 [spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
+[new-issue]: https://github.com/cloudspannerecosystem/autoscaler/issues/new
+[new-pr]: https://github.com/cloudspannerecosystem/autoscaler/compare
