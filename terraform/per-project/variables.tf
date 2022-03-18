@@ -56,21 +56,6 @@ variable "terraform_dashboard" {
   default     = true
 }
 
-variable "dashboard_threshold_high_priority_cpu_percentage" {
-  description = "Threshold value related to the High Priority CPU utilization."
-  type        = number
-}
-
-variable "dashboard_threshold_rolling_24_hr_percentage" {
-  description = "Threshold value related to the Rolling(Smoothed) 24 hours CPU utilization."
-  type        = number
-}
-
-variable "dashboard_threshold_storage_percentage" {
-  description = "Threshold value related to the Storage utilization."
-  type        = number
-}
-
 locals {
   # By default, these config files produce a per-project deployment
   # If you want a centralized deployment instead, then specify 
