@@ -176,7 +176,7 @@ In this section you prepare your project for deployment.
     for Cloud Scheduler and Firestore
 
     ```sh
-    gcloud app create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
+    gcloud app create --region="${APP_ENGINE_LOCATION}"
     ```
 
 10.  Create database to store the state of the Autoscaler.
@@ -186,7 +186,7 @@ In this section you prepare your project for deployment.
      if your project does not have yet.
 
      ```sh
-     gcloud alpha firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
+     gcloud alpha firestore databases create --region="${APP_ENGINE_LOCATION}"
      ```
 
      In case you want to use Cloud Spanner, skip this step
