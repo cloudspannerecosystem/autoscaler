@@ -5,22 +5,22 @@
   "author": "Google Inc.",
   "dependencies": {
     "@google-cloud/firestore": "^4.14.1",
-    "@google-cloud/functions-framework": "^2.0.0",
+    "@google-cloud/functions-framework": "^3.0.0",
     "@google-cloud/spanner": "^5.13.1"
   },
   "scripts": {
     "start": "functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
-    "debug": "node --inspect node_modules/@google-cloud/functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
+    "debug": "node --inspect node_modules/.bin/functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
     "test": "nyc --reporter=text mocha --recursive --require mocha-suppress-logs",
     "mdlint": "cd .. && markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"
   },
   "devDependencies": {
     "@sinonjs/referee": "^9.1.1",
-    "markdownlint": "^0.23.0",
+    "markdownlint": "^0.25.0",
     "mocha": "^9.0.3",
     "mocha-suppress-logs": "^0.3.1",
     "nyc": "^15.1.0",
-    "rewire": "^5.0.0",
+    "rewire": "^6.0.0",
     "should": "^13.2.3",
     "sinon": "^11.1.2"
   }
