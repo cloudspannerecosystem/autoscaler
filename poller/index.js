@@ -37,8 +37,6 @@ const nodesDefaults = {
   units: 'NODES',
   minSize: 1,
   maxSize: 3,
-  minNodes: 1,
-  maxNodes: 3,
   stepSize: 2,
   overloadStepSize: 5,
 };
@@ -261,9 +259,6 @@ async function parseAndEnrichPayload(payload) {
         log(`DEPRECATION: minNodes is deprecated, remove minNodes from your config and instead use: units = 'NODES' and minSize = ${spanners[sIdx].minNodes}`,
         'WARNING');
         spanners[sIdx].minSize = spanners[sIdx].minNodes;
-      } else if(spanners[sIdx].minSize && !spanners[sIdx].minNodes) {
-        log(`Setting minNodes to minSize for backward compatibility`, 'INFO');
-        spanners[sIdx].minNodes = spanners[sIdx].minSize;
       } else if(spanners[sIdx].minSize && spanners[sIdx].minNodes && spanners[sIdx].minSize != spanners[sIdx].minNodes) {
         throw new Error('INVALID CONFIG: minSize and minNodes are both set but do not match, make them match or only set minSize');
       }
@@ -273,9 +268,6 @@ async function parseAndEnrichPayload(payload) {
         log(`DEPRECATION: maxNodes is deprecated, remove maxSize from your config and instead use: units = 'NODES' and maxSize = ${spanners[sIdx].maxNodes}`,
         'WARNING');
         spanners[sIdx].maxSize = spanners[sIdx].maxNodes;
-      } else if(spanners[sIdx].maxSize && !spanners[sIdx].maxNodes) {
-        log(`Setting maxNodes to maxSize for backward compatibility`, 'INFO');
-        spanners[sIdx].maxNodes = spanners[sIdx].maxSize;  
       } else if(spanners[sIdx].maxSize && spanners[sIdx].maxNodes && spanners[sIdx].maxSize != spanners[sIdx].maxNodes) {
         throw new Error('INVALID CONFIG: maxSize and maxNodes are both set but do not match, make them match or only set maxSize');
       }
