@@ -103,6 +103,19 @@ describe('#parseAndEnrichPayload', () => {
         unset();
     });
 
+    it('should use the value of minSize/maxSize for minNodes/maxNodes instead of overriding with the defaults, Github Issue 61', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "units": "NODES", "minSize": 20, "maxSize": 50}]';
+
+        let stub = sinon.stub().resolves({currentSize: 50, regional: true});
+        let unset = app.__set__('getSpannerMetadata', stub);
+
+        let mergedConfig = await parseAndEnrichPayload(payload);
+        (mergedConfig[0].minSize).should.equal(20);
+        (mergedConfig[0].maxSize).should.equal(50);
+        
+        unset();
+    });
+
     it('should throw if the nodes are specified when units is set to processing units', async () => {
         const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "units": "PROCESSING_UNITS", "minNodes": 200}]';
 
@@ -110,6 +123,28 @@ describe('#parseAndEnrichPayload', () => {
         let unset = app.__set__('getSpannerMetadata', stub);
 
         await parseAndEnrichPayload(payload).should.be.rejectedWith(Error, {message: 'INVALID CONFIG: units is set to PROCESSING_UNITS, however, minNodes or maxNodes is set, remove minNodes and maxNodes from your configuration.'});
+
+        unset();
+    });
+
+    it('should throw if the nodes are specified when but minSize and minNodes are both provided but not matching', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "units": "NODES", "minNodes": 20, "minSize": 5}]';
+
+        let stub = sinon.stub().resolves({currentSize: 50, regional: true});
+        let unset = app.__set__('getSpannerMetadata', stub);
+
+        await parseAndEnrichPayload(payload).should.be.rejectedWith(Error, {message: 'INVALID CONFIG: minSize and minNodes are both set but do not match, make them match or only set minSize'});
+
+        unset();
+    });
+
+    it('should throw if the nodes are specified when but maxSize and maxNodes are both provided but not matching', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "units": "NODES", "maxNodes": 20, "maxSize": 5}]';
+
+        let stub = sinon.stub().resolves({currentSize: 50, regional: true});
+        let unset = app.__set__('getSpannerMetadata', stub);
+
+        await parseAndEnrichPayload(payload).should.be.rejectedWith(Error, {message: 'INVALID CONFIG: maxSize and maxNodes are both set but do not match, make them match or only set maxSize'});
 
         unset();
     });

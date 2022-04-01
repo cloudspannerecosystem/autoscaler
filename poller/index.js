@@ -37,8 +37,6 @@ const nodesDefaults = {
   units: 'NODES',
   minSize: 1,
   maxSize: 3,
-  minNodes: 1,
-  maxNodes: 3,
   stepSize: 2,
   overloadStepSize: 5,
 };
@@ -255,22 +253,27 @@ async function parseAndEnrichPayload(payload) {
     }
     else if(spanners[sIdx].units.toUpperCase() == 'NODES') {
       spanners[sIdx].units = spanners[sIdx].units.toUpperCase();
-      // merge in the processing units defaults
-      spanners[sIdx] = {...nodesDefaults, ...spanners[sIdx]};
 
-      // if minNodes and maxNodes are not default and differ from minSize/maxSize
-      // provide a deprecation warning and set minSize/maxSize for the scaler function
-      if(spanners[sIdx].minNodes && spanners[sIdx].minSize != spanners[sIdx].minNodes) {
+      // if minNodes or minSize are provided set the other, and if both are set and not match throw an error
+      if(spanners[sIdx].minNodes && !spanners[sIdx].minSize) {
         log(`DEPRECATION: minNodes is deprecated, remove minNodes from your config and instead use: units = 'NODES' and minSize = ${spanners[sIdx].minNodes}`,
-           'WARNING');
+        'WARNING');
         spanners[sIdx].minSize = spanners[sIdx].minNodes;
+      } else if(spanners[sIdx].minSize && spanners[sIdx].minNodes && spanners[sIdx].minSize != spanners[sIdx].minNodes) {
+        throw new Error('INVALID CONFIG: minSize and minNodes are both set but do not match, make them match or only set minSize');
       }
 
-      if(spanners[sIdx].maxNodes && spanners[sIdx].maxSize != spanners[sIdx].maxNodes) {
-        log(`DEPRECATION: maxNodes are deprecated, remove maxNodes from your config and instead use: units = 'NODES' and minSize = ${spanners[sIdx].maxNodes}`,
-           'WARNING');
+      // if maxNodes or maxSize are provided set the other, and if both are set and not match throw an error
+      if(spanners[sIdx].maxNodes && !spanners[sIdx].maxSize) {
+        log(`DEPRECATION: maxNodes is deprecated, remove maxSize from your config and instead use: units = 'NODES' and maxSize = ${spanners[sIdx].maxNodes}`,
+        'WARNING');
         spanners[sIdx].maxSize = spanners[sIdx].maxNodes;
+      } else if(spanners[sIdx].maxSize && spanners[sIdx].maxNodes && spanners[sIdx].maxSize != spanners[sIdx].maxNodes) {
+        throw new Error('INVALID CONFIG: maxSize and maxNodes are both set but do not match, make them match or only set maxSize');
       }
+
+      // at this point both minNodes/minSize and maxNodes/maxSize are matching or are both not set so we can merge in defaults
+      spanners[sIdx] = {...nodesDefaults, ...spanners[sIdx]};
     }
     else
       throw new Error(`INVALID CONFIG: ${spanners[sIdx].units} is invalid. Valid values are NODES or PROCESSING_UNITS`);
