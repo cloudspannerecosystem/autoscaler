@@ -32,7 +32,7 @@ function calculateSize(spanner) {
       
       if (suggestedSize < spanner.currentSize && spanner.scaleInLimit) {
         const limit = spanner.currentSize * spanner.scaleInLimit
-        suggestedSize = Math.max(suggestedSize, spanner.currentSize - limit)
+        suggestedSize = Math.max(suggestedSize, Math.ceil(spanner.currentSize - limit))
       }
       return maybeRound(suggestedSize, spanner.units, metric.name);
     }

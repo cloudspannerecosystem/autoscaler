@@ -84,6 +84,30 @@ describe('#linear.calculateSize', () => {
     assert.equals(callbackStub.callCount, 1);
   });
 
+  it('should not scale in if the scaleInLimit would allow for less than one node', () => {
+    const spanner = createSpannerParameters({units : 'NODES', currentSize: 10, scaleInLimit: .05}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 30, threshold : 65}, false);
+
+    calculateSize(spanner).should.equal(10);
+    assert.equals(callbackStub.callCount, 1);
+  });
+
+  it('should not scale in if the scaleInLimit would allow for less than a valid processing unit step size', () => {
+    const spanner = createSpannerParameters({units : 'PROCESSING_UNITS', currentSize: 10000, scaleInLimit: .05}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 30, threshold : 65}, false);
+
+    calculateSize(spanner).should.equal(10000);
+    assert.equals(callbackStub.callCount, 1);
+  });
+
+  it('should produce a valide capacity size when using scaleInLimit with processing units', () => {
+    const spanner = createSpannerParameters({units : 'PROCESSING_UNITS', currentSize: 1000, scaleInLimit: .5}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 30, threshold : 65}, false);
+
+    calculateSize(spanner).should.equal(500);
+    assert.equals(callbackStub.callCount, 1);
+  });
+
   it('should scaleIn even when a scaleInLimit is not specified', () => {
     const spanner = createSpannerParameters({units : 'NODES', currentSize: 20}, true);
     const callbackStub = stubBaseModule(spanner, {value : 30, threshold : 65}, false);
