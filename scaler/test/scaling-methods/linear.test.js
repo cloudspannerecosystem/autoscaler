@@ -76,4 +76,27 @@ describe('#linear.calculateSize', () => {
     assert.equals(callbackStub.callCount, 1);
   });
   
+  it('should return the higher instance size if a scaleInLimit is specified', () => {
+    const spanner = createSpannerParameters({units : 'NODES', currentSize: 20, scaleInLimit: .1}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 30, threshold : 65}, false);
+
+    calculateSize(spanner).should.equal(18);
+    assert.equals(callbackStub.callCount, 1);
+  });
+
+  it('should scaleIn even when a scaleInLimit is not specified', () => {
+    const spanner = createSpannerParameters({units : 'NODES', currentSize: 20}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 30, threshold : 65}, false);
+
+    calculateSize(spanner).should.equal(10);
+    assert.equals(callbackStub.callCount, 1);
+  });
+
+  it('should ignore scaleInLimit when scaling out', () => {
+    const spanner = createSpannerParameters({units : 'NODES', currentSize: 20, scaleInLimit: .1}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 80, threshold : 65}, false);
+
+    calculateSize(spanner).should.equal(25);
+    assert.equals(callbackStub.callCount, 1);
+  });
 });
