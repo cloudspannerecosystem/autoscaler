@@ -8,11 +8,11 @@
     <br />
     Home
     ·
-    <a href="poller/README.md">Poller function</a>
+    <a href="poller/README.md">Poller component</a>
     ·
-    <a href="scaler/README.md">Scaler function</a>
+    <a href="scaler/README.md">Scaler component</a>
     ·
-    <a href="forwarder/README.md">Forwarder function</a>
+    <a href="forwarder/README.md">Forwarder component</a>
     ·
     <a href="terraform/README.md">Terraform configuration</a>
     ·
@@ -22,13 +22,13 @@
 
 ## Table of Contents
 
-*   [Table of Contents](#table-of-contents)
-*   [Overview](#overview)
-*   [Architecture](#architecture)
-*   [Deployment](#deployment)
-*   [Configuration](#configuration)
-*   [Licensing](#licensing)
-*   [Contributing](#contributing)
+* [Table of Contents](#table-of-contents)
+* [Overview](#overview)
+* [Architecture](#architecture)
+* [Deployment](#deployment)
+* [Configuration](#configuration)
+* [Licensing](#licensing)
+* [Contributing](#contributing)
 
 ## Overview
 
@@ -52,49 +52,37 @@ are different depending if a Spanner instance is
 
 ## Architecture
 
-![architecture-per-project](resources/architecture-per-project.png)
+![architecture-abstract](resources/architecture-abstract.png)
 
-The diagram above shows the components of the Autoscaler and the
+The diagram above shows the high level components of the Autoscaler and the
 interaction flow:
 
-1.  Using [Cloud Scheduler][cloud-scheduler] you define how
-    often one or more Spanner instances should be verified. You can define
-    separate Cloud Scheduler jobs to check several Spanner instances with
-    different schedules, or you can group many instances under a single
-    schedule.
+1.  The Autoscaler consists of two main decoupled components:
+    * [The Poller component][autoscaler-poller]
+    * [The Scaler component][autoscaler-scaler]
 
-2.  At the specified time and frequency, Cloud Scheduler pushes a message into
-    the Polling [Cloud Pub/Sub][cloud-pub-sub] topic. The message contains a
-    JSON payload with the Autoscaler [configuration parameters](#configuration)
-    that you defined for each Spanner instance.
+    These can be deployed to either [Cloud Functions][cloud-functions] or
+    [Google Kubernetes Engine (GKE)][gke], and configured so that the
+    Autoscaler runs according to a user-defined schedule. In certain deployment
+    topologies a third component, the [Forwarder](forwarder/README.md), is also
+    deployed.
 
-3.  When Cloud Scheduler pushes a message into the Poller topic, an instance of
-    the [Poller Cloud Function][autoscaler-poller] is created to handle the
-    message.
-
-4.  The Poller function reads the message payload and queries the
+2.  At the specified time and frequency, the Poller component queries the
     [Cloud Monitoring][cloud-monitoring] API to retrieve the utilization metrics
     for each Spanner instance.
 
-5.  For each instance, the Poller function pushes one message into the Scaling
-    Pub/Sub topic. The message payload contains the utilization metrics for the
+3.  For each instance, the Poller component pushes one message to the Scaler
+    component. The payload contains the utilization metrics for the
     specific Spanner instance, and some of its corresponding configuration
     parameters.
 
-6.  For each message pushed into the Scaler topic, an instance of the
-    [Scaler Cloud Function][autoscaler-scaler] is created to handle it. \
-    Using the chosen [scaling method](scaler/README.md#scaling-methods), the
-    Scaler function compares the Spanner instance metrics against the
-    recommended thresholds, plus or minus an [allowed margin](poller/README.md#margins)
-    and determines if the instance should be scaled, and the number of nodes
-    or processiing units that it should be scaled to.
-
-7.  The Scaler function retrieves the time when the instance was last scaled
-    from the state data stored in [Cloud Firestore][cloud-firestore] and
-    compares it with the current database time.
-
-8.  If the configured cooldown period has passed, then the Scaler function
-    requests the Spanner Instance to scale out or in.
+4.  Using the chosen [scaling method](scaler/README.md#scaling-methods), the
+    Scaler compares the Spanner instance metrics against the recommended
+    thresholds, (plus or minus an [allowed margin](poller/README.md#margins)),
+    and determines if the instance should be scaled, and the number of nodes or
+    processing units that it should be scaled to. If the configured cooldown
+    period has passed, then the Scaler component requests the Spanner Instance
+    to scale out or in.
 
 Throughout the flow, the Autoscaler writes a step by step summary
 of its recommendations and actions to [Cloud Logging][cloud-logging] for
@@ -103,83 +91,19 @@ tracking and auditing.
 ## Deployment
 
 To deploy the Autoscaler, decide which of the following strategies
-is best adjusted to fulfill your technical and operational needs.
+is best adjusted to fulfill your technical and operational needs:
 
-*   [Per-Project deployment](terraform/per-project/README.md): all the
-    components of the Autoscaler reside in the same project as
-    your Spanner instances. This deployment is ideal for independent teams who
-    want to self manage the configuration and infrastructure of their own
-    Autoscalers. It is also a good entry point for testing the Autoscaler
-    capabilities.
+* [Deployment to Cloud Functions](terraform/cloud-functions/README.md)
+* [Deployment to Google Kubernetes Engine (GKE)](terraform/gke/README.md)
 
-*   [Centralized deployment](terraform/centralized/README.md): a slight
-    departure from the pre-project deployment, where all the components of the
-    Autoscaler reside in the same project, but the Spanner
-    instances may be located in different projects. This deployment is suited
-    for a team managing the configuration and infrastructure of several
-    Autoscalers in a central place.
-
-*   [Distributed deployment](terraform/distributed/README.md): all the
-    components of the Autoscaler reside in a single project, with
-    the exception of Cloud Scheduler. This deployment is a hybrid where teams
-    who own the Spanner instances want to manage only the Autoscaler
-    configuration parameters for their instances, but the rest of the Autoscaler
-    infrastructure is managed by a central team.
-
-To deploy the Autoscaler infrastructure follow the instructions in the link for
-the chosen strategy.
+In both of the above instances, the Google Cloud Platform resources are
+deployed using Terraform. Please see the [Terraform instructions](terraform/README.md)
+for more information on the deployment options available.
 
 ## Configuration
 
-After deploying the Autoscaler, you are ready to configure its parameters.
-
-1.  Open the [Cloud Scheduler console page][cloud-scheduler-console].
-
-2.  Select the checkbox next to the name of the job created by the Autoscaler
-    deployment: `poll-main-instance-metrics`
-
-3.  Click on **Edit** on the top bar.
-
-4.  Modify the Autoscaler parameters shown in the job payload. <br />
-    The following is an example:
-
-```json
-[
-    {
-        "projectId": "my-spanner-project",
-        "instanceId": "spanner1",
-        "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
-        "units": "NODES",
-        "minSize": 1,
-        "maxSize": 3
-    },{
-        "projectId": "different-project",
-        "instanceId": "another-spanner1",
-        "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
-        "units": "PROCESSING_UNITS",
-        "minSize": 500,
-        "maxSize": 3000,
-        "scalingMethod": "DIRECT"
-    }
-]
-```
-
-The payload is defined using a [JSON][json] array. Each element in the array
-represents a Spanner instance that will share the same Autoscaler job schedule.
-
-Additionally, a single instance can have multiple Autoscaler configurations in
-different job schedules. This is useful for example if you want to have an
-instance configured with the linear method for normal operations, but also have
-another Autoscaler configuration with the direct method for planned batch
-workloads.
-
-You can find the details about the parameters and their default values in the
-[Poller component page][autoscaler-poller].
-
-1.  Click on **Update** at the bottom to save the changes.
-
-The Autoscaler is now configured and will start monitoring and scaling your
-instances in the next scheduled job run.
+The parameters for configuring the Autoscaler are identical regardless of the chosen
+deployment type, but the mechanism for configuration differs slightly.
 
 ## Licensing
 
@@ -209,29 +133,23 @@ covered by the Google Cloud Spanner product support.
 
 ## Contributing
 
-*   [Contributing guidelines][contributing-guidelines]
-*   [Code of conduct][code-of-conduct]
+* [Contributing guidelines][contributing-guidelines]
+* [Code of conduct][code-of-conduct]
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
+[autoscaler-poller]: poller/README.md
+[autoscaler-scaler]: scaler/README.md
+[code-of-conduct]: code-of-conduct.md
+[compute-capacity]: https://cloud.google.com/spanner/docs/compute-capacity#compute_capacity
+[contributing-guidelines]: contributing.md
+[cloud-functions]: https://cloud.google.com/functions
+[cloud-monitoring]: https://cloud.google.com/monitoring
+[cloud-logging]: https://cloud.google.com/logging
+[gke]: https://cloud.google.com/kubernetes-engine
+[new-issue]: https://github.com/cloudspannerecosystem/autoscaler/issues/new
+[new-pr]: https://github.com/cloudspannerecosystem/autoscaler/compare
 [spanner-instance]: https://cloud.google.com/spanner/docs/instances
 [spanner-max-cpu]: https://cloud.google.com/spanner/docs/cpu-utilization#recommended-max
 [spanner-max-storage]: https://cloud.google.com/spanner/docs/monitoring-cloud#storage
-[cloud-scheduler]: https://cloud.google.com/scheduler
-[cloud-pub-sub]: https://cloud.google.com/pubsub
-[cloud-functions]: https://cloud.google.com/functions
-[cloud-monitoring]: https://cloud.google.com/monitoring
-[cloud-firestore]: https://cloud.google.com/firestore
-[cloud-logging]: https://cloud.google.com/logging
-[compute-capacity]: https://cloud.google.com/spanner/docs/compute-capacity#compute_capacity
-[autoscaler-poller]: poller/README.md
-[autoscaler-scaler]: scaler/README.md
-[autoscaler-per-project]: terraform/per-project/README.md
-[autoscaler-distributed]: terraform/distributed/README.md
-[contributing-guidelines]: contributing.md
-[code-of-conduct]: code-of-conduct.md
-[cloud-scheduler-console]: https://console.cloud.google.com/cloudscheduler/
-[json]: https://www.json.org/json-en.html
 [spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
-[new-issue]: https://github.com/cloudspannerecosystem/autoscaler/issues/new
-[new-pr]: https://github.com/cloudspannerecosystem/autoscaler/compare

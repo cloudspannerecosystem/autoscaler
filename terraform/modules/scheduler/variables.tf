@@ -15,7 +15,7 @@
  */
 
 variable "project_id" {
-  type   = string
+  type = string
 }
 
 variable "location" {
@@ -34,9 +34,9 @@ variable "time_zone" {
 }
 
 variable "pubsub_topic" {
-  type    = string
+  type = string
 }
 
 variable "pubsub_data" {
-  type    = string
+  type = string
 }

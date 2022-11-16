@@ -9,11 +9,11 @@
     <br />
     <a href="../README.md">Home</a>
     ·
-    <a href="../poller/README.md">Poller function</a>
+    <a href="../poller/README.md">Poller component</a>
     ·
-    Scaler function
+    Scaler component
     ·
-    <a href="../forwarder/README.md">Forwarder function</a>
+    <a href="../forwarder/README.md">Forwarder component</a>
     ·
     <a href="../terraform/README.md">Terraform configuration</a>
     ·
@@ -31,30 +31,30 @@
 
 ## Overview
 
-The Scaler function receives a message from the Poller function that includes
+The Scaler component receives a message from the Poller component that includes
 the utilization metrics for a single Spanner instance. It compares the metric
 values with the [recommended thresholds][spanner-metrics], plus or minus an
-[allowed margin][autoscaler-margins]. The Scaler function determines
+[allowed margin][autoscaler-margins]. The Scaler component determines
 if the instance should be scaled, the number of nodes or processing units
-it should be scaled to and adjusts the size of the Spanner instance accordingly.
+it should be scaled to, and adjusts the size of the Spanner instance accordingly.
 
 ## Scaling methods
 
-The Scaler function supports three scaling methods out of the box:
+The Scaler component supports three scaling methods out of the box:
 
-*   [STEPWISE](scaling-methods/stepwise.js): This is the default method used by
+*   [STEPWISE](scaler-core/scaling-methods/stepwise.js): This is the default method used by
     the Scaler. It suggests adding or removing nodes or processing units using
     a fixed step amount defined by the parameter `stepSize`. In an overload
     situation, when the instance High Priority CPU utilization is over 90%, the
      Scaler uses the `overloadStepSize` parameter instead.
 
-*   [LINEAR](scaling-methods/linear.js): This method suggests adding or removing
+*   [LINEAR](scaler-core/scaling-methods/linear.js): This method suggests adding or removing
     nodes or processing units calculated with a simple linear
     [cross multiplication][cross-multiplication]. This way, the new number of
     nodes or processing units is [directly proportional][directly-proportional]
     to the current resource utilization.
 
-*   [DIRECT](scaling-methods/direct.js): This method suggests scaling to the
+*   [DIRECT](scaler-core/scaling-methods/direct.js): This method suggests scaling to the
     number of nodes or processing units specified by the `maxSize` parameter.
     It does NOT take in account the current utilization metrics. It is useful
     to scale an instance in preparation for a batch job and and to scale it back
@@ -65,7 +65,7 @@ The Scaler function supports three scaling methods out of the box:
 You can define you own scaling method by creating a new file in the
 `scaling-methods` directory. Your file must export a `calculateSize`
 function that receives an object and returns an integer. The input object
-contains the message payload received from the Poller function. See
+contains the message payload received from the Poller component. See
 [more information](#parameters) about the message payload.
 
 ```js
@@ -80,12 +80,12 @@ The function `calculateNumNodes` is deprecated.
 
 ## Parameters
 
-As opposed to the Poller function, the Scaler function does not need any user
+As opposed to the Poller component, the Scaler component does not need any user
 configuration. The parameters that the Scaler receives are a subset of the
 [configuration parameters][autoscaler-poller-parameters] used by the Poller
-function.
+component.
 
-The messages sent to the Scaler function from the Poller function include this
+The messages sent to the Scaler component from the Poller component include this
 subset, the Spanner instance metrics, the current size in number of nodes or
 processing units and a flag to indicate if the Spanner instance is
 [regional or multi-regional][spanner-regional].
