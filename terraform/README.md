@@ -9,21 +9,19 @@
     <br />
     <a href="../README.md">Home</a>
     ·
-    <a href="../scaler/README.md">Scaler function</a>
+    <a href="../scaler/README.md">Scaler component</a>
     ·
-    <a href="../poller/README.md">Poller function</a>
+    <a href="../poller/README.md">Poller component</a>
     ·
-    <a href="../forwarder/README.md">Forwarder function</a>
+    <a href="../forwarder/README.md">Forwarder component</a>
     ·
     Terraform configuration
     ·
     Monitoring
     <br />
-    <a href="per-project/README.md">Per-Project</a>
+    <a href="cloud-functions/README.md">Cloud Functions</a>
     ·
-    <a href="centralized/README.md">Centralized</a>
-    ·
-    <a href="distributed/README.md">Distributed</a>
+    <a href="gke/README.md">Google Kubernetes Engine</a>
   </p>
 
 </p>
@@ -39,35 +37,31 @@
 This directory contains Terraform configuration files to quickly set up the
 infrastructure of your Autoscaler.
 
-The Autoscaler can be deployed following three different
-strategies. Choose the one that is best adjusted to fulfill your technical and
-operational needs.
+The Autoscaler can be deployed in two different ways:
 
-*   [Per-Project deployment](per-project/README.md): all the components of the
-    Autoscaler reside in the same project as your Spanner
-    instances. This deployment is ideal for independent teams who want to self
-    manage the configuration and infrastructure of their own Autoscalers. It is
-    also a good entry point for testing the Autoscaler capabilities.
+*   [Deployment to Cloud Functions](cloud-functions/README.md): Autoscaler
+    components are deployed to [Cloud Functions][cloudfunctions], with
+    [Pub/Sub][pubsub] used for asynchronous messaging between components. Use
+    this deployment type for serverless operation, for cross-project
+    Autoscaling, and to take maximal advantage of Google Cloud managed
+    services.
 
-*   [Centralized deployment](centralized/README.md): a slight departure from the
-    pre-project deployment, where all the components of the Cloud Spanner
-    Autoscaler reside in the same project, but the Spanner instances may be
-    located in different projects. This deployment is suited for a team managing
-    the configuration and infrastructure of several Autoscalers in a central
-    place.
-
-*   [Distributed deployment](distributed/README.md): all the components of the
-    Autoscaler reside in a single project, with the exception of
-    Cloud Scheduler. This deployment is a hybrid where teams who own the Spanner
-    instances want to manage only the Autoscaler configuration parameters for
-    their instances, but the rest of the Autoscaler infrastructure is managed by
-    a central team
+*   [Deployment to Google Kubernetes Engine (GKE)](gke/README.md): Autoscaler
+    components are deployed to [Google Kubernetes Engine (GKE)][gke], with
+    Kubernetes-native constructs used for messaging and configuration. Use this
+    deployment type if you want to use Kubernetes or cannot use the Google
+    Cloud service dependencies in the Cloud Functions model described above.
 
 ## Monitoring
 
-The [monitoring](./modules/monitoring) module is an optional module for monitoring,
+The [monitoring](modules/monitoring) module is an optional module for monitoring,
 and creates the following resources.
 
 *   Cloud Monitoring Dashboard: a starter dashboard users could deploy to get
     started. This dashboard has 4 metrics: High CPU utilization, Smoothed CPU
     utilization, Storage utilization and Processing units.
+
+[cloudfunctions]: https://cloud.google.com/functions
+[gke]: https://cloud.google.com/kubernetes-engine
+[kubernetes]: https://https://kubernetes.io/
+[pubsub]: https://cloud.google.com/pubsub
