@@ -36,8 +36,9 @@ checks their JSON syntax and forwards them to the Poller PubSub topic. The topic
 can belong to a different project that the Scheduler.
 
 This function is needed only in the
-[distributed deployment](../terraform/cloud-functions/distributed/README.md) because Cloud
-Scheduler can only publish to topics in the same project as the Scheduler.
+[distributed deployment](../terraform/cloud-functions/distributed/README.md)
+because Cloud Scheduler can only publish to topics in the same project as the
+Scheduler.
 
 ## Architecture
 

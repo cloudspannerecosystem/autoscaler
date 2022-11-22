@@ -42,17 +42,19 @@ it should be scaled to, and adjusts the size of the Spanner instance accordingly
 
 The Scaler component supports three scaling methods out of the box:
 
-*   [STEPWISE](scaler-core/scaling-methods/stepwise.js): This is the default method used by
-    the Scaler. It suggests adding or removing nodes or processing units using
-    a fixed step amount defined by the parameter `stepSize`. In an overload
-    situation, when the instance High Priority CPU utilization is over 90%, the
-     Scaler uses the `overloadStepSize` parameter instead.
+*   [STEPWISE](scaler-core/scaling-methods/stepwise.js): This is the default
+    method used by the Scaler. It suggests adding or removing nodes or
+    processing units using a fixed step amount defined by the parameter
+    `stepSize`. In an overload situation, when the instance High Priority CPU
+    utilization is over 90%, the Scaler uses the `overloadStepSize` parameter
+    instead.
 
-*   [LINEAR](scaler-core/scaling-methods/linear.js): This method suggests adding or removing
-    nodes or processing units calculated with a simple linear
-    [cross multiplication][cross-multiplication]. This way, the new number of
-    nodes or processing units is [directly proportional][directly-proportional]
-    to the current resource utilization.
+*   [LINEAR](scaler-core/scaling-methods/linear.js): This method suggests
+    adding or removing nodes or processing units calculated with a simple
+    linear [cross multiplication][cross-multiplication]. This way, the new
+    number of nodes or processing units is
+    [directly proportional][directly-proportional] to the current resource
+    utilization.
 
 *   [DIRECT](scaler-core/scaling-methods/direct.js): This method suggests scaling to the
     number of nodes or processing units specified by the `maxSize` parameter.

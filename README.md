@@ -104,7 +104,6 @@ for more information on the deployment options available.
 The parameters for configuring the Autoscaler are identical regardless of the chosen
 deployment type, but the mechanism for configuration differs slightly.
 
-
 ## Licensing
 
 ```lang-none
