@@ -227,8 +227,9 @@ In this section you prepare your project for deployment.
     export TF_VAR_spanner_name=<INSERT_YOUR_SPANNER_INSTANCE_NAME>
     ```
 
-    For more information on how to configure your Spanner instance to be managed by
-    Terraform, see [Import your Spanner instances](#importing-your-spanner-instances)
+    For more information on how to configure your Spanner instance to be
+    managed by Terraform, see
+    [Import your Spanner instances](#importing-your-spanner-instances)
 
 3.  If you want to use the Spanner instance for the Autoscaler state
     database, set the following variable:
