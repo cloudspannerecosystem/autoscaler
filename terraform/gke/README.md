@@ -37,7 +37,7 @@
 *   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
 *   [Deploying the Autoscaler](#deploying-the-autoscaler)
 *   [Importing your Spanner instances](#importing-your-spanner-instances)
-*   [Deploying the Autoscaler](#deploying-the-autoscaler)
+*   [Building and Deploying the Autoscaler Services](#building-and-deploying-the-autoscaler-services)
 
 ## Overview
 
@@ -167,7 +167,8 @@ In this section you prepare your project for deployment.
     export APP_ENGINE_LOCATION=us-central
     ```
 
-5.  Enable the required Cloud APIs (note that `Firestore` is optional depending on your desired configuration):
+5.  Enable the required Cloud APIs (note that `Firestore` is optional depending
+    on your desired configuration):
 
     ```sh
     gcloud services enable iam.googleapis.com \
@@ -314,7 +315,7 @@ Importing Spanner databases is also possible using the
 [`google_spanner_database`][terraform-spanner-db] resource and following a
 similar process.
 
-## Deploying the Autoscaler
+## Building and Deploying the Autoscaler Services
 
 1.  To build the Autoscaler images and push them to Artifact Registry, run the
     following commands:
@@ -325,35 +326,35 @@ similar process.
     gcloud builds submit scaler --config=scaler/cloudbuild.yaml --region=${REGION}
     ```
 
-2. Construct the paths to the images:
+2.  Construct the paths to the images:
 
     ```sh
     POLLER_PATH="${REGION}-docker.pkg.dev/${PROJECT_ID}/spanner-autoscaler/poller"
     SCALER_PATH="${REGION}-docker.pkg.dev/${PROJECT_ID}/spanner-autoscaler/scaler"
     ```
 
-3. Retrieve the SHA256 hashes of the images:
+3.  Retrieve the SHA256 hashes of the images:
 
     ```sh
     POLLER_SHA=$(gcloud artifacts docker images describe ${POLLER_PATH}:latest --format='value(image_summary.digest)')
     SCALER_SHA=$(gcloud artifacts docker images describe ${SCALER_PATH}:latest --format='value(image_summary.digest)')
     ```
 
-4. Construct the full paths to the images, including the SHA256 hashes:
+4.  Construct the full paths to the images, including the SHA256 hashes:
 
     ```sh
     POLLER_IMAGE="${POLLER_PATH}@${POLLER_SHA}"
     SCALER_IMAGE="${SCALER_PATH}@${SCALER_SHA}"
     ```
 
-5. Retrieve the credentials for the cluster where the Autoscaler will be deployed:
+5.  Retrieve the credentials for the cluster where the Autoscaler will be deployed:
 
-   ```sh
-   gcloud container clusters get-credentials spanner-autoscaler --region=${REGION}
-   ```
+    ```sh
+    gcloud container clusters get-credentials spanner-autoscaler --region=${REGION}
+    ```
 
-6. Next, to configure the Kubernetes manifests and deploy the Autoscaler to the
-   cluster, run the following commands:
+6.  Next, to configure the Kubernetes manifests and deploy the Autoscaler to
+    the cluster, run the following commands:
 
     ```sh
     cd ${AUTOSCALER_ROOT}/kubernetes && \
@@ -361,32 +362,35 @@ similar process.
     kubectl apply -f autoscaler-pkg/ --recursive
     ```
 
-7. To prepare to configure the Autoscaler, run the following command:
+7.  To prepare to configure the Autoscaler, run the following command:
 
     ```sh
     envsubst < autoscaler-config/autoscaler-config.yaml.template > autoscaler-config/autoscaler-config.yaml
     ```
 
-8. Next, to see how the Autoscaler is configured, run the following command to
-   output the example configuration:
+8.  Next, to see how the Autoscaler is configured, run the following command to
+    output the example configuration:
 
     ```sh
     cat autoscaler-config/autoscaler-config.yaml
     ```
 
-   Each stanza is used to configure a different Spanner instance. For the
-   schema of the configuration, see the [Poller configuration][autoscaler-config-params] section.
+    Each stanza is used to configure a different Spanner instance. For the
+    schema of the configuration, see the
+    [Poller configuration][autoscaler-config-params] section.
 
-9. To configure the Autoscaler and begin scaling operations, run the following command:
+9.  To configure the Autoscaler and begin scaling operations, run the following
+    command:
 
     ```sh
     kubectl apply -f autoscaler-config/autoscaler-config.yaml
     ```
 
-10. Any changes made to the configuration file and applied with `kubectl apply` will update the autoscaler configuration.
+10.  Any changes made to the configuration file and applied with `kubectl
+     apply` will update the autoscaler configuration.
 
-11. You can view logs for the Autoscaler components via `kubectl` or the [Cloud
-    Logging][cloud-console-logging] interface in the Google Cloud console.
+11.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
+     Logging][cloud-console-logging] interface in the Google Cloud console.
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [autoscaler-poller]: ../../poller/README.md

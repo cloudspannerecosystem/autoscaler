@@ -160,6 +160,7 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
         cloudbuild.googleapis.com \
         cloudresourcemanager.googleapis.com
     ```
+
 6.  Create a Google App Engine app, to enable the APIs for Cloud Scheduler and Firestore.
 
     ```sh
