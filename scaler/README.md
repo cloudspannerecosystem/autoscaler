@@ -56,11 +56,11 @@ The Scaler component supports three scaling methods out of the box:
     [directly proportional][directly-proportional] to the current resource
     utilization.
 
-*   [DIRECT](scaler-core/scaling-methods/direct.js): This method suggests scaling to the
-    number of nodes or processing units specified by the `maxSize` parameter.
-    It does NOT take in account the current utilization metrics. It is useful
-    to scale an instance in preparation for a batch job and and to scale it back
-    after the job is finished.
+*   [DIRECT](scaler-core/scaling-methods/direct.js): This method suggests
+    scaling to the number of nodes or processing units specified by the
+    `maxSize` parameter. It does NOT take in account the current utilization
+    metrics. It is useful to scale an instance in preparation for a batch job
+    and and to scale it back after the job is finished.
 
 ### Custom scaling methods
 
