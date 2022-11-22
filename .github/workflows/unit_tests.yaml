@@ -9,7 +9,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: poller
+        working-directory: poller/poller-core
 
     strategy:
       matrix:
@@ -32,7 +32,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: scaler
+        working-directory: scaler/scaler-core
 
     strategy:
       matrix:
