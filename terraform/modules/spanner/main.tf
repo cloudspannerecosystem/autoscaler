@@ -88,12 +88,17 @@ resource "google_spanner_instance_iam_member" "spanner_test_metadata_get_iam" {
   depends_on = [google_spanner_instance.main]
 }
 
+resource "google_project_iam_custom_role" "spanner_instance_manager" {
+  role_id     = "spannerAutoscalerInstanceManager"
+  title       = "Spanner Autoscaler Instance Manager"
+  description = "Allows a principal to modify spanner instances"
+  permissions = ["spanner.instanceOperations.get", "spanner.instances.update"]
+}
+
 resource "google_spanner_instance_iam_member" "spanner_test_admin_iam" {
   count = var.terraform_spanner_test ? 1 : 0
-
-  # Allows scaler to change the number of nodes of the Spanner instance
   instance = var.spanner_name
-  role     = "roles/spanner.admin"
+  role     = google_project_iam_custom_role.spanner_instance_manager.name
   project  = var.project_id
   member   = "serviceAccount:${var.scaler_sa_email}"
 
@@ -117,7 +122,7 @@ resource "google_spanner_instance_iam_member" "spanner_admin_iam" {
 
   # Allows scaler to change the number of nodes of the Spanner instance
   instance = var.spanner_name
-  role     = "roles/spanner.admin"
+  role     = google_project_iam_custom_role.spanner_instance_manager.name
   project  = var.project_id
   member   = "serviceAccount:${var.scaler_sa_email}"
 }
