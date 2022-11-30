@@ -116,23 +116,14 @@ Autoscaler infrastructure and configuration.
     export APP_PROJECT_ID=<INSERT_YOUR_APP_PROJECT_ID>
     ```
 
-4.  Give the previously created `terraformer` service account the owner role in
-    the Application project so it can create resources.
-
-    ```sh
-    gcloud projects add-iam-policy-binding "${APP_PROJECT_ID}" \
-      --member "serviceAccount:terraformer@${PROJECT_ID}.iam.gserviceaccount.com" \
-      --role roles/owner
-    ```
-
-5.  Enable the Spanner API
+4.  Enable the Spanner API
 
     ```sh
     gcloud services enable --project="${APP_PROJECT_ID}" \
       spanner.googleapis.com
     ```
 
-6.  Set the Application project ID in the corresponding Terraform environment
+5.  Set the Application project ID in the corresponding Terraform environment
     variable
 
     ```sh
