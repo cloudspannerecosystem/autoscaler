@@ -140,12 +140,12 @@ covered by the Google Cloud Spanner product support.
 
 [autoscaler-poller]: poller/README.md
 [autoscaler-scaler]: scaler/README.md
-[code-of-conduct]: code-of-conduct.md
-[compute-capacity]: https://cloud.google.com/spanner/docs/compute-capacity#compute_capacity
-[contributing-guidelines]: contributing.md
 [cloud-functions]: https://cloud.google.com/functions
 [cloud-monitoring]: https://cloud.google.com/monitoring
 [cloud-logging]: https://cloud.google.com/logging
+[code-of-conduct]: code-of-conduct.md
+[compute-capacity]: https://cloud.google.com/spanner/docs/compute-capacity#compute_capacity
+[contributing-guidelines]: contributing.md
 [gke]: https://cloud.google.com/kubernetes-engine
 [new-issue]: https://github.com/cloudspannerecosystem/autoscaler/issues/new
 [new-pr]: https://github.com/cloudspannerecosystem/autoscaler/compare
