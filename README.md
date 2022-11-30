@@ -139,8 +139,8 @@ covered by the Google Cloud Spanner product support.
 
 [autoscaler-poller]: poller/README.md
 [autoscaler-scaler]: scaler/README.md
-[autoscaler-per-project]: terraform/per-project/README.md
-[autoscaler-distributed]: terraform/distributed/README.md
+[autoscaler-per-project]: terraform/cloud-functions/per-project/README.md
+[autoscaler-distributed]: terraform/cloud-functions/distributed/README.md
 [cloud-firestore]: https://cloud.google.com/firestore
 [cloud-functions]: https://cloud.google.com/functions
 [cloud-pub-sub]: https://cloud.google.com/pubsub

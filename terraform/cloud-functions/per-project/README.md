@@ -109,7 +109,7 @@ In this section you prepare your project for deployment.
 4.  Export variables for the working directories
 
     ```sh
-    export AUTOSCALER_DIR="$(pwd)/autoscaler/terraform/per-project"
+    export AUTOSCALER_DIR="$(pwd)/autoscaler/terraform/cloud-functions/per-project"
     ```
 
 ## Preparing the Autoscaler Project

@@ -298,7 +298,7 @@ topic and function in the project where the Spanner instances live.
     ```
 
     For more information on how to make your Spanner instance to be managed by
-    Terraform, see [Importing your Spanner instances](#importing-your-spanner-instances)
+    Terraform, see [Importing your Spanner instances](../per-project/README.md#importing-your-spanner-instances)
 
 4.  If you want to use the new Spanner instance for the Autoscaler state
     database, set the following variable:

@@ -229,7 +229,7 @@ In this section you prepare your project for deployment.
 
     For more information on how to configure your Spanner instance to be
     managed by Terraform, see
-    [Import your Spanner instances](#importing-your-spanner-instances)
+    [Importing your Spanner instances](#importing-your-spanner-instances)
 
 3.  If you want to use the Spanner instance for the Autoscaler state
     database, set the following variable:
