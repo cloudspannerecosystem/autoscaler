@@ -232,7 +232,7 @@ In this section you prepare your project for deployment.
     [Importing your Spanner instances](#importing-your-spanner-instances)
 
 3.  If you want to use the Spanner instance for the Autoscaler state
-    database, set the following variable:
+    database (recommended for testing), set the following variable:
 
     ```sh
     export TF_VAR_terraform_spanner_state=true
@@ -379,6 +379,16 @@ similar process.
     Each stanza is used to configure a different Spanner instance. For the
     schema of the configuration, see the
     [Poller configuration][autoscaler-config-params] section.
+
+    If you have chosen to use Firestore to hold the Autoscaler state as described
+    above, edit the file and remove the following lines:
+
+    ```
+     stateDatabase:
+       name: spanner
+       instanceId: autoscale-test
+       databaseId: spanner-autoscaler-state
+    ```
 
 9.  To configure the Autoscaler and begin scaling operations, run the following
     command:
