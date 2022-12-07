@@ -22,6 +22,9 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          labels:
+            app: poller
         spec:
           containers:
           - name: poller
