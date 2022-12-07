@@ -22,6 +22,7 @@ data:
     ---
     - projectId: ${PROJECT_ID}
       instanceId: autoscale-test
+      # Delete this stanza if using Firestore for state
       stateDatabase:
         name: spanner
         instanceId: autoscale-test
