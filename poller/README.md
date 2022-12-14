@@ -317,5 +317,4 @@ data:
 [alertpolicy-aligner]: https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies#aligner
 [filtering-and-aggregation]: https://cloud.google.com/monitoring/api/v3/aggregation
 [time-series-filter]: https://cloud.google.com/monitoring/api/v3/filters#time-series-filter
-[spanner-metrics]: https://cloud.google.com/monitoring/api/metrics_gcp#gcp-spanner
 [spanner-filter]: https://cloud.google.com/logging/docs/view/query-library#spanner-filters

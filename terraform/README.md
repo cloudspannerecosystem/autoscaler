@@ -63,5 +63,4 @@ and creates the following resources.
 
 [cloudfunctions]: https://cloud.google.com/functions
 [gke]: https://cloud.google.com/kubernetes-engine
-[kubernetes]: https://https://kubernetes.io/
 [pubsub]: https://cloud.google.com/pubsub
