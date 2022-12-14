@@ -76,12 +76,3 @@ variable `POLLER_TOPIC`.
 Key            | Description
 -------------- | -------------------------------------------
 `POLLER_TOPIC` | PubSub topic the Poller function listens on
-
-<!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-
-[cloud-monitoring]: https://cloud.google.com/monitoring
-[spanner-metrics]: https://cloud.google.com/spanner/docs/monitoring-cloud#create-alert
-[autoscaler-home-config]: ../README.md#configuration
-[autoscaler-scaler-methods]: ../scaler/README.md#scaling-methods
-[cloud-firestore]: https://cloud.google.com/firestore
-[spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
