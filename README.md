@@ -137,21 +137,12 @@ covered by the Google Cloud Spanner product support.
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
-[autoscaler-poller]: poller/README.md
-[autoscaler-scaler]: scaler/README.md
-[autoscaler-per-project]: terraform/cloud-functions/per-project/README.md
-[autoscaler-distributed]: terraform/cloud-functions/distributed/README.md
-[cloud-firestore]: https://cloud.google.com/firestore
 [cloud-functions]: https://cloud.google.com/functions
-[cloud-pub-sub]: https://cloud.google.com/pubsub
 [cloud-monitoring]: https://cloud.google.com/monitoring
-[cloud-scheduler]: https://cloud.google.com/scheduler
-[cloud-scheduler-console]: https://console.cloud.google.com/cloudscheduler/
 [cloud-logging]: https://cloud.google.com/logging
 [code-of-conduct]: code-of-conduct.md
 [contributing-guidelines]: contributing.md
 [gke]: https://cloud.google.com/kubernetes-engine
-[json]: https://www.json.org/json-en.html
 [new-issue]: https://github.com/cloudspannerecosystem/autoscaler/issues/new
 [new-pr]: https://github.com/cloudspannerecosystem/autoscaler/compare
 [spanner-instance]: https://cloud.google.com/spanner/docs/instances

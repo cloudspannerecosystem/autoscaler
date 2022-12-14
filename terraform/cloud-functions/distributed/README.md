@@ -382,14 +382,9 @@ its configuration issues independently.
 
 [project-selector]: https://console.cloud.google.com/projectselector2/home/dashboard
 [enable-billing]: https://cloud.google.com/billing/docs/how-to/modify-project
-[activate-cloud-shell]: https://console.cloud.google.com/?cloudshell=true
-[service-account]: https://cloud.google.com/iam/docs/service-accounts
-[key-adc]: https://cloud.google.com/docs/authentication/production#providing_credentials_to_your_application
-[firestore]: https://cloud.google.com/firestore
 [region-and-zone]: https://cloud.google.com/compute/docs/regions-zones#locations
 [app-engine-location]: https://cloud.google.com/appengine/docs/locations
 [cloud-console]: https://console.cloud.google.com
 [cloud-shell]: https://console.cloud.google.com/?cloudshell=true&_ga=2.43377068.820133692.1587377411-71235912.1585654570&_gac=1.118947195.1584696876.Cj0KCQjw09HzBRDrARIsAG60GP9u6OBk_qQ02rkzBXpwpMd6YZ30A2D4gSl2Wwte1CqPW_sY6mH_xbIaAmIgEALw_wcB
-[parallelism-param]: https://www.terraform.io/docs/commands/apply.html
 [provider-issue]: https://github.com/hashicorp/terraform-provider-google/issues/6782
 [logs-viewer]: https://pantheon.corp.google.com/logs/query

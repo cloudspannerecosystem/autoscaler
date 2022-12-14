@@ -307,17 +307,10 @@ page to [configure your Autoscaler](../README.md#configuration).
 [enable-billing]: https://cloud.google.com/billing/docs/how-to/modify-project
 [cloud-console]: https://console.cloud.google.com
 [cloud-shell]: https://console.cloud.google.com/?cloudshell=true
-[service-account]: https://cloud.google.com/iam/docs/service-accounts
-[key-adc]: https://cloud.google.com/docs/authentication/production#providing_credentials_to_your_application
-[firestore]: https://cloud.google.com/firestore
-[cloud-project]: https://cloud.google.com/storage/docs/projects
-[cloud-sdk-properties]: https://cloud.google.com/sdk/docs/properties#setting_properties
 [region-and-zone]: https://cloud.google.com/compute/docs/regions-zones#locations
 [app-engine-location]: https://cloud.google.com/appengine/docs/locations
-[billing-instructions]: https://cloud.google.com/billing/docs/how-to/modify-project
 [terraform-import]: https://www.terraform.io/docs/import/index.html
 [terraform-import-usage]: https://www.terraform.io/docs/import/usage.html
 [terraform-spanner-instance]: https://www.terraform.io/docs/providers/google/r/spanner_instance.html
 [terraform-spanner-db]: https://www.terraform.io/docs/providers/google/r/spanner_database.html
-[parallelism-param]: https://www.terraform.io/docs/commands/apply.html
 [provider-issue]: https://github.com/hashicorp/terraform-provider-google/issues/6782
