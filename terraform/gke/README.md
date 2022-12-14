@@ -17,7 +17,7 @@
     ·
     Terraform configuration
     ·
-    Monitoring
+    <a href="../README.md#Monitoring">Monitoring</a>
     <br />
     <a href="../cloud-functions/README.md">Cloud Functions</a>
     ·
