@@ -142,6 +142,7 @@ module "cluster" {
   release_channel        = var.release_channel
   enable_private_nodes   = true
   enable_shielded_nodes  = true
+  network_policy         = true
   regional               = true
 
   create_service_account = false
