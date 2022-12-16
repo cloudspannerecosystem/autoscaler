@@ -35,6 +35,8 @@
     *   [Cons](#cons)
 *   [Before you begin](#before-you-begin)
 *   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
+    *   [Using Firestore for Autoscaler state](#using-firestore-for-autoscaler-state)
+    *   [Using Spanner for Autoscaler state](#using-spanner-for-autoscaler-state)
 *   [Deploying the Autoscaler](#deploying-the-autoscaler)
 *   [Importing your Spanner instances](#importing-your-spanner-instances)
 *   [Building and Deploying the Autoscaler Services](#building-and-deploying-the-autoscaler-services)
@@ -115,7 +117,7 @@ The GKE deployment has the following pros and cons:
 
 ## Before you begin
 
-In this section you prepare your project for deployment.
+In this section you prepare your environment.
 
 1.  Open the [Cloud Console][cloud-console]
 2.  Activate [Cloud Shell][cloud-shell] \
@@ -149,70 +151,33 @@ In this section you prepare your project for deployment.
 2.  Make sure that billing is enabled for your Google Cloud project.
     [Learn how to confirm billing is enabled for your project][enable-billing].
 
-3.  In Cloud Shell, set environment variables with the ID of your **autoscaler**
-    project:
+3.  In Cloud Shell, configure the environment with the ID of your
+    **autoscaler** project:
 
     ```sh
     export PROJECT_ID=<INSERT_YOUR_PROJECT_ID>
     gcloud config set project ${PROJECT_ID}
     ```
 
-4.  Choose the [region and zone][region-and-zone] and
-    [App Engine Location][app-engine-location] where the Autoscaler
-    infrastructure will be located, for example:
+4.  Set the region where the Autoscaler resources will be created:
 
     ```sh
     export REGION=us-central1
-    export ZONE=us-central1-c
-    export APP_ENGINE_LOCATION=us-central
     ```
 
-5.  Enable the required Cloud APIs (note that `Firestore` is optional depending
-    on your desired configuration):
+5.  Enable the required Cloud APIs:
 
     ```sh
     gcloud services enable iam.googleapis.com \
-      appengine.googleapis.com \
       artifactregistry.googleapis.com \
       cloudbuild.googleapis.com \
       cloudresourcemanager.googleapis.com \
       container.googleapis.com \
-      firestore.googleapis.com \
       spanner.googleapis.com
     ```
 
-6.  Create a Google App Engine app to enable the API for Firestore, if using:
-
-    ```sh
-    gcloud app create --region="${APP_ENGINE_LOCATION}"
-    ```
-
-7.  Create a database to store the state of the Autoscaler. State can be stored
-    in either Firestore or Cloud Spanner.
-
-    In case you want to use Firestore, create a new instance if your project
-    does not yet have one:
-
-    ```sh
-     gcloud firestore databases create --region="${APP_ENGINE_LOCATION}"
-    ```
-
-    In case you want to use Cloud Spanner, skip this step and perform step 2
-    in [Deploying the Autoscaler](#deploying-the-autoscaler).
-
-## Deploying the Autoscaler
-
-1.  Set the project ID, region and zone in the corresponding Terraform
-    environment variables
-
-    ```sh
-    export TF_VAR_project_id=${PROJECT_ID}
-    export TF_VAR_region=${REGION}
-    export TF_VAR_zone=${ZONE}
-    ```
-
-2.  If you want to create a new Spanner instance for testing the Autoscaler, set
-    the following variable. The spanner instance that Terraform creates is named
+6.  If you want to create a new Spanner instance for testing the Autoscaler, set
+    the following variable. The Spanner instance that Terraform creates is named
     `autoscale-test`.
 
     ```sh
@@ -231,15 +196,58 @@ In this section you prepare your project for deployment.
     managed by Terraform, see
     [Importing your Spanner instances](#importing-your-spanner-instances)
 
-3.  If you want to use the Spanner instance for the Autoscaler state
+7.  There are two options for deploying the state store for the Autoscaler:
+
+    1.  Store the state in [Firestore][cloud-firestore]
+    2.  Store the state in [Spanner][spanner]
+
+    For Firestore, follow the steps in
+    [Using Firestore for Autoscaler State](#using-firestore-for-autoscaler-state).
+    For Spanner, follow the steps in [Using Spanner for Autoscaler state](#using-spanner-for-autoscaler-state).
+
+## Using Firestore for Autoscaler state
+
+1.  To use Firestore for the Autoscaler state, choose the
+    [App Engine Location][app-engine-location] where the Autoscaler
+    infrastructure will be created, for example:
+
+    ```sh
+    export APP_ENGINE_LOCATION=us-central
+    ```
+
+2.  Enable the additional APIs:
+
+    ```sh
+    gcloud services enable \
+      appengine.googleapis.com \
+      firestore.googleapis.com
+    ```
+
+3.  Create a Google App Engine app to enable the API for Firestore:
+
+    ```sh
+    gcloud app create --region="${APP_ENGINE_LOCATION}"
+    ```
+
+4.  Create a database to store the state of the Autoscaler:
+
+    ```sh
+    gcloud firestore databases create --region="${APP_ENGINE_LOCATION}"
+    ```
+
+5.  Next, continue to [Deploying the Autoscaler](#deploying-the-autoscaler)
+
+## Using Spanner for Autoscaler state
+
+1.  If you want to use the test Spanner instance for the Autoscaler state
     database (recommended for testing), set the following variable:
 
     ```sh
     export TF_VAR_terraform_spanner_state=true
     ```
 
-    If you want to manage the state of the Autoscaler in your own Cloud Spanner instance,
-    please create the following table in advance:
+    Alternatively, if you want to manage the state of the Autoscaler in your own
+    Cloud Spanner instance, please create the following table in advance:
 
     ```sql
     CREATE TABLE spannerAutoscaler (
@@ -250,14 +258,26 @@ In this section you prepare your project for deployment.
     ) PRIMARY KEY (id)
     ```
 
-4.  Change directory into the Terraform per-project directory and initialize it:
+2.  Next, continue to [Deploying the Autoscaler](#deploying-the-autoscaler)
+
+## Deploying the Autoscaler
+
+1.  Set the project ID and region in the corresponding Terraform
+    environment variables:
+
+    ```sh
+    export TF_VAR_project_id=${PROJECT_ID}
+    export TF_VAR_region=${REGION}
+    ```
+
+2.  Change directory into the Terraform per-project directory and initialize it:
 
     ```sh
     cd ${AUTOSCALER_DIR}
     terraform init
     ```
 
-5.  Create the Autoscaler infrastructure:
+3.  Create the Autoscaler infrastructure:
 
     ```sh
     terraform plan -out=terraform.tfplan
@@ -268,6 +288,8 @@ If you are running this command in Cloud Shell and encounter errors of the form
 "`Error: cannot assign requested address`", this is a
 [known issue][provider-issue] in the Terraform Google provider, please retry
 with `-parallelism=1`.
+
+Next, continue to [Building and Deploying the Autoscaler Services](#building-and-deploying-the-autoscaler-services).
 
 ## Importing your Spanner instances
 
