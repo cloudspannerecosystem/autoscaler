@@ -37,9 +37,10 @@ that allows you to automatically increase or reduce the number of nodes or
 processing units in one or more Spanner instances, based on their utilization.
 
 When you create a [Cloud Spanner instance][spanner-instance], you choose the
-number of nodes or processing units that provide compute resources for the
-instance. As the instance's workload changes, Cloud Spanner does *not*
-automatically adjust the number of nodes or processing units in the instance.
+number of [nodes or processing units][compute-capacity] that provide compute
+resources for the instance. As the instance's workload changes, Cloud Spanner
+does *not* automatically adjust the number of nodes or processing units in the
+instance.
 
 The Autoscaler monitors your instances and automatically adds or
 removes compute capacity to ensure that they stay within the
@@ -222,6 +223,7 @@ covered by the Google Cloud Spanner product support.
 [cloud-monitoring]: https://cloud.google.com/monitoring
 [cloud-firestore]: https://cloud.google.com/firestore
 [cloud-logging]: https://cloud.google.com/logging
+[compute-capacity]: https://cloud.google.com/spanner/docs/compute-capacity#compute_capacity
 [autoscaler-poller]: poller/README.md
 [autoscaler-scaler]: scaler/README.md
 [autoscaler-per-project]: terraform/per-project/README.md
