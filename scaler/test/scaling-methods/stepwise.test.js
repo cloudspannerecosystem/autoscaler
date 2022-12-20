@@ -78,5 +78,21 @@ describe('#stepwise.calculateSize', () => {
     calculateSize(spanner).should.equal(2000);
     assert.equals(callbackStub.callCount, 1);
   });
+ 
+  it('should return PUs decreased by 1000 when scaling-in, and the size is >1000 PUs, and stepSize is <1000 PUs', () => {
+    const spanner = createSpannerParameters({currentSize : 4000, stepSize : 100}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 5, threshold : 65}, false);
+
+    calculateSize(spanner).should.equal(3000);
+    assert.equals(callbackStub.callCount, 1);
+  });
+
+  it('should return PUs increased by 1000 when scaling-out, and the size is >1000 PUs, and stepSize is <1000 PUs', () => {
+    const spanner = createSpannerParameters({currentSize : 4000, stepSize : 100}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 85, threshold : 65}, false);
+
+    calculateSize(spanner).should.equal(5000);
+    assert.equals(callbackStub.callCount, 1);
+  });  
 
 });

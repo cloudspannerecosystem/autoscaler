@@ -23,16 +23,23 @@
  * under 1000, or to nearest 1000 otherwise.
  */
 const baseModule = require('./base');
-const {maybeRound} = require('../utils.js');
+const {log, maybeRound} = require('../utils.js');
 
 function calculateSize(spanner) {
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
     if (baseModule.metricValueWithinRange(metric))
       return spanner.currentSize;  // No change
 
+    var stepSize = spanner.stepSize;
+    // After 1000 PUs, scaling can only be done in steps of 1000 PUs
+    if(spanner.units.toUpperCase() == 'PROCESSING_UNITS' && spanner.currentSize > 1000 && stepSize < 1000) {
+      stepSize = 1000;
+      log(`\tCurrent=${spanner.currentSize} ${spanner.units} (> 1000) => overriding stepSize from ${spanner.stepSize} to 1000`,
+      'DEBUG');
+    }
+
     var suggestedStep =
-        (metric.value > metric.threshold ? spanner.stepSize:
-                                           -spanner.stepSize);
+        (metric.value > metric.threshold ? stepSize:-stepSize);
     if (metric.name === baseModule.OVERLOAD_METRIC && spanner.isOverloaded)
       suggestedStep = spanner.overloadStepSize;
 
