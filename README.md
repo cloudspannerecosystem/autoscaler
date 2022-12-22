@@ -58,8 +58,9 @@ The diagram above shows the high level components of the Autoscaler and the
 interaction flow:
 
 1.  The Autoscaler consists of two main decoupled components:
-    * [The Poller component][autoscaler-poller]
-    * [The Scaler component][autoscaler-scaler]
+
+    *   [The Poller component][autoscaler-poller]
+    *   [The Scaler component][autoscaler-scaler]
 
     These can be deployed to either [Cloud Functions][cloud-functions] or
     [Google Kubernetes Engine (GKE)][gke], and configured so that the
@@ -93,8 +94,8 @@ tracking and auditing.
 To deploy the Autoscaler, decide which of the following strategies
 is best adjusted to fulfill your technical and operational needs:
 
-* [Deployment to Cloud Functions](terraform/cloud-functions/README.md)
-* [Deployment to Google Kubernetes Engine (GKE)](terraform/gke/README.md)
+*   [Deployment to Cloud Functions](terraform/cloud-functions/README.md)
+*   [Deployment to Google Kubernetes Engine (GKE)](terraform/gke/README.md)
 
 In both of the above instances, the Google Cloud Platform resources are
 deployed using Terraform. Please see the [Terraform instructions](terraform/README.md)

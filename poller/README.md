@@ -23,20 +23,20 @@
 
 ## Table of Contents
 
-* [Table of Contents](#table-of-contents)
-* [Overview](#overview)
-* [Configuration parameters](#configuration-parameters)
-  * [Required](#required)
-  * [Optional](#optional)
-* [Metrics parameters](#metrics-parameters)
-  * [Selectors](#selectors)
-  * [Parameters](#parameters)
-* [Custom metrics, thresholds and margins](#custom-metrics-thresholds-and-margins)
-  * [Thresholds](#thresholds)
-  * [Margins](#margins)
-  * [Metrics](#metrics)
-* [Example configuration for Cloud Functions](#example-configuration-for-cloud-functions)
-* [Example configuration for Google Kubernetes Engine](#example-configuration-for-google-kubernetes-engine)
+*   [Table of Contents](#table-of-contents)
+*   [Overview](#overview)
+*   [Configuration parameters](#configuration-parameters)
+    *   [Required](#required)
+    *   [Optional](#optional)
+*   [Metrics parameters](#metrics-parameters)
+    *   [Selectors](#selectors)
+    *   [Parameters](#parameters)
+*   [Custom metrics, thresholds and margins](#custom-metrics-thresholds-and-margins)
+    *   [Thresholds](#thresholds)
+    *   [Margins](#margins)
+    *   [Metrics](#metrics)
+*   [Example configuration for Cloud Functions](#example-configuration-for-cloud-functions)
+*   [Example configuration for Google Kubernetes Engine](#example-configuration-for-google-kubernetes-engine)
 
 ## Overview
 
@@ -308,6 +308,7 @@ data:
 
 [cloud-monitoring]: https://cloud.google.com/monitoring
 [configmap]: https://kubernetes.io/docs/concepts/configuration/configmap
+[spanner-metrics]: https://cloud.google.com/spanner/docs/monitoring-cloud#create-alert
 [autoscaler-home-config]: ../README.md#configuration
 [autoscaler-scaler-methods]: ../scaler/README.md#scaling-methods
 [cloud-firestore]: https://cloud.google.com/firestore
