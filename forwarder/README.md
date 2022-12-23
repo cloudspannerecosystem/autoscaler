@@ -9,11 +9,11 @@
     <br />
     <a href="../README.md">Home</a>
     ·
-    <a href="../forwarder/README.md">Poller function</a>
+    <a href="../poller/README.md">Poller component</a>
     ·
-    <a href="../scaler/README.md">Scaler function</a>
+    <a href="../scaler/README.md">Scaler component</a>
     ·
-    Forwarder function
+    Forwarder component
     ·
     <a href="../terraform/README.md">Terraform configuration</a>
     ·
@@ -36,8 +36,9 @@ checks their JSON syntax and forwards them to the Poller PubSub topic. The topic
 can belong to a different project that the Scheduler.
 
 This function is needed only in the
-[distributed deployment](../terraform/distributed/README.md) because Cloud
-Scheduler can only publish to topics in the same project as the Scheduler.
+[distributed deployment](../terraform/cloud-functions/distributed/README.md)
+because Cloud Scheduler can only publish to topics in the same project as the
+Scheduler.
 
 ## Architecture
 
@@ -57,7 +58,7 @@ The Cloud Spanner instances reside in a given application project.
 
   3 . The Poller function reads the messages from the polling topic and
   further continues the process as described in
-  the [main architecture section](../README.md#architecture).
+  the [main architecture section](../terraform/cloud-functions/README.md#architecture).
 </li> </ul>
 
 It is important to note that Autoscaler infrastructure is now distributed across
@@ -75,12 +76,3 @@ variable `POLLER_TOPIC`.
 Key            | Description
 -------------- | -------------------------------------------
 `POLLER_TOPIC` | PubSub topic the Poller function listens on
-
-<!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-
-[cloud-monitoring]: https://cloud.google.com/monitoring
-[spanner-metrics]: https://cloud.google.com/spanner/docs/monitoring-cloud#create-alert
-[autoscaler-home-config]: ../README.md#configuration
-[autoscaler-scaler-methods]: ../scaler/README.md#scaling-methods
-[cloud-firestore]: https://cloud.google.com/firestore
-[spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration

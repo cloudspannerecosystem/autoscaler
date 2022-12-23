@@ -9,11 +9,11 @@
     <br />
     <a href="../README.md">Home</a>
     ·
-    Poller function
+    Poller component
     ·
-    <a href="../scaler/README.md">Scaler function</a>
+    <a href="../scaler/README.md">Scaler component</a>
     ·
-    <a href="../forwarder/README.md">Forwarder function</a>
+    <a href="../forwarder/README.md">Forwarder component</a>
     ·
     <a href="../terraform/README.md">Terraform configuration</a>
     ·
@@ -35,33 +35,38 @@
     *   [Thresholds](#thresholds)
     *   [Margins](#margins)
     *   [Metrics](#metrics)
-*   [Example configuration](#example-configuration)
+*   [Example configuration for Cloud Functions](#example-configuration-for-cloud-functions)
+*   [Example configuration for Google Kubernetes Engine](#example-configuration-for-google-kubernetes-engine)
 
 ## Overview
 
-The Poller function takes an array of Cloud Spanner instances from the payload
-of a Cloud PubSub message and obtains load metrics for each of them from
-[Cloud Monitoring][cloud-monitoring].
+The Poller component takes an array of Cloud Spanner instances and obtains load
+metrics for each of them from [Cloud Monitoring][cloud-monitoring]. This array
+may come from the payload of a Cloud PubSub message or from configuration held
+in a [Kubernetes ConfigMap][configmap], depending on configuration.
 
-Then for each Spanner instance it publishes a message to the specified Cloud
-PubSub topic including the metrics and part of the configuration for the Spanner
-instance.
+Then for each Spanner instance it publishes a message via the specified Cloud
+PubSub topic or via HTTP, which includes the metrics and part of the
+configuration for the Spanner instance.
 
-The Scaler function will receive the message, compare the metric values with the
-[recommended thresholds][spanner-metrics], plus or minus an [allowed margin](#margins),
-and if any of the values fall outside of this range, the Scaler function will adjust
-the number of nodes in the Spanner instance accordingly. Note that the thresholds
-are different depending if a Spanner instance is
-[regional or multi-region][spanner-regional].
+The Scaler component will receive the message, compare the metric values with
+the [recommended thresholds][spanner-metrics], plus or minus an [allowed
+margin](#margins), and if any of the values fall outside of this range, the
+Scaler component will adjust the number of nodes in the Spanner instance
+accordingly. Note that the thresholds are different depending if a Spanner
+instance is [regional or multi-region][spanner-regional].
 
 ## Configuration parameters
 
-The following are the configuration parameters consumed by the Poller function.
-Some of these parameters are forwarded to the Scaler function as well.
+The following are the configuration parameters consumed by the Poller component.
+Some of these parameters are forwarded to the Scaler component as well.
 
-The parameters are defined using JSON in the payload of the PubSub message that
-is published by the Cloud Scheduler job. See the
-[configuration section][autoscaler-home-config] in the home page for
+In the case of the Poller and Scaler components deployed to Cloud Functions,
+the parameters are defined using JSON in the payload of the PubSub message that
+is published by the Cloud Scheduler job. When deployed to Kubernetes, the
+configuration parameters are defined in YAML in a [Kubernetes ConfigMap][configmap].
+
+See the [configuration section][autoscaler-home-config] in the home page for
 instructions on how to change the payload.
 
 ### Required
@@ -70,6 +75,11 @@ instructions on how to change the payload.
 | ------------------- | -----------
 | `projectId`         | Project ID of the Cloud Spanner to be monitored by the Autoscaler
 | `instanceId`        | Instance ID of the Cloud Spanner to be monitored by the Autoscaler
+
+### Required for a Cloud Functions deployment
+
+| Key                 | Description
+| ------------------- | -----------
 | `scalerPubSubTopic` | PubSub topic for the Poller function to publish messages for the Scaler function
 
 ### Optional
@@ -79,7 +89,7 @@ Key                      | Default Value  | Description
 `units`                  | `NODES`        | Specifies the units that capacity will be measured in `NODES` or `PROCESSING_UNITS`.
 `minSize`                | 1 N or 100 PU  | Minimum number of Cloud Spanner nodes or processing units that the instance can be scaled IN to.
 `maxSize`                | 3 N or 2000 PU | Maximum number of Cloud Spanner nodes or processing units that the instance can be scaled OUT to.
-`scalingMethod`          | `STEPWISE`     | Scaling method that should be used. Options are: `STEPWISE`, `LINEAR`, `DIRECT`. See the [scaling methods section][autoscaler-scaler-methods] in the Scaler function page for more information.
+`scalingMethod`          | `STEPWISE`     | Scaling method that should be used. Options are: `STEPWISE`, `LINEAR`, `DIRECT`. See the [scaling methods section][autoscaler-scaler-methods] in the Scaler component page for more information.
 `stepSize`               | 2 N or 200 PU  | Number of nodes that should be added or removed when scaling with the `STEPWISE` method. When the Spanner instance size is over 1000 PUs, scaling will be done in steps of 1000 PUs. For more information see the [Spanner compute capacity][compute-capacity] documentation.
 `overloadStepSize`       | 5 N or 500 PU  | Number of nodes that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used.
 `scaleOutCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed.
@@ -110,16 +120,16 @@ Key                  | Description
 ### Parameters
 
 When defining a metric for the Autoscaler there are two key components:
-thresholds and a [Cloud Monitoring time series metric](time-series-filters)
+thresholds and a [Cloud Monitoring time series metric][time-series-filter]
 comprised of a filter, reducer, aligner and period. Having a properly defined
 metric is critical to the opertional of the Autoscaler, please refer to
-[Filtering and aggregation: manipulating time series](filtering-and-aggregation)
+[Filtering and aggregation: manipulating time series][filtering-and-aggregation]
 for a complete discussion on building metric filters and aggregating data
 points.
 
 Key                        | Default      | Description
 -------------------------- | ------------ | -----------
-`filter`                   |              | The [Cloud Spanner metric](spanner-metrics) and [filter](time-series-filters) that should be used when querying for data. The Autoscaler will automatically add the filter expressions for [Spanner instance resources, instance id](spanner-filter) and project id.
+`filter`                   |              | The [Cloud Spanner metric][spanner-metrics] and [filter][time-series-filter] that should be used when querying for data. The Autoscaler will automatically add the filter expressions for [Spanner instance resources, instance id][spanner-filter] and project id.
 `reducer`                  | `REDUCE_SUM` | The reducer specifies how the data points should be aggregated when querying for metrics, typically `REDUCE_SUM`. For more details please refer to [Alert Policies - Reducer][alertpolicy-reducer] documentation.
 `aligner`                  | `ALIGN_MAX`  | The aligner specifies how the data points should be aligned in the time series, typically `ALIGN_MAX`. For more details please refer to [Alert Policies - Aligner][alertpolicy-aligner] documentation.
 `period`                   | 60           | Defines the period of time in units of seconds at which aggregation takes place. Typically the period should be 60.
@@ -174,9 +184,9 @@ configuration specifying the required fields (`name`, `filter`,
 `reducer` and `aligner` are defaulted but can also be specified in
 the metric definition.
 
-[Cloud Spanner metric](spanner-metrics) and [filter](time-series-filters) that
+[Cloud Spanner metric][spanner-metrics] and [filter][time-series-filter] that
 should be used when querying for data. The Autoscaler will automatically add
-the filter expressions for [Spanner instance resources, instance id](spanner-filter)
+the filter expressions for [Spanner instance resources, instance id][spanner-filter]
 and project id.
 
 ## State Database
@@ -209,7 +219,7 @@ CREATE TABLE spannerAutoscaler (
 ) PRIMARY KEY (id)
 ```
 
-## Example configuration
+## Example configuration for Cloud Functions
 
 ```json
 [
@@ -255,9 +265,49 @@ CREATE TABLE spannerAutoscaler (
 ]
 ```
 
+## Example configuration for Google Kubernetes Engine
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autoscaler-config
+  namespace: spanner-autoscaler
+data:
+  autoscaler-config.yaml: |
+    ---
+    - projectId: spanner-autoscaler-test
+      instanceId: spanner-scaling-direct
+      units: NODES
+      minSize: 5
+      maxSize: 30
+      scalingMethod: DIRECT
+    - projectId: spanner-autoscaler-test
+      instanceId: spanner-scaling-threshold
+      units: PROCESSING_UNITS
+      minSize: 100
+      maxSize: 3000
+      metrics:
+      - name: high_priority_cpu
+        regional_threshold: 40
+        regional_margin: 3
+    - projectId: spanner-autoscaler-test
+      instanceId: spanner-scaling-custom
+      units: NODES
+      minSize: 5
+      maxSize: 30
+      scalingMethod: LINEAR
+      metrics:
+      - name: my_custom_metric
+        filter: metric.type="spanner.googleapis.com/instance/resource/metric"
+        regional_threshold: 40
+        multi_regional_threshold: 30
+```
+
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
 [cloud-monitoring]: https://cloud.google.com/monitoring
+[configmap]: https://kubernetes.io/docs/concepts/configuration/configmap
 [spanner-metrics]: https://cloud.google.com/spanner/docs/monitoring-cloud#create-alert
 [autoscaler-home-config]: ../README.md#configuration
 [autoscaler-scaler-methods]: ../scaler/README.md#scaling-methods
@@ -266,7 +316,6 @@ CREATE TABLE spannerAutoscaler (
 [alertpolicy-reducer]: https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies#reducer
 [alertpolicy-aligner]: https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies#aligner
 [filtering-and-aggregation]: https://cloud.google.com/monitoring/api/v3/aggregation
-[time-series-filters]: https://cloud.google.com/monitoring/api/v3/filters#time-series-filter
-[spanner-metrics]: https://cloud.google.com/monitoring/api/metrics_gcp#gcp-spanner
+[time-series-filter]: https://cloud.google.com/monitoring/api/v3/filters#time-series-filter
 [spanner-filter]: https://cloud.google.com/logging/docs/view/query-library#spanner-filters
 [compute-capacity]: https://cloud.google.com/spanner/docs/compute-capacity#compute_capacity
