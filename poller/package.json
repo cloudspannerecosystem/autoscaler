@@ -1,27 +1,15 @@
 {
-    "name": "metrics-poller",
-    "description": "Polls Spanner metrics with Cloud Monitoring",
+    "name": "poller",
+    "description": "Spanner metrics poller cron job",
     "license": "Apache-2.0",
     "author": "Google Inc.",
     "dependencies": {
-      "@google-cloud/functions-framework": "^3.0.0",
-        "@google-cloud/monitoring": "^2.3.4",
-        "@google-cloud/pubsub": "^2.16.6",
-        "@google-cloud/spanner": "^5.13.1"
+        "@google-cloud/pubsub": "^3.1.0",
+        "js-yaml": "^4.1.0",
+        "poller-core": "file:poller-core",
+        "run": "^1.4.0"
     },
     "scripts": {
-        "start": "functions-framework --target=checkSpannerScaleMetricsHTTP",
-        "debug": "node --inspect node_modules/.bin/functions-framework --target=checkSpannerScaleMetricsHTTP",
-        "test": "nyc --reporter=text mocha --recursive --require mocha-suppress-logs",
-        "mdlint": "cd .. && markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"
-    },
-    "devDependencies": {
-        "markdownlint": "^0.25.1",
-        "mocha": "^9.0.3",
-        "mocha-suppress-logs": "^0.3.1",
-        "nyc": "^15.1.0",
-        "rewire": "^6.0.0",
-        "should": "^13.2.3",
-        "sinon": "^11.1.2"
+        "start": "node index.js"
     }
 }
