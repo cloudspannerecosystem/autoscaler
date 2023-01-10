@@ -424,18 +424,18 @@ similar process.
     If you have chosen to use your own Spanner instance, please edit the above
     configuration file accordingly.
 
-9.  To configure the Autoscaler and begin scaling operations, run the following
-    command:
+10.  To configure the Autoscaler and begin scaling operations, run the following
+     command:
 
-    ```sh
-    kubectl apply -f autoscaler-config/autoscaler-config.yaml
-    ```
+     ```sh
+     kubectl apply -f autoscaler-config/autoscaler-config.yaml
+     ```
 
-10. Any changes made to the configuration file and applied with `kubectl
-    apply` will update the Autoscaler configuration.
+11.  Any changes made to the configuration file and applied with `kubectl
+     apply` will update the Autoscaler configuration.
 
-11. You can view logs for the Autoscaler components via `kubectl` or the [Cloud
-    Logging][cloud-console-logging] interface in the Google Cloud console.
+12.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
+     Logging][cloud-console-logging] interface in the Google Cloud console.
 
 ## Troubleshooting
 
@@ -444,11 +444,13 @@ following the instructions above.
 
 ### If the GKE cluster is not successfully created
 
-1.  Check there are no [Organizational Policy][organizational-policy] rules that may conflict with cluster creation.
+1.  Check there are no [Organizational Policy][organizational-policy] rules
+    that may conflict with cluster creation.
 
 ### If the Poller fails to run successfully
 
-1.  If you have chosen to use Firestore for Autoscaler state and you see the following error in the logs:
+1.  If you have chosen to use Firestore for Autoscaler state and you see the
+    following error in the logs:
 
     ```sh
      Error: 5 NOT_FOUND: Database not found: projects/<YOUR_PROJECT>/instances/autoscale-test/databases/spanner-autoscaler-state
