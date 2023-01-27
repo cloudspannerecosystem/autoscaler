@@ -64,17 +64,11 @@ module "spanner" {
 module "scheduler" {
   source = "../../modules/scheduler"
 
-  project_id   = var.project_id
-  pubsub_topic = module.autoscaler-functions.poller_topic
-  pubsub_data = base64encode(jsonencode([{
-    "projectId" : "${var.project_id}",
-    "instanceId" : "${module.spanner.spanner_name}",
-    "scalerPubSubTopic" : "${module.autoscaler-functions.scaler_topic}",
-    "units" : "NODES",
-    "minSize" : 1
-    "maxSize" : 3,
-    "scalingMethod" : "LINEAR"
-  }]))
+  project_id              = var.project_id
+  instance_id             = module.spanner.spanner_name
+  pubsub_topic            = module.autoscaler-functions.poller_topic
+  target_pubsub_topic     = module.autoscaler-functions.scaler_topic
+  terraform_spanner_state = var.terraform_spanner_state
 }
 
 module "monitoring" {
