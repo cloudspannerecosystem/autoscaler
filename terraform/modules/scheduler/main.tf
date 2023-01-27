@@ -39,7 +39,7 @@ resource "google_cloud_scheduler_job" "poller_job" {
           "stateDatabase": var.terraform_spanner_state ? {
             "name":       "spanner",
             "instanceId": "${var.instance_id}",
-            "databaseId": "my-database"     
+            "databaseId": "spanner-autoscaler-state"
           } : {
             "name":       "firestore",
           }
