@@ -36,18 +36,17 @@ resource "google_cloud_scheduler_job" "poller_job" {
         "minSize" : 100,
         "maxSize" : 2000,
         "scalingMethod" : "LINEAR",
-          "stateDatabase": var.terraform_spanner_state ? {
-            "name":       "spanner",
-            "instanceId": "${var.instance_id}",
-            "databaseId": "spanner-autoscaler-state"
-          } : {
-            "name":       "firestore",
-          }
-        },
-          var.state_project_id != null ? {
-            "stateProjectId" : "${var.state_project_id}"
-          } : {}  
-      )
+        "stateDatabase": var.terraform_spanner_state ? {
+          "name":       "spanner",
+          "instanceId": "${var.instance_id}",
+          "databaseId": "spanner-autoscaler-state"
+        } : {
+          "name":       "firestore",
+        }
+      },
+      var.state_project_id != null ? {
+        "stateProjectId" : "${var.state_project_id}"
+      } : {})
     ]))
   }
 
