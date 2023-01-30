@@ -25,7 +25,7 @@
     <br />
     Per-Project
     ·
-    <a href="../centralized/README.md">Centralized></a>
+    <a href="../centralized/README.md">Centralized</a>
     ·
     <a href="../distributed/README.md">Distributed</a>
 
@@ -212,8 +212,8 @@ In this section you prepare your project for deployment.
     export TF_VAR_terraform_spanner_state=true
     ```
 
-    If you want to manage the state of the Autoscaler in your own Cloud Spanner instance,
-    please create the following table in advance.
+    Alternatively, If you want to manage the state of the Autoscaler in your own 
+    Cloud Spanner instance, please create the following table in advance.
 
     ```sql
     CREATE TABLE spannerAutoscaler (
