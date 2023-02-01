@@ -111,6 +111,10 @@ resource "google_spanner_instance_iam_member" "scaler_test_state_iam" {
   depends_on = [google_spanner_instance.main]
 }
 
+#
+# Otherwise do not depend on the created DB, and use a precreated DB
+#
+
 resource "google_spanner_instance_iam_member" "spanner_metadata_get_iam" {
   count = var.terraform_spanner_test ? 0 : 1
 
@@ -133,7 +137,7 @@ resource "google_spanner_instance_iam_member" "scaler_instance_iam" {
 resource "google_spanner_instance_iam_member" "scaler_state_iam" {
   count = (!var.terraform_spanner_test && var.terraform_spanner_state) ? 1 : 0
 
-  # Allows scaler to change the number of nodes of the Spanner instance
+  # Allows scaler to store state in Spanner database
   instance = var.spanner_name
   role     = var.spanner_state_iam_name
   project  = var.project_id
