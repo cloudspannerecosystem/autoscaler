@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+locals {
+  instance_name = var.terraform_spanner_test ? google_spanner_instance.main[0].name : var.spanner_name
+}
+
 resource "google_spanner_instance" "main" {
   count = var.terraform_spanner_test ? 1 : 0
 
@@ -74,71 +78,26 @@ resource "google_project_iam_member" "poller_sa_cloud_monitoring" {
   member  = "serviceAccount:${var.poller_sa_email}"
 }
 
-#
-# Depend on the created DB if one has been created
-#
-resource "google_spanner_instance_iam_member" "spanner_test_metadata_get_iam" {
-  count = var.terraform_spanner_test ? 1 : 0
-
-  instance = var.spanner_name
-  role     = "roles/spanner.viewer"
-  project  = var.project_id
-  member   = "serviceAccount:${var.poller_sa_email}"
-
-  depends_on = [google_spanner_instance.main]
-}
-
-resource "google_spanner_instance_iam_member" "scaler_test_instance_iam" {
-  count = var.terraform_spanner_test ? 1 : 0
-
-  instance = var.spanner_name
-  role     = var.spanner_scale_iam_name
-  project  = var.project_id
-  member   = "serviceAccount:${var.scaler_sa_email}"
-
-  depends_on = [google_spanner_instance.main]
-}
-
-resource "google_spanner_instance_iam_member" "scaler_test_state_iam" {
-  count = var.terraform_spanner_test && var.terraform_spanner_state ? 1 : 0
-
-  # Allows scaler to change the number of nodes of the Spanner instance
-  instance = var.spanner_name
-  role     = var.spanner_state_iam_name
-  project  = var.project_id
-  member   = "serviceAccount:${var.scaler_sa_email}"
-
-  depends_on = [google_spanner_instance.main]
-}
-
-#
-# Otherwise do not depend on the created DB, and use a precreated DB
-#
-
 resource "google_spanner_instance_iam_member" "spanner_metadata_get_iam" {
-  count = var.terraform_spanner_test ? 0 : 1
-
-  instance = var.spanner_name
+  instance = local.instance_name
   role     = "roles/spanner.viewer"
   project  = var.project_id
   member   = "serviceAccount:${var.poller_sa_email}"
 }
 
+# Allows scaler to change the number of nodes of the Spanner instance
 resource "google_spanner_instance_iam_member" "scaler_instance_iam" {
-  count = var.terraform_spanner_test ? 0 : 1
-
-  # Allows scaler to change the number of nodes of the Spanner instance
-  instance = var.spanner_name
+  instance = local.instance_name
   role     = var.spanner_scale_iam_name
   project  = var.project_id
   member   = "serviceAccount:${var.scaler_sa_email}"
 }
 
+# Allows scaler to store state in Spanner database
 resource "google_spanner_instance_iam_member" "scaler_state_iam" {
-  count = (!var.terraform_spanner_test && var.terraform_spanner_state) ? 1 : 0
+  count = var.terraform_spanner_state ? 1 : 0
 
-  # Allows scaler to store state in Spanner database
-  instance = var.spanner_name
+  instance = local.instance_name
   role     = var.spanner_state_iam_name
   project  = var.project_id
   member   = "serviceAccount:${var.scaler_sa_email}"
