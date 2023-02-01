@@ -47,3 +47,7 @@ variable "region" {
   type    = string
   default = "us-central1"
 }
+
+variable "spanner_scale_iam_name" {
+  type = string
+}

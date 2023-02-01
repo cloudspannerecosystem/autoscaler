@@ -59,6 +59,8 @@ resource "google_spanner_database" "state-database" {
       updatedOn TIMESTAMP,
     ) PRIMARY KEY (id)
     EOT
+    , "CREATE ROLE autoscalerRole"
+    , "GRANT SELECT, INSERT, UPDATE ON TABLE spannerAutoscaler TO ROLE autoscalerRole"
   ]
   # Must specify project because provider project may be different than var.project_id
   project = var.project_id
@@ -88,41 +90,44 @@ resource "google_spanner_instance_iam_member" "spanner_test_metadata_get_iam" {
   depends_on = [google_spanner_instance.main]
 }
 
-resource "google_project_iam_custom_role" "spanner_instance_manager" {
-  role_id     = "spannerAutoscalerInstanceManager"
-  title       = "Spanner Autoscaler Instance Manager"
-  description = "Allows a principal to modify spanner instances"
-  permissions = ["spanner.instanceOperations.get", "spanner.instances.update"]
-}
-
-resource "google_spanner_instance_iam_member" "spanner_test_admin_iam" {
-  count = var.terraform_spanner_test ? 1 : 0
+resource "google_spanner_instance_iam_member" "scaler_instance_iam" {
+  # Allows scaler to change the number of nodes of the Spanner instance
   instance = var.spanner_name
-  role     = google_project_iam_custom_role.spanner_instance_manager.name
+  role     = var.spanner_scale_iam_name
   project  = var.project_id
   member   = "serviceAccount:${var.scaler_sa_email}"
-
-  depends_on = [google_spanner_instance.main]
 }
 
-#
-# Otherwise do not depend on the created DB, and use a precreated DB
-#
-resource "google_spanner_instance_iam_member" "spanner_metadata_get_iam" {
-  count = var.terraform_spanner_test ? 0 : 1
-
-  instance = var.spanner_name
-  role     = "roles/spanner.viewer"
-  project  = var.project_id
-  member   = "serviceAccount:${var.poller_sa_email}"
-}
-
-resource "google_spanner_instance_iam_member" "spanner_admin_iam" {
-  count = var.terraform_spanner_test ? 0 : 1
+resource "google_spanner_instance_iam_member" "scaler_fine_grained_user" {
+  count = var.terraform_spanner_state ? 0 : 1
 
   # Allows scaler to change the number of nodes of the Spanner instance
   instance = var.spanner_name
-  role     = google_project_iam_custom_role.spanner_instance_manager.name
+  role     = "roles/spanner.fineGrainedAccessUser"
   project  = var.project_id
   member   = "serviceAccount:${var.scaler_sa_email}"
+}
+
+data "google_iam_policy" "spanner_iam_db_role_policy" {
+  binding {
+    role = "roles/spanner.databaseRoleUser"
+
+    members = [
+      "serviceAccount:${var.scaler_sa_email}",
+    ]
+
+    condition {
+      expression = "resource.type == 'spanner.googleapis.com/DatabaseRole' && resource.name.endsWith('autoscalerRole')"
+      title      = "Assume autoscaler role"
+    }
+  }
+}
+
+resource "google_spanner_instance_iam_member" "spanner_iam_db_role_user" {
+  count = var.terraform_spanner_state ? 0 : 1
+
+  # Allows scaler to change the number of nodes of the Spanner instance
+  instance    = var.spanner_name
+  project     = var.project_id
+  policy_data = spanner_iam_db_role_policy.policy_data
 }

@@ -308,7 +308,7 @@ topic and function in the project where the Spanner instances live.
     ```
 
     If you want to manage the state of the Autoscaler in your own Cloud Spanner instance,
-    please create the following table in advance.
+    please create the following table and database role in advance.
 
     ```sql
     CREATE TABLE spannerAutoscaler (
@@ -316,7 +316,9 @@ topic and function in the project where the Spanner instances live.
        lastScalingTimestamp TIMESTAMP,
        createdOn TIMESTAMP,
        updatedOn TIMESTAMP,
-    ) PRIMARY KEY (id)
+    ) PRIMARY KEY (id);
+    CREATE ROLE autoscalerRole;
+    GRANT SELECT, INSERT, UPDATE ON TABLE spannerAutoscaler TO ROLE autoscalerRole;
     ```
 
 5.  Change directory into the Terraform app-project directory and initialize it.

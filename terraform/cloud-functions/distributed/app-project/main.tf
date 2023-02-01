@@ -45,6 +45,11 @@ module "spanner" {
   spanner_name            = var.spanner_name
   poller_sa_email         = data.terraform_remote_state.autoscaler.outputs.poller_sa_email
   scaler_sa_email         = data.terraform_remote_state.autoscaler.outputs.scaler_sa_email
+  spanner_scale_iam_name  = module.spanner-role.spanner_instance_manager_name
+}
+
+module "spanner-role" {
+  source = "../../../modules/spanner-role"
 }
 
 module "forwarder" {

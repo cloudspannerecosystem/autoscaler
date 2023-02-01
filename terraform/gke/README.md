@@ -247,7 +247,7 @@ In this section you prepare your project for deployment.
     ```
 
     Alternatively, if you want to manage the state of the Autoscaler in your own
-    Cloud Spanner instance, please create the following table in advance:
+    Cloud Spanner instance, please create the following table and database role in advance:
 
     ```sql
     CREATE TABLE spannerAutoscaler (
@@ -255,7 +255,9 @@ In this section you prepare your project for deployment.
        lastScalingTimestamp TIMESTAMP,
        createdOn TIMESTAMP,
        updatedOn TIMESTAMP,
-    ) PRIMARY KEY (id)
+    ) PRIMARY KEY (id);
+    CREATE ROLE autoscalerRole;
+    GRANT SELECT, INSERT, UPDATE ON TABLE spannerAutoscaler TO ROLE autoscalerRole;
     ```
 
 2.  Next, continue to [Deploying the Autoscaler](#deploying-the-autoscaler)

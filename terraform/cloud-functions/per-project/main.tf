@@ -59,6 +59,12 @@ module "spanner" {
   spanner_name            = var.spanner_name
   poller_sa_email         = module.autoscaler-base.poller_sa_email
   scaler_sa_email         = module.autoscaler-base.scaler_sa_email
+  spanner_scale_iam_name  = module.spanner-role.spanner_instance_manager_name
+}
+
+
+module "spanner-role" {
+  source = "../../modules/spanner-role"
 }
 
 module "scheduler" {
