@@ -207,7 +207,17 @@ Key                        | Description
 `instanceId`               | The instance id of Cloud Spanner which you want to manage the state.
 `databaseId`               | The database id of Cloud Spanner instance which you want to manage the state.
 
-Please refer to autoscaler deployment docs for instructions on how to use Spanner for State storage.
+When using Cloud Spanner to manage the state,
+a table with the following DDL is created at runtime.
+
+```sql
+CREATE TABLE spannerAutoscaler (
+  id STRING(MAX),
+  lastScalingTimestamp TIMESTAMP,
+  createdOn TIMESTAMP,
+  updatedOn TIMESTAMP,
+) PRIMARY KEY (id)
+```
 
 ## Example configuration for Cloud Functions
 
