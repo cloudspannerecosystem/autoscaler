@@ -98,36 +98,12 @@ resource "google_spanner_instance_iam_member" "scaler_instance_iam" {
   member   = "serviceAccount:${var.scaler_sa_email}"
 }
 
-resource "google_spanner_instance_iam_member" "scaler_fine_grained_user" {
+resource "google_spanner_instance_iam_member" "scaler_state_iam" {
   count = var.terraform_spanner_state ? 0 : 1
 
   # Allows scaler to change the number of nodes of the Spanner instance
   instance = var.spanner_name
-  role     = "roles/spanner.fineGrainedAccessUser"
+  role     = var.spanner_state_iam_name
   project  = var.project_id
   member   = "serviceAccount:${var.scaler_sa_email}"
-}
-
-data "google_iam_policy" "spanner_iam_db_role_policy" {
-  binding {
-    role = "roles/spanner.databaseRoleUser"
-
-    members = [
-      "serviceAccount:${var.scaler_sa_email}",
-    ]
-
-    condition {
-      expression = "resource.type == 'spanner.googleapis.com/DatabaseRole' && resource.name.endsWith('autoscalerRole')"
-      title      = "Assume autoscaler role"
-    }
-  }
-}
-
-resource "google_spanner_instance_iam_member" "spanner_iam_db_role_user" {
-  count = var.terraform_spanner_state ? 0 : 1
-
-  # Allows scaler to change the number of nodes of the Spanner instance
-  instance    = var.spanner_name
-  project     = var.project_id
-  policy_data = spanner_iam_db_role_policy.policy_data
 }

@@ -51,3 +51,7 @@ variable "region" {
 variable "spanner_scale_iam_name" {
   type = string
 }
+
+variable "spanner_state_iam_name" {
+  type = string
+}
