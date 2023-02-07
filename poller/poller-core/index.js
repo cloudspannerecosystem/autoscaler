@@ -71,7 +71,7 @@ function buildMetrics(projectId, instanceId) {
           'metric.label.priority="high"',
       reducer: 'REDUCE_SUM',
       aligner: 'ALIGN_MAX',
-      period: 60,
+      period: 300,
       regional_threshold: 65,
       multi_regional_threshold: 45
     },
@@ -81,7 +81,7 @@ function buildMetrics(projectId, instanceId) {
           'metric.type="spanner.googleapis.com/instance/cpu/smoothed_utilization"',
       reducer: 'REDUCE_SUM',
       aligner: 'ALIGN_MAX',
-      period: 60,
+      period: 300,
       regional_threshold: 90,
       multi_regional_threshold: 90
     },
@@ -91,7 +91,7 @@ function buildMetrics(projectId, instanceId) {
           'metric.type="spanner.googleapis.com/instance/storage/utilization"',
       reducer: 'REDUCE_SUM',
       aligner: 'ALIGN_MAX',
-      period: 60,
+      period: 300,
       regional_threshold: 75,
       multi_regional_threshold: 75
     }
@@ -128,9 +128,9 @@ function validateCustomMetric(metric) {
   return true;
 }
 
-function getMaxMetricValue(projectId, spannerInstanceId, metric) {
-  const metricWindow = 5;
-  log(`Get max ${metric.name} from ${projectId}/${spannerInstanceId} over ${metricWindow} minutes.`);
+function getMetricValue(projectId, spannerInstanceId, metric) {
+  const metricWindow = 1;
+  log(`Get ${metric.name} from ${projectId}/${spannerInstanceId} over ${metric.period} seconds.`);
 
   const request = {
     name: 'projects/' + projectId,
@@ -317,7 +317,7 @@ async function getMetrics(spanner) {
   var metrics = [];
   for (const metric of spanner.metrics) {
     var maxMetricValue =
-        await getMaxMetricValue(spanner.projectId, spanner.instanceId, metric);
+        await getMetricValue(spanner.projectId, spanner.instanceId, metric);
 
     var threshold;
     var margin;
