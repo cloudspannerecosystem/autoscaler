@@ -52,7 +52,11 @@ const processingUnitsDefaults = {
 const metricDefaults = {
   period: 60,
   aligner: 'ALIGN_MAX',
-  reducer: 'REDUCE_SUM'
+  reducer: 'REDUCE_SUM',
+  secondaryAligner: 'ALIGN_NONE',
+  secondaryReducer: 'REDUCE_NONE',
+  secondaryPeriod: 0,
+  groupByFields: ""
 };
 const DEFAULT_THRESHOLD_MARGIN = 5;
 
@@ -145,6 +149,14 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
       },
       crossSeriesReducer: metric.reducer,
       perSeriesAligner: metric.aligner,
+      groupByFields: metric.groupByFields
+    },
+    secondaryAggregation: {
+      crossSeriesReducer: metric.secondaryReducer,
+      perSeriesAligner: metric.secondaryAligner,
+      alignmentPeriod: {
+        seconds: metric.secondaryPeriod
+      }
     },
     view: 'FULL'
   };
