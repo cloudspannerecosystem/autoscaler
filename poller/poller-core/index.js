@@ -129,7 +129,11 @@ function validateCustomMetric(metric) {
 }
 
 function getMetricValue(projectId, spannerInstanceId, metric) {
-  const delta = Math.max(metric.period, metric.secondaryPeriod);
+  const delta = Math.max(metric.period, metric.secondaryPeriod || 0);
+  if (Number.isNaN(delta)) {
+    throw new Error(`delta is NaN, period: ${metric.period}, secondaryPeriod: ${metric.secondaryPeriod}`);
+  }
+
   log(`Get ${metric.name} from ${projectId}/${spannerInstanceId} over ${delta} seconds.`);
 
   const request = {
