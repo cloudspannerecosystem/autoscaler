@@ -133,6 +133,10 @@ Key                        | Default      | Description
 `reducer`                  | `REDUCE_SUM` | The reducer specifies how the data points should be aggregated when querying for metrics, typically `REDUCE_SUM`. For more details please refer to [Alert Policies - Reducer][alertpolicy-reducer] documentation.
 `aligner`                  | `ALIGN_MAX`  | The aligner specifies how the data points should be aligned in the time series, typically `ALIGN_MAX`. For more details please refer to [Alert Policies - Aligner][alertpolicy-aligner] documentation.
 `period`                   | 60           | Defines the period of time in units of seconds at which aggregation takes place. Typically the period should be 60.
+`groupByFields`            | []           | An array that defines fields to aggregate over for primary aggregation. Must be used with secondary aggregation.
+`secondaryReducer`         | REDUCE_NONE  | Defines a secondary reducer to be applied over the primary group by fields. Must be used with secondaryAligner
+`secondaryAligner`         | ALIGN_NONE   | Defines a secondary aligner to be applied over the primary group by fields.
+`secondaryPeriod`          | 0            | Defines a period of seconds over which the secondary aligner is applied.
 `regional_threshold`       |              | Threshold used to evaluate if a regional instance needs to be scaled in or out.
 `multi_regional_threshold` |              | Threshold used to evaluate if a multi-regional instance needs to be scaled in or out.
 `regional_margin`       |      5       | Margin above and below the threshold where the metric value is allowed. If the metric falls outside of the range `[threshold - margin, threshold + margin]`, then the regional instance needs to be scaled in or out.
