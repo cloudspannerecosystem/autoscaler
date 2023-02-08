@@ -129,15 +129,15 @@ function validateCustomMetric(metric) {
 }
 
 function getMetricValue(projectId, spannerInstanceId, metric) {
-  const metricWindow = 1;
-  log(`Get ${metric.name} from ${projectId}/${spannerInstanceId} over ${metric.period} seconds.`);
+  const delta = Math.max(metric.period, metric.secondaryPeriod);
+  log(`Get ${metric.name} from ${projectId}/${spannerInstanceId} over ${delta} seconds.`);
 
   const request = {
     name: 'projects/' + projectId,
     filter: metric.filter,
     interval: {
       startTime: {
-        seconds: Date.now() / 1000 - metric.period * metricWindow,
+        seconds: Date.now() / 1000 - delta,
       },
       endTime: {
         seconds: Date.now() / 1000,
