@@ -129,7 +129,8 @@ function validateCustomMetric(metric) {
 }
 
 function getMetricValue(projectId, spannerInstanceId, metric) {
-  const delta = Math.max(metric.period, metric.secondaryPeriod || 0);
+  // ~125s seems to be the minimum time interval for requesting metrics
+  const delta = Math.max(metric.period, metric.secondaryPeriod || 0, 125);
   if (Number.isNaN(delta)) {
     throw new Error(`delta is NaN, period: ${metric.period}, secondaryPeriod: ${metric.secondaryPeriod}`);
   }
@@ -167,16 +168,21 @@ function getMetricValue(projectId, spannerInstanceId, metric) {
 
   return metricsClient.listTimeSeries(request).then(metricResponses => {
     const resources = metricResponses[0];
-    maxValue = 0.0;
-    for (const resource of resources) {
-      for (const point of resource.points) {
-        value = parseFloat(point.value.doubleValue) * 100;
-        if (value > maxValue) {
-          maxValue = value;
-        }
-      }
+
+    if (resources.length == 0) {
+      throw new Error('empty metrics response from Google Cloud Monitoring API')
+    } else if (resources.length > 1) {
+      throw new Error(`too many series (${resources.length}) returned by listTimeSeries request, missing secondary aggregation?`)
     }
-    return maxValue;
+
+    const points = resources[0].points;
+    if (points.length == 0) {
+      throw new Error('empty metrics response from Google Cloud Monitoring API')
+    }
+
+    // read the most recent data point which is first in series.
+    // See order_by on https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.timeSeries/list 
+    return parseFloat(points[0].value.doubleValue) * 100;
   });
 }
 
