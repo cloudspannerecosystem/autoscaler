@@ -31,8 +31,13 @@ variable "terraform_spanner_state" {
 }
 
 variable "spanner_name" {
+  description = "Name of the Spanner instance to be autoscaled."
   type    = string
-  default = "my-autoscaled-spanner"
+}
+
+variable "state_spanner_name" {
+  description = "Name of the Spanner instance where the Autoscaler state is stored."
+  type    = string
 }
 
 variable "poller_sa_email" {

@@ -30,7 +30,7 @@ resource "google_cloud_scheduler_job" "poller_job" {
     data       = base64encode(jsonencode([
       merge ({
         "projectId" : "${var.project_id}",
-        "instanceId" : "${var.instance_id}",
+        "instanceId" : "${var.spanner_name}",
         "scalerPubSubTopic" : "${var.target_pubsub_topic}",
         "units" : "PROCESSING_UNITS",
         "minSize" : 100,
@@ -38,7 +38,7 @@ resource "google_cloud_scheduler_job" "poller_job" {
         "scalingMethod" : "LINEAR",
         "stateDatabase": var.terraform_spanner_state ? {
           "name":       "spanner",
-          "instanceId": "${var.instance_id}",
+          "instanceId": "${var.state_spanner_name}"
           "databaseId": "spanner-autoscaler-state"
         } : {
           "name":       "firestore",
@@ -52,4 +52,3 @@ resource "google_cloud_scheduler_job" "poller_job" {
 
   depends_on = [google_app_engine_application.app]
 }
-

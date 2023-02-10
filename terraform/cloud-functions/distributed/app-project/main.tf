@@ -43,6 +43,7 @@ module "spanner" {
   terraform_spanner_test  = var.terraform_spanner_test
   project_id              = var.project_id
   spanner_name            = var.spanner_name
+  state_spanner_name      = var.state_spanner_name
   poller_sa_email         = data.terraform_remote_state.autoscaler.outputs.poller_sa_email
   scaler_sa_email         = data.terraform_remote_state.autoscaler.outputs.scaler_sa_email
 }
@@ -59,11 +60,12 @@ module "scheduler" {
   source = "../../../modules/scheduler"
 
   project_id              = var.project_id
-  instance_id             = module.spanner.spanner_name
+  spanner_name            = var.spanner_name
   pubsub_topic            = module.forwarder.forwarder_topic
   target_pubsub_topic     = data.terraform_remote_state.autoscaler.outputs.scaler_topic
   terraform_spanner_state = var.terraform_spanner_state
   state_project_id        = var.state_project_id
+  state_spanner_name      = var.state_spanner_name
 }
 
 module "monitoring" {

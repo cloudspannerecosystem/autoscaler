@@ -37,7 +37,7 @@ variable "pubsub_topic" {
   type = string
 }
 
-variable "instance_id" {
+variable "spanner_name" {
   type = string
 }
 
@@ -52,6 +52,12 @@ variable "terraform_spanner_state" {
 }
 
 variable "state_project_id" {
+  type     = string
+  nullable = true
+  default  = null
+}
+
+variable "state_spanner_name" {
   type     = string
   nullable = true
   default  = null
