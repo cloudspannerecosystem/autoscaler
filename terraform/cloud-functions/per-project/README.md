@@ -172,9 +172,6 @@ In this section you prepare your project for deployment.
      gcloud firestore databases create --region="${APP_ENGINE_LOCATION}"
      ```
 
-     If you want to use Cloud Spanner, skip this step and perform step 2 in
-     [Deploying the Autoscaler](#deploying-the-autoscaler).
-
 ## Deploying the Autoscaler
 
 1.  Set the project ID, region and zone in the corresponding Terraform
@@ -205,15 +202,34 @@ In this section you prepare your project for deployment.
     For more information on how to make your Spanner instance to be managed by
     Terraform, see [Importing your Spanner instances](#importing-your-spanner-instances)
 
-3.  If you want to use the new Spanner instance for the Autoscaler state
-    database, set the following variable:
+3.  If you chose to store the state in Firestore, skip this step. If you want
+    to store the state in Cloud Spanner and you don't have a Spanner
+    instance yet for that, then set the following variable so that Terraform
+    creates an instance for you named `autoscale-test-state`:
 
     ```sh
     export TF_VAR_terraform_spanner_state=true
     ```
 
-    Alternatively, If you want to manage the state of the Autoscaler in your
-    own Cloud Spanner instance, please create the following table in advance.
+    It is a best practice not to store the Autoscaler state in the same
+    instance that is being monitored by the Autoscaler.
+
+    Optionally, you can change the name of the instance that Terraform
+    will create:
+
+    ```sh
+    export TF_VAR_state_spanner_name=<INSERT_STATE_SPANNER_INSTANCE_NAME>
+    ```
+
+    If you already have a Spanner instance where state must be stored,
+    only set the the name of your instance:
+
+    ```sh
+    export TF_VAR_state_spanner_name=<INSERT_YOUR_STATE_SPANNER_INSTANCE_NAME>
+    ```
+
+    In your own instance, make sure you create the the database
+    `spanner-autoscaler-state` with the following table:
 
     ```sql
     CREATE TABLE spannerAutoscaler (
@@ -223,6 +239,9 @@ In this section you prepare your project for deployment.
        updatedOn TIMESTAMP,
     ) PRIMARY KEY (id)
     ```
+
+    For more information on how to make your existing Spanner instance to be
+    managed by Terraform, see [Importing your Spanner instances](../per-project/README.md#importing-your-spanner-instances)
 
 4.  Change directory into the Terraform per-project directory and initialize it.
 

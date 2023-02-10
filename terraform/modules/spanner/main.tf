@@ -141,7 +141,7 @@ resource "google_spanner_database" "state-database" {
 resource "google_spanner_instance_iam_member" "spanner_state_user" {
   count = var.terraform_spanner_state ? 1 : 0
 
-  # Allows scaler to change the number of nodes of the Spanner instance
+  # Allows scaler to read/write the state from/in Spanner
   instance = var.state_spanner_name
   role     = "roles/spanner.databaseUser"
   project  = var.project_id

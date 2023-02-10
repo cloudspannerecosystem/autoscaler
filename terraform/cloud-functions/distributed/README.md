@@ -168,16 +168,16 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     ```
 
 7.  Create database to store the state of the Autoscaler.
-     State can be stored in either Firestore or Cloud Spanner.
+    State can be stored in either Firestore or Cloud Spanner.
 
-     In case you want to use Firestore, create a new instance
-     if your project does not have yet.
+    In case you want to use Firestore, create a new instance
+    if your project does not have yet.
 
-     ```sh
-     gcloud firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
-     ```
+    ```sh
+    gcloud firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
+    ```
 
-     In case you want to use Cloud Spanner, no action is needed at this point.
+    In case you want to use Cloud Spanner, no action is needed at this point.
 
 ### Deploying the Autoscaler
 
@@ -291,28 +291,46 @@ topic and function in the project where the Spanner instances live.
     For more information on how to make your Spanner instance to be managed by
     Terraform, see [Importing your Spanner instances](../per-project/README.md#importing-your-spanner-instances)
 
-3.  Set the project ID where the Autoscaler state will be stored.
+3.  You have the option to store the Autoscaler state either in Firestore or
+    in Cloud Spanner.
 
-    If you previously configured the Autoscaler to store its state in Firestore
-    then set the following variable:
+    If you want to store the state in Firestore, set the project ID where
+    the Firestore instance resides.
 
     ```sh
     export TF_VAR_state_project_id="${AUTOSCALER_PROJECT_ID}"
     ```
 
-    On the other hand, if you want to use Cloud Spanner to store the
-    Autoscaler state then set the following variables.
+    On the other hand, if you want to store the state in Cloud Spanner and
+    you don't have a Spanner instance yet for that, then set the following
+    two variables so that Terraform creates an instance for you named
+    `autoscale-test-state`:
 
     ```sh
     export TF_VAR_terraform_spanner_state=true
     export TF_VAR_state_project_id="${APP_PROJECT_ID}"
     ```
 
-    In Cloud Spanner, the state will be stored by default in the newly created
-    `autoscale-test` instance, unless you specified your own instance in
-    `TF_VAR_spanner_name` in the previous step. If you did, make sure you
-    create the the database `spanner-autoscaler-state` in your instance with
-    the following table:
+    It is a best practice not to store the Autoscaler state in the same
+    instance that is being monitored by the Autoscaler.
+
+    Optionally, you can change the name of the instance that Terraform
+    will create:
+
+    ```sh
+    export TF_VAR_state_spanner_name=<INSERT_STATE_SPANNER_INSTANCE_NAME>
+    ```
+
+    If you already have an Spanner instance where state must be stored,
+    only set the project id and the name of your instance:
+
+    ```sh
+    export TF_VAR_state_project_id=<INSERT_YOUR_STATE_PROJECT_ID>
+    export TF_VAR_state_spanner_name=<INSERT_YOUR_STATE_SPANNER_INSTANCE_NAME>
+    ```
+
+    In your own instance, make sure you create the the database
+    `spanner-autoscaler-state` with the following table:
 
     ```sql
     CREATE TABLE spannerAutoscaler (
@@ -322,6 +340,9 @@ topic and function in the project where the Spanner instances live.
        updatedOn TIMESTAMP,
     ) PRIMARY KEY (id)
     ```
+
+    For more information on how to make your existing Spanner instance to be
+    managed by Terraform, see [Importing your Spanner instances](../per-project/README.md#importing-your-spanner-instances)
 
 4.  Change directory into the Terraform app-project directory and initialize it.
 
