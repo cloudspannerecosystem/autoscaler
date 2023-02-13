@@ -59,22 +59,18 @@ module "spanner" {
   spanner_name            = var.spanner_name
   poller_sa_email         = module.autoscaler-base.poller_sa_email
   scaler_sa_email         = module.autoscaler-base.scaler_sa_email
+  state_spanner_name      = var.state_spanner_name
 }
 
 module "scheduler" {
   source = "../../modules/scheduler"
 
-  project_id   = var.project_id
-  pubsub_topic = module.autoscaler-functions.poller_topic
-  pubsub_data = base64encode(jsonencode([{
-    "projectId" : "${var.project_id}",
-    "instanceId" : "${module.spanner.spanner_name}",
-    "scalerPubSubTopic" : "${module.autoscaler-functions.scaler_topic}",
-    "units" : "NODES",
-    "minSize" : 1
-    "maxSize" : 3,
-    "scalingMethod" : "LINEAR"
-  }]))
+  project_id              = var.project_id
+  spanner_name            = var.spanner_name
+  pubsub_topic            = module.autoscaler-functions.poller_topic
+  target_pubsub_topic     = module.autoscaler-functions.scaler_topic
+  terraform_spanner_state = var.terraform_spanner_state
+  state_spanner_name      = var.state_spanner_name
 }
 
 module "monitoring" {
