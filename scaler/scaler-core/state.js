@@ -77,12 +77,13 @@ module.exports = State;
  */
 class StateSpanner {
   constructor(spanner) {
-    this.projectId = (spanner.stateProjectId != null) ? spanner.stateProjectId :
+    this.stateProjectId = (spanner.stateProjectId != null) ? spanner.stateProjectId :
                                                         spanner.projectId;
-    this.instanceId = spanner.stateDatabase.instanceId;
-    this.databaseId = spanner.stateDatabase.databaseId;
-    const s = new Spanner({projectId: this.projectId});
-    this.table = s.instance(this.instanceId).database(this.databaseId).table('spannerAutoscaler');
+    this.projectId = spanner.projectId;
+    this.instanceId = spanner.instanceId;
+
+    const s = new Spanner({projectId: this.stateProjectId});
+    this.table = s.instance(spanner.stateDatabase.instanceId).database(spanner.stateDatabase.databaseId).table('spannerAutoscaler');
   }
 
   async init() {
@@ -138,7 +139,7 @@ class StateSpanner {
   }
 
   rowId() {
-    return `projects/${this.projectId}/instances/${this.instanceId}/databases/${this.databaseId}`;
+    return `projects/${this.projectId}/instances/${this.instanceId}`;
   }
 
   async updateState(rowData) {
