@@ -243,14 +243,32 @@ In this section you prepare your project for deployment.
 
 ## Using Spanner for Autoscaler state
 
-1.  If you want to use the test Spanner instance for the Autoscaler state
-    database (recommended for testing), set the following variable:
+1.  If you want to store the state in Cloud Spanner and you don't have a Spanner
+    instance yet for that, then set the following variable so that Terraform
+    creates an instance for you named `autoscale-test-state`:
 
     ```sh
     export TF_VAR_terraform_spanner_state=true
     ```
 
-    Alternatively, if you want to manage the state of the Autoscaler in your own
+    It is a best practice not to store the Autoscaler state in the same
+    instance that is being monitored by the Autoscaler.
+
+    Optionally, you can change the name of the instance that Terraform
+    will create:
+
+    ```sh
+    export TF_VAR_state_spanner_name=<INSERT_STATE_SPANNER_INSTANCE_NAME>
+    ```
+
+    If you already have a Spanner instance where state must be stored,
+    only set the the name of your instance:
+
+    ```sh
+    export TF_VAR_state_spanner_name=<INSERT_YOUR_STATE_SPANNER_INSTANCE_NAME>
+    ```
+
+    If you want to manage the state of the Autoscaler in your own
     Cloud Spanner instance, please create the following table in advance:
 
     ```sql
