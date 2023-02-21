@@ -25,7 +25,7 @@ data:
       # Delete this stanza if using Firestore for state
       stateDatabase:
         name: spanner
-        instanceId: autoscale-test
+        instanceId: autoscale-test-state
         databaseId: spanner-autoscaler-state
       scalingMethod: LINEAR
       units: NODES

@@ -45,6 +45,11 @@ variable "terraform_spanner_state" {
   default     = false
 }
 
+variable "state_spanner_name" {
+  type    = string
+  default = "autoscale-test-state"
+}
+
 variable "app_project_id" {
   description = "The project where the Spanner instance(s) live. If specified and different than project_id => centralized deployment"
   type        = string

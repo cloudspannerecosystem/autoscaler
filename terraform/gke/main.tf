@@ -68,6 +68,7 @@ module "spanner" {
   terraform_spanner_test  = var.terraform_spanner_test
   project_id              = var.project_id
   spanner_name            = var.spanner_name
+  state_spanner_name      = var.state_spanner_name
   poller_sa_email         = module.autoscaler-base.poller_sa_email
   scaler_sa_email         = module.autoscaler-base.scaler_sa_email
 }
