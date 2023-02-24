@@ -222,6 +222,7 @@ function callScalerHTTP(spanner, metrics) {
 
 async function parseAndEnrichPayload(payload) {
   var spanners = JSON.parse(payload);
+  var spannersFound = [];
 
   for (var sIdx = 0; sIdx < spanners.length; sIdx++) {
     const metricOverrides = spanners[sIdx].metrics;
@@ -290,13 +291,18 @@ async function parseAndEnrichPayload(payload) {
     }
 
     // merge in the current Spanner state
-    spanners[sIdx] = {
-      ...spanners[sIdx],
-      ...await getSpannerMetadata(spanners[sIdx].projectId, spanners[sIdx].instanceId, spanners[sIdx].units.toUpperCase())
-    };
+    try {
+      spanners[sIdx] = {
+        ...spanners[sIdx],
+        ...await getSpannerMetadata(spanners[sIdx].projectId, spanners[sIdx].instanceId, spanners[sIdx].units.toUpperCase())
+      };
+      spannersFound.push(spanners[sIdx]);
+    } catch (err) {
+      log(`Unable to retrieve Spanner metadata for ${spanners[sIdx].projectId}/${spanners[sIdx].instanceId}`, 'ERROR', err);
+    }
   }
 
-  return spanners;
+  return spannersFound;
 }
 
 async function getMetrics(spanner) {
@@ -334,31 +340,23 @@ async function getMetrics(spanner) {
   return metrics;
 }
 
-forwardMetricsPubSub = async (payload) => {
-  const spanners = await parseAndEnrichPayload(payload);
-  log('Autoscaler poller started (PubSub).', 'DEBUG', spanners);
-
+forwardMetrics = async (forwarderFunction, spanners) => {
   for (const spanner of spanners) {
-    var metrics = await getMetrics(spanner);
-    postPubSubMessage(spanner, metrics);
-  }
-};
-
-forwardMetricsHTTP = async (payload) => {
-  const spanners = await parseAndEnrichPayload(payload);
-  log('Autoscaler poller started (HTTP).', 'DEBUG', spanners);
-
-  for (const spanner of spanners) {
-    var metrics = await getMetrics(spanner);
-    callScalerHTTP(spanner, metrics);
+    try {
+      var metrics = await getMetrics(spanner);
+      forwarderFunction(spanner, metrics); // Handles exceptions
+    } catch (err) {
+      log(`Unable to retrieve metrics for ${spanner.projectId}/${spanner.instanceId}`, 'ERROR', err);
+    }
   }
 };
 
 exports.checkSpannerScaleMetricsPubSub = async (pubSubEvent, context) => {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
-
-    await forwardMetricsPubSub(payload);
+    const spanners = await parseAndEnrichPayload(payload);
+    log('Autoscaler poller started (PubSub).', 'DEBUG', spanners);
+    await forwardMetrics(postPubSubMessage, spanners);
   } catch (err) {
     log(`An error occurred in the Autoscaler poller function (PubSub)`, 'ERROR', err);
   }
@@ -369,8 +367,8 @@ exports.checkSpannerScaleMetricsHTTP = async (req, res) => {
   try {
     const payload =
         '[{"projectId": "spanner-scaler", "instanceId": "autoscale-test", "scalerPubSubTopic": "projects/spanner-scaler/topics/test-scaling", "minNodes": 1, "maxNodes": 3, "stateProjectId" : "spanner-scaler"}]';
-
-    await forwardMetricsPubSub(payload);
+    const spanners = await parseAndEnrichPayload(payload);
+    await forwardMetrics(postPubSubMessage, spanners);
     res.status(200).end();
   } catch (err) {
     log(`An error occurred in the Autoscaler poller function (HTTP)`, 'ERROR', err);
@@ -380,7 +378,9 @@ exports.checkSpannerScaleMetricsHTTP = async (req, res) => {
 
 exports.checkSpannerScaleMetricsJSON = async (payload) => {
   try {
-    await forwardMetricsHTTP(payload);
+    const spanners = await parseAndEnrichPayload(payload);
+    log('Autoscaler poller started (JSON/HTTP).', 'DEBUG', spanners);
+    await forwardMetrics(callScalerHTTP, spanners);
   } catch (err) {
     log(`An error occurred in the Autoscaler poller function (JSON)`, 'ERROR', err);
     log(`JSON payload`, 'ERROR', payload);
