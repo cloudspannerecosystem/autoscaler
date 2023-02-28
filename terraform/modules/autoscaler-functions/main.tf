@@ -96,6 +96,7 @@ resource "google_cloudfunctions_function" "poller_function" {
   available_memory_mb = "256"
   entry_point         = "checkSpannerScaleMetricsPubSub"
   runtime             = "nodejs10"
+  max_instances       = 3000
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = google_pubsub_topic.poller_topic.id
@@ -113,6 +114,7 @@ resource "google_cloudfunctions_function" "scaler_function" {
   available_memory_mb = "256"
   entry_point         = "scaleSpannerInstancePubSub"
   runtime             = "nodejs10"
+  max_instances       = 3000
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = google_pubsub_topic.scaler_topic.id
