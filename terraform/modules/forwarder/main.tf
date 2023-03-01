@@ -65,6 +65,7 @@ resource "google_cloudfunctions_function" "forwarder_function" {
   available_memory_mb = "256"
   entry_point         = "forwardFromPubSub"
   runtime             = "nodejs10"
+  max_instances       = 3000
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = google_pubsub_topic.forwarder_topic.id
