@@ -9,6 +9,7 @@
   "scalingMethod":"STEPWISE",
   "projectId":"spanner-scaler",
   "instanceId":"autoscale-test",
+  "scaleEventPubSubTopic":"projects/spanner-scaler/topics/spanner-scale-events",
   "metrics":[
      {
         "name":"high_priority_cpu",

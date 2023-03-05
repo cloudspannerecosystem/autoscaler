@@ -107,6 +107,7 @@ The following is an example:
    "projectId":"my-spanner-project",
    "instanceId":"spanner1",
    "scalerPubSubTopic":"projects/my-spanner-project/topics/spanner-scaling",
+   "scaleEventPubSubTopic":"projects/my-spanner-project/topics/spanner-scale-events",
    "metrics":[
       {
          "name":"high_priority_cpu",
@@ -131,6 +132,15 @@ The following is an example:
 ```
 
 The parameters `minNodes`, `maxNodes` and `currentNodes` are deprecated.
+
+### Optional
+
+As mentioned above, there are no required parameters for the Scaler component,
+but there are some optional parameters.
+
+Key                        | Default      | Description
+-------------------------- | ------------ | -----------
+`scaleEventPubSubTopic`    |              | This is a Pub/Sub topic that is published messages when a Spanner instance scales up/down. The messages contain information about the Spanner instance, the size before and after scaling up/down, and the observed metrics and their thresholds.The topic should be in the format of projects/{projects}/topics/{topicId}.
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 

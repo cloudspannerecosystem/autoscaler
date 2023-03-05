@@ -70,6 +70,37 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
       });
 }
 
+async function publishScaleEvent(spanner, suggestedSize) {
+  if (!spanner.scaleEventPubSubTopic) {
+    log(`scaleEventPubSubTopic not provided. Skipping`);
+    return Promise.resolve();
+  }
+
+  const message = {
+    projectId: spanner.projectId,
+    instanceId: spanner.instanceId,
+    currentSize: spanner.currentSize,
+    suggestedSize: suggestedSize,
+    units: spanner.units,
+    timestamp: Date.now(),
+    metrics: spanner.metrics,
+  };
+  const data = Buffer.from(JSON.stringify(message));
+  log(`Publishing scale event with data ${JSON.stringify(message)}`);
+
+  const {PubSub} = require('@google-cloud/pubsub');
+  const pubsub = new PubSub();
+  const topic = pubsub.topic(spanner.scaleEventPubSubTopic);
+
+  return topic
+    .publishMessage({data})
+    .then(([messageId]) => log(`Message published. ID: ${messageId}`))
+    .catch(err => {
+      log(`Received error while publishing: ${err.message}`, 'WARNING');
+      return Promise.reject(err);
+    });
+}
+
 function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
   const MS_IN_1_MIN = 60000;
   const scaleOutSuggested = (suggestedSize - spanner.currentSize > 0);
@@ -145,6 +176,7 @@ async function processScalingRequest(spanner, autoscalerState) {
     try {
       await scaleSpannerInstance(spanner, suggestedSize);
       await autoscalerState.set();
+      await publishScaleEvent(spanner, suggestedSize);
     } catch (err) {
       log(`----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt.`,
           'WARNING', err);
