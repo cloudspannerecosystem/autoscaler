@@ -28,6 +28,6 @@ data:
         instanceId: autoscale-test-state
         databaseId: spanner-autoscaler-state
       scalingMethod: LINEAR
-      units: NODES
-      minSize: 1
-      maxSize: 3
+      units: PROCESSING_UNITS
+      minSize: 100
+      maxSize: 500
