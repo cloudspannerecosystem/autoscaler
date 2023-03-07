@@ -410,22 +410,22 @@ similar process.
 7.  To prepare to configure the Autoscaler, run the following command:
 
     ```sh
-    envsubst < autoscaler-config/autoscaler-config.yaml.template > autoscaler-config/autoscaler-config.yaml
+    for template in $(ls autoscaler-config/*.template) ; do envsubst < ${template} > ${template%.*} ; done
     ```
 
 8.  Next, to see how the Autoscaler is configured, run the following command to
     output the example configuration:
 
     ```sh
-    cat autoscaler-config/autoscaler-config.yaml
+    cat autoscaler-config/autoscaler-config*.yaml
     ```
 
-    Each stanza is used to configure a different Spanner instance. For the
-    schema of the configuration, see the
-    [Poller configuration][autoscaler-config-params] section.
+    You can configure multiple Spanner instances by including multiple stanzas.
+    For the schema of the configuration, see the [Poller configuration][autoscaler-config-params]
+    section.
 
 9.  If you have chosen to use Firestore to hold the Autoscaler state as described
-    above, edit the above file, and remove the following lines:
+    above, edit the above files, and remove the following lines:
 
     ```yaml
      stateDatabase:
@@ -440,16 +440,26 @@ similar process.
     [Troubleshooting](#troubleshooting) section for more details.
 
     If you have chosen to use your own Spanner instance, please edit the above
-    configuration file accordingly.
+    configuration files accordingly.
 
 10.  To configure the Autoscaler and begin scaling operations, run the following
      command:
 
      ```sh
-     kubectl apply -f autoscaler-config/autoscaler-config.yaml
+     kubectl apply -f autoscaler-config/
      ```
 
-11.  Any changes made to the configuration file and applied with `kubectl
+     The sample configuration creates two schedules for scaling operations; a
+     frequently running schedule to dynamically scale the Spanner instance
+     according to utilization, and an hourly schedule to directly scale the
+     Spanner instance every hour.
+
+     Note there are some concurrency nuances when using the `DIRECT` scaling
+     method in conjunction with schedulued `LINEAR` or `STEPWISE` scaling, notably
+     relating to the cooldown period and whether a one-off `DIRECT` operation is
+     scheduled concurrently with a `LINEAR` or `STEPWISE` operation.
+
+11.  Any changes made to the configuration files and applied with `kubectl
      apply` will update the Autoscaler configuration.
 
 12.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
