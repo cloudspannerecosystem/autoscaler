@@ -27,7 +27,27 @@ resource "google_cloud_scheduler_job" "poller_job" {
 
   pubsub_target {
     topic_name = var.pubsub_topic
-    data       = var.pubsub_data
+    data       = base64encode(jsonencode([
+      merge ({
+        "projectId" : "${var.project_id}",
+        "instanceId" : "${var.spanner_name}",
+        "scalerPubSubTopic" : "${var.target_pubsub_topic}",
+        "units" : "PROCESSING_UNITS",
+        "minSize" : 100,
+        "maxSize" : 2000,
+        "scalingMethod" : "LINEAR",
+        "stateDatabase": var.terraform_spanner_state ? {
+          "name":       "spanner",
+          "instanceId": "${var.state_spanner_name}"
+          "databaseId": "spanner-autoscaler-state"
+        } : {
+          "name":       "firestore",
+        }
+      },
+      var.state_project_id != null ? {
+        "stateProjectId" : "${var.state_project_id}"
+      } : {})
+    ]))
   }
 
   depends_on = [google_app_engine_application.app]

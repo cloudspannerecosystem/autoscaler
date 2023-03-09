@@ -15,7 +15,7 @@
  */
 
 variable "project_id" {
-  type    = string
+  type = string
 }
 
 variable "region" {
@@ -29,10 +29,10 @@ variable "local_output_path" {
 }
 
 variable "target_pubsub_topic" {
-  type    = string
+  type = string
 }
 
 variable "uniform_bucket_level_access" {
-  type = bool
-  default = false
+  type    = bool
+  default = true
 }

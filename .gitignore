@@ -27,11 +27,18 @@ out
 # Terraform
 *.tfstate
 *.tfstate.backup
+*.tfstate.lock.info
+*.tfplan
 .terraform
 terraform/*/build
 terraform/*/*.json
 terraform/*/*/build
+terraform/*/*/*/build
 terraform/*/*/*.json
 
 # Code coverage report
 .nyc_output
+
+# Kubernetes manifests generated from templates
+kubernetes/autoscaler-config/*.yaml
+kubernetes/**/resourcegroup.yaml

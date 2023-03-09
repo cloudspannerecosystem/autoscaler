@@ -15,26 +15,37 @@
  */
 
 variable "project_id" {
-  type   = string
+  type = string
 }
 
-variable "terraform_spanner" {
+variable "terraform_spanner_test" {
   description = "If set to true, Terraform will create a Cloud Spanner instance and DB."
-  type    = bool
-  default = true
+  type        = bool
+  default     = true
+}
+
+variable "terraform_spanner_state" {
+  description = "If set to true, Terraform will create a Cloud Spanner DB for state."
+  type        = bool
+  default     = true
 }
 
 variable "spanner_name" {
+  description = "Name of the Spanner instance to be autoscaled."
   type    = string
-  default = "my-autoscaled-spanner"
+}
+
+variable "state_spanner_name" {
+  description = "Name of the Spanner instance where the Autoscaler state is stored."
+  type    = string
 }
 
 variable "poller_sa_email" {
-  type    = string
+  type = string
 }
 
 variable "scaler_sa_email" {
-  type    = string
+  type = string
 }
 
 variable "region" {

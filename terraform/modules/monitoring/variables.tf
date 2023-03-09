@@ -15,7 +15,7 @@
  */
 
 variable "project_id" {
-  type   = string
+  type = string
 }
 
 variable "dashboard_threshold_high_priority_cpu_percentage" {

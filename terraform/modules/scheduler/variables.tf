@@ -15,7 +15,7 @@
  */
 
 variable "project_id" {
-  type   = string
+  type = string
 }
 
 variable "location" {
@@ -34,9 +34,31 @@ variable "time_zone" {
 }
 
 variable "pubsub_topic" {
-  type    = string
+  type = string
 }
 
-variable "pubsub_data" {
-  type    = string
+variable "spanner_name" {
+  type = string
+}
+
+variable "target_pubsub_topic" {
+  type = string
+}
+
+variable "terraform_spanner_state" {
+  description = "If set to true, Terraform will create a Cloud Spanner DB to hold the Autoscaler state."
+  type        = bool
+  default     = false
+}
+
+variable "state_project_id" {
+  type     = string
+  nullable = true
+  default  = null
+}
+
+variable "state_spanner_name" {
+  type     = string
+  nullable = true
+  default  = null
 }
