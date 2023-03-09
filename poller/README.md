@@ -98,6 +98,7 @@ Key                      | Default Value  | Description
 `stateProjectId`         | `${projectId}` | The project ID where the Autoscaler state will be persisted. By default it is persisted using [Cloud Firestore][cloud-firestore] in the same project as the Spanner instance.
 `stateDatabase`          | Object         | An Object that can override the database for managing the state of the Autoscaler. The default database is Firestore. Refer to the [state database](#state-database) for details.
 `metrics`                | Array          | Array of objects that can override the values in the metrics used to decide when the Cloud Spanner instance should be scaled IN or OUT. Refer to the [metrics definition table](#metrics-parameters) to see the fields used for defining metrics.
+`scaleInLimit`           | `undefined`    | Percentage (integer) of the total instance size that can be removed in a scale in event when using the linear algorithm. For example if set to `20`, only 20% of the instance size can be removed in a single scaling event, when `scaleInLimit` is `undefined` a limit is not enforced.
 `minNodes` (DEPRECATED)  | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
 `maxNodes` (DEPRECATED)  | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
 
@@ -259,6 +260,7 @@ CREATE TABLE spannerAutoscaler (
         "minSize": 5,
         "maxSize": 30,
         "scalingMethod": "LINEAR",
+        "scaleInLimit": 25,
         "metrics": [
           {
             "name": "my_custom_metric",
@@ -303,6 +305,7 @@ data:
       minSize: 5
       maxSize: 30
       scalingMethod: LINEAR
+      scaleInLimit: 25
       metrics:
       - name: my_custom_metric
         filter: metric.type="spanner.googleapis.com/instance/resource/metric"
