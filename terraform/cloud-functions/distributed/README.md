@@ -25,7 +25,7 @@
     <br />
     <a href="../per-project/README.md">Per-Project</a>
     ·
-    <a href="../centralized/README.md">Centralized></a>
+    <a href="../centralized/README.md">Centralized</a>
     ·
     Distributed
 
@@ -168,17 +168,16 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     ```
 
 7.  Create database to store the state of the Autoscaler.
-     State can be stored in either Firestore or Cloud Spanner.
+    State can be stored in either Firestore or Cloud Spanner.
 
-     In case you want to use Firestore, create a new instance
-     if your project does not have yet.
+    In case you want to use Firestore, create a new instance
+    if your project does not have yet.
 
-     ```sh
-     gcloud firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
-     ```
+    ```sh
+    gcloud firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
+    ```
 
-     In case you want to use Cloud Spanner, skip this step
-     and perform step 4 in [Deploying the Autoscaler](#deploying-the-autoscaler).
+    In case you want to use Cloud Spanner, no action is needed at this point.
 
 ### Deploying the Autoscaler
 
@@ -273,15 +272,7 @@ topic and function in the project where the Spanner instances live.
     export TF_VAR_location="${APP_APP_ENGINE_LOCATION}"
     ```
 
-2.  Set the project ID where the Autoscaler state will be stored. The Autoscaler
-    state includes the timestamps when the scaling events were triggered for
-    each instance.
-
-    ```sh
-    export TF_VAR_state_project_id="${AUTOSCALER_PROJECT_ID}"
-    ```
-
-3.  If you want to create a new Spanner instance for testing the Autoscaler, set
+2.  If you want to create a new Spanner instance for testing the Autoscaler, set
     the following variable. The spanner instance that Terraform creates is named
     `autoscale-test`.
 
@@ -300,15 +291,46 @@ topic and function in the project where the Spanner instances live.
     For more information on how to make your Spanner instance to be managed by
     Terraform, see [Importing your Spanner instances](../per-project/README.md#importing-your-spanner-instances)
 
-4.  If you want to use the new Spanner instance for the Autoscaler state
-    database, set the following variable:
+3.  You have the option to store the Autoscaler state either in Firestore or
+    in Cloud Spanner.
+
+    If you want to store the state in Firestore, set the project ID where
+    the Firestore instance resides.
+
+    ```sh
+    export TF_VAR_state_project_id="${AUTOSCALER_PROJECT_ID}"
+    ```
+
+    On the other hand, if you want to store the state in Cloud Spanner and
+    you don't have a Spanner instance yet for that, then set the following
+    two variables so that Terraform creates an instance for you named
+    `autoscale-test-state`:
 
     ```sh
     export TF_VAR_terraform_spanner_state=true
+    export TF_VAR_state_project_id="${APP_PROJECT_ID}"
     ```
 
-    If you want to manage the state of the Autoscaler in your own Cloud Spanner instance,
-    please create the following table in advance.
+    It is a best practice not to store the Autoscaler state in the same
+    instance that is being monitored by the Autoscaler.
+
+    Optionally, you can change the name of the instance that Terraform
+    will create:
+
+    ```sh
+    export TF_VAR_state_spanner_name=<INSERT_STATE_SPANNER_INSTANCE_NAME>
+    ```
+
+    If you already have an Spanner instance where state must be stored,
+    only set the project id and the name of your instance:
+
+    ```sh
+    export TF_VAR_state_project_id=<INSERT_YOUR_STATE_PROJECT_ID>
+    export TF_VAR_state_spanner_name=<INSERT_YOUR_STATE_SPANNER_INSTANCE_NAME>
+    ```
+
+    In your own instance, make sure you create the the database
+    `spanner-autoscaler-state` with the following table:
 
     ```sql
     CREATE TABLE spannerAutoscaler (
@@ -319,14 +341,17 @@ topic and function in the project where the Spanner instances live.
     ) PRIMARY KEY (id)
     ```
 
-5.  Change directory into the Terraform app-project directory and initialize it.
+    For more information on how to make your existing Spanner instance to be
+    managed by Terraform, see [Importing your Spanner instances](../per-project/README.md#importing-your-spanner-instances)
+
+4.  Change directory into the Terraform app-project directory and initialize it.
 
     ```sh
     cd "${APP_DIR}"
     terraform init
     ```
 
-6.  Create the infrastructure in the application project. Answer `yes` when
+5.  Create the infrastructure in the application project. Answer `yes` when
     prompted, after reviewing the resources that Terraform intends to create.
 
     ```sh

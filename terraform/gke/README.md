@@ -235,18 +235,40 @@ In this section you prepare your project for deployment.
     gcloud firestore databases create --region="${APP_ENGINE_LOCATION}"
     ```
 
+    You will also need to make a minor modification to the Autoscaler
+    configuration. The required steps to do this are later in these
+    instructions.
+
 5.  Next, continue to [Deploying the Autoscaler](#deploying-the-autoscaler)
 
 ## Using Spanner for Autoscaler state
 
-1.  If you want to use the test Spanner instance for the Autoscaler state
-    database (recommended for testing), set the following variable:
+1.  If you want to store the state in Cloud Spanner and you don't have a Spanner
+    instance yet for that, then set the following variable so that Terraform
+    creates an instance for you named `autoscale-test-state`:
 
     ```sh
     export TF_VAR_terraform_spanner_state=true
     ```
 
-    Alternatively, if you want to manage the state of the Autoscaler in your own
+    It is a best practice not to store the Autoscaler state in the same
+    instance that is being monitored by the Autoscaler.
+
+    Optionally, you can change the name of the instance that Terraform
+    will create:
+
+    ```sh
+    export TF_VAR_state_spanner_name=<INSERT_STATE_SPANNER_INSTANCE_NAME>
+    ```
+
+    If you already have a Spanner instance where state must be stored,
+    only set the the name of your instance:
+
+    ```sh
+    export TF_VAR_state_spanner_name=<INSERT_YOUR_STATE_SPANNER_INSTANCE_NAME>
+    ```
+
+    If you want to manage the state of the Autoscaler in your own
     Cloud Spanner instance, please create the following table in advance:
 
     ```sql
@@ -402,28 +424,71 @@ similar process.
     schema of the configuration, see the
     [Poller configuration][autoscaler-config-params] section.
 
-    If you have chosen to use Firestore to hold the Autoscaler state as described
-    above, edit the file and remove the following lines:
+9.  If you have chosen to use Firestore to hold the Autoscaler state as described
+    above, edit the above file, and remove the following lines:
 
-    ```
+    ```yaml
      stateDatabase:
        name: spanner
        instanceId: autoscale-test
        databaseId: spanner-autoscaler-state
     ```
 
-9.  To configure the Autoscaler and begin scaling operations, run the following
-    command:
+    **Note:** If you do not remove these lines, the Autoscaler will attempt to
+    use the above non-existent Spanner database for its state store, which will
+    result in the Poller component failing to start. Please see the
+    [Troubleshooting](#troubleshooting) section for more details.
+
+    If you have chosen to use your own Spanner instance, please edit the above
+    configuration file accordingly.
+
+10.  To configure the Autoscaler and begin scaling operations, run the following
+     command:
+
+     ```sh
+     kubectl apply -f autoscaler-config/autoscaler-config.yaml
+     ```
+
+11.  Any changes made to the configuration file and applied with `kubectl
+     apply` will update the Autoscaler configuration.
+
+12.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
+     Logging][cloud-console-logging] interface in the Google Cloud console.
+
+## Troubleshooting
+
+This section contains guidance on what to do if you encounter issues when
+following the instructions above.
+
+### If the GKE cluster is not successfully created
+
+1.  Check there are no [Organizational Policy][organizational-policy] rules
+    that may conflict with cluster creation.
+
+### If the Poller fails to run successfully
+
+1.  If you have chosen to use Firestore for Autoscaler state and you see the
+    following error in the logs:
 
     ```sh
-    kubectl apply -f autoscaler-config/autoscaler-config.yaml
+     Error: 5 NOT_FOUND: Database not found: projects/<YOUR_PROJECT>/instances/autoscale-test/databases/spanner-autoscaler-state
     ```
 
-10.  Any changes made to the configuration file and applied with `kubectl
-     apply` will update the autoscaler configuration.
+    Edit the file `${AUTOSCALER_ROOT}/autoscaler-config/autoscaler-config.yaml`
+    and remove the following stanza:
 
-11.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
-     Logging][cloud-console-logging] interface in the Google Cloud console.
+    ```yaml
+     stateDatabase:
+       name: spanner
+       instanceId: autoscale-test
+       databaseId: spanner-autoscaler-state
+    ```
+
+2.  Check the formatting of the YAML configration file:
+
+    ```sh
+    cat ${AUTOSCALER_ROOT}/autoscaler-config/autoscaler-config.yaml
+    ```
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [autoscaler-poller]: ../../poller/README.md
@@ -451,3 +516,4 @@ similar process.
 [terraform-spanner-instance]: https://www.terraform.io/docs/providers/google/r/spanner_instance.html
 [terraform-spanner-db]: https://www.terraform.io/docs/providers/google/r/spanner_database.html
 [provider-issue]: https://github.com/hashicorp/terraform-provider-google/issues/6782
+[organizational-policy]: https://cloud.google.com/resource-manager/docs/organization-policy/overview

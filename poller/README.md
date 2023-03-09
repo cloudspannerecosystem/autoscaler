@@ -184,10 +184,16 @@ configuration specifying the required fields (`name`, `filter`,
 `reducer` and `aligner` are defaulted but can also be specified in
 the metric definition.
 
-[Cloud Spanner metric][spanner-metrics] and [filter][time-series-filter] that
-should be used when querying for data. The Autoscaler will automatically add
-the filter expressions for [Spanner instance resources, instance id][spanner-filter]
-and project id.
+The Cloud Spanner documentation contains details for the [Cloud Spanner
+metric][spanner-metrics] and [filter][time-series-filter] that should be used
+when querying for data. The Autoscaler will automatically add the filter
+expressions for [Spanner instance resources, instance id][spanner-filter] and
+project id, unless you have chosen a name for your custom metric that matches
+one of the default metrics, in which case you may either:
+
+1.  Choose a different name for your custom metric (recommended), or
+2.  Construct the full filter expression manually to include the [Spanner
+    details][spanner-filter] and project id.
 
 ## State Database
 
