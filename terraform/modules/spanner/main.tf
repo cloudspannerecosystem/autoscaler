@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-
-locals {
-  instance_name = var.terraform_spanner_test ? google_spanner_instance.main[0].name : var.spanner_name
-}
-
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ## If Terraform must create a test instance to be Autoscaled
 ##
 resource "google_spanner_instance" "main" {
@@ -52,36 +48,43 @@ resource "google_spanner_database" "test-database" {
   deletion_protection = false
 }
 
-resource "google_project_iam_member" "poller_sa_cloud_monitoring" {
-  # Allows poller to get Spanner metrics
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## Give permissions to the poller and scaler service accounts
+## on the monitored Spanner instance
+##
+
+# Allows poller to get Spanner metrics
+resource "google_project_iam_member" "poller_get_metrics_iam" {
   role    = "roles/monitoring.viewer"
   project = var.project_id
   member  = "serviceAccount:${var.poller_sa_email}"
 }
 
-resource "google_spanner_instance_iam_member" "spanner_metadata_get_iam" {
-  instance = local.instance_name
+resource "google_spanner_instance_iam_member" "poller_get_metadata_iam" {
+  instance = var.spanner_name
   role     = "roles/spanner.viewer"
   project  = var.project_id
   member   = "serviceAccount:${var.poller_sa_email}"
+
+  depends_on = [google_spanner_instance.main]
 }
 
-# Allows scaler to change the number of nodes of the Spanner instance
-resource "google_spanner_instance_iam_member" "scaler_instance_iam" {
-  instance = local.instance_name
-  role     = var.spanner_scale_iam_name
-  project  = var.project_id
-  member   = "serviceAccount:${var.scaler_sa_email}"
+# Limited role
+resource "google_project_iam_custom_role" "capacity_manager_iam_role" {
+  role_id     = "spannerAutoscalerCapacityManager"
+  title       = "Spanner Autoscaler Capacity Manager Role"
+  description = "Allows a principal to scale spanner instances"
+  permissions = ["spanner.instanceOperations.get", "spanner.instances.update"]
 }
 
-# Allows scaler to store state in Spanner database
-resource "google_spanner_instance_iam_member" "scaler_state_iam" {
-  count = var.terraform_spanner_state ? 1 : 0
-
-  instance = local.instance_name
-  role     = var.spanner_state_iam_name
+# Allows scaler to modify the capacity (nodes or PUs) of the Spanner instance
+resource "google_spanner_instance_iam_member" "scaler_update_capacity_iam" {
+  instance = var.spanner_name
+  role     = google_project_iam_custom_role.capacity_manager_iam_role.name
   project  = var.project_id
   member   = "serviceAccount:${var.scaler_sa_email}"
+
+  depends_on = [google_spanner_instance.main]
 }
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
@@ -120,10 +123,10 @@ resource "google_spanner_database" "state-database" {
   deletion_protection = false
 }
 
+# Allows scaler to read/write the state from/in Spanner
 resource "google_spanner_instance_iam_member" "spanner_state_user" {
   count = var.terraform_spanner_state ? 1 : 0
 
-  # Allows scaler to read/write the state from/in Spanner
   instance = var.state_spanner_name
   role     = "roles/spanner.databaseUser"
   project  = var.project_id

@@ -163,14 +163,16 @@ In this section you prepare your project for deployment.
     ```
 
 7.  Create a database to store the state of the Autoscaler.
-     State can be stored in either Firestore or Cloud Spanner.
+    State can be stored in either Firestore or Cloud Spanner.
 
-     If you want to use Firestore, create a new instance
-     if your project does not have one yet.
+    In case you want to use Firestore, create a new instance
+    if your project does not have yet.
 
-     ```sh
-     gcloud firestore databases create --region="${APP_ENGINE_LOCATION}"
-     ```
+    ```sh
+    gcloud firestore databases create --region="${APP_ENGINE_LOCATION}"
+    ```
+
+    In case you want to use Cloud Spanner, no action is needed at this point.
 
 ## Deploying the Autoscaler
 

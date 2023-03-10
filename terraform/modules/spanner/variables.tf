@@ -53,10 +53,3 @@ variable "region" {
   default = "us-central1"
 }
 
-variable "spanner_scale_iam_name" {
-  type = string
-}
-
-variable "spanner_state_iam_name" {
-  type = string
-}

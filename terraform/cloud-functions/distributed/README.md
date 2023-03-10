@@ -167,7 +167,7 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     gcloud app create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
-7.  Create database to store the state of the Autoscaler.
+7.  Create a database to store the state of the Autoscaler.
     State can be stored in either Firestore or Cloud Spanner.
 
     In case you want to use Firestore, create a new instance

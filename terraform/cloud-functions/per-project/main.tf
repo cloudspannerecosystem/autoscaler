@@ -60,12 +60,6 @@ module "spanner" {
   poller_sa_email         = module.autoscaler-base.poller_sa_email
   scaler_sa_email         = module.autoscaler-base.scaler_sa_email
   state_spanner_name      = var.state_spanner_name
-  spanner_scale_iam_name  = module.spanner-role.spanner_capacity_manager_iam_role_name
-  spanner_state_iam_name  = module.spanner-role.scaler_state_manager_iam_role_name
-}
-
-module "spanner-role" {
-  source = "../../modules/spanner-role"
 }
 
 module "scheduler" {
