@@ -25,6 +25,13 @@ async function main() {
 
   var configLocation = DEFAULT_CONFIG_LOCATION;
 
+  /*
+   * If set, the AUTOSCALER_CONFIG environment variable is used to
+   * retrieve the configuration for this instance of the poller.
+   * Please refer to the documentation in the README.md for GKE
+   * deployment for more details.
+   */
+
   if (process.env.AUTOSCALER_CONFIG) {
     configLocation = process.env.AUTOSCALER_CONFIG;
     pollerCore.log(`Using custom config location ${configLocation}`);

@@ -11,4 +11,6 @@ Config for Spanner Autoscaler
 
 ## Installation
 
-See documentation for installation instructions
+See [documentation][docs] for installation and configuration instructions.
+
+[docs]: ../../terraform/gke/README.md
