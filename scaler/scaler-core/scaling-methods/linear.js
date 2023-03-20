@@ -22,7 +22,7 @@
  * under 1000, or to nearest 1000 otherwise.
  */
 const baseModule = require('./base');
-const {maybeRound} = require('../utils.js');
+const {log, maybeRound} = require('../utils.js');
 
 function calculateSize(spanner) {
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
@@ -32,7 +32,17 @@ function calculateSize(spanner) {
       
       if (suggestedSize < spanner.currentSize && spanner.scaleInLimit) {
         const limit = spanner.currentSize * (spanner.scaleInLimit/100)
+        
+        log(`\tscaleInLimit=${spanner.scaleInLimit}% maximum scale in allowed is ${limit} ${spanner.units}.`,
+        'DEBUG');
+        
+        const orgSuggestedSize = suggestedSize
         suggestedSize = Math.max(suggestedSize, Math.ceil(spanner.currentSize - limit))
+
+        if (suggestedSize != orgSuggestedSize) {
+          log(`\tscaleInLimit exceeded. Original suggestedSize was ${orgSuggestedSize} ${spanner.units}, new suggestedSize is ${suggestedSize} ${spanner.units}.`,
+          'DEBUG');
+        }        
       }
       return maybeRound(suggestedSize, spanner.units, metric.name);
     }
