@@ -130,7 +130,7 @@ module "workload_identity_scaler" {
 
 module "cluster" {
   source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  version                = "22.1.0"
+  version                = "25.0.0"
   project_id             = var.project_id
   name                   = var.name
   region                 = var.region
@@ -139,7 +139,7 @@ module "cluster" {
   master_ipv4_cidr_block = var.ip_range_master
   ip_range_pods          = var.ip_range_pods
   ip_range_services      = var.ip_range_services
-  release_channel        = var.release_channel
+  kubernetes_version	   = "1.23"
   enable_private_nodes   = true
   enable_shielded_nodes  = true
   network_policy         = true
