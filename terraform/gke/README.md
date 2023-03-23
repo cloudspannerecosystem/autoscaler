@@ -407,25 +407,41 @@ similar process.
     kubectl apply -f autoscaler-pkg/ --recursive
     ```
 
+    The sample configuration creates two schedules to demonstrate autoscaling;
+    a [frequently running schedule][cron-frequent] to dynamically scale the
+    Spanner instance according to utilization, and an [hourly
+    schedule][cron-hourly] to directly scale the Spanner instance every hour.
+
 7.  To prepare to configure the Autoscaler, run the following command:
 
     ```sh
-    envsubst < autoscaler-config/autoscaler-config.yaml.template > autoscaler-config/autoscaler-config.yaml
+    for template in $(ls autoscaler-config/*.template) ; do envsubst < ${template} > ${template%.*} ; done
     ```
 
 8.  Next, to see how the Autoscaler is configured, run the following command to
     output the example configuration:
 
     ```sh
-    cat autoscaler-config/autoscaler-config.yaml
+    cat autoscaler-config/autoscaler-config*.yaml
     ```
 
-    Each stanza is used to configure a different Spanner instance. For the
-    schema of the configuration, see the
-    [Poller configuration][autoscaler-config-params] section.
+    These two files configure each instance of the autoscaler that you
+    scheduled in the previous step. Notice the environment variable
+    `AUTOSCALER_CONFIG`. You can use this variable to reference a configuration
+    that will be used by that individual instance of the autoscaler. This means
+    that you can configure multiple scaling schedules across multiple Spanner
+    instances.
+
+    If you do not supply this value, a default of `autoscaler-config.yaml` will
+    be used.
+
+    You can autoscale multiple Spanner instances on a single schedule by
+    including multiple YAML stanzas in any of the scheduled configurations. For
+    the schema of the configuration, see the [Poller configuration]
+    autoscaler-config-params] section.
 
 9.  If you have chosen to use Firestore to hold the Autoscaler state as described
-    above, edit the above file, and remove the following lines:
+    above, edit the above files, and remove the following lines:
 
     ```yaml
      stateDatabase:
@@ -440,16 +456,16 @@ similar process.
     [Troubleshooting](#troubleshooting) section for more details.
 
     If you have chosen to use your own Spanner instance, please edit the above
-    configuration file accordingly.
+    configuration files accordingly.
 
 10.  To configure the Autoscaler and begin scaling operations, run the following
      command:
 
      ```sh
-     kubectl apply -f autoscaler-config/autoscaler-config.yaml
+     kubectl apply -f autoscaler-config/
      ```
 
-11.  Any changes made to the configuration file and applied with `kubectl
+11.  Any changes made to the configuration files and applied with `kubectl
      apply` will update the Autoscaler configuration.
 
 12.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
@@ -493,6 +509,8 @@ following the instructions above.
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [autoscaler-poller]: ../../poller/README.md
 [autoscaler-config-params]: ../../poller/#configuration-parameters
+[cron-frequent]: ../../kubernetes/autoscaler-pkg/poller/poller.yaml
+[cron-hourly]: ../../kubernetes/autoscaler-pkg/poller/poller-hourly.yaml
 
 <!-- GKE deployment architecture -->
 [gke]: https://cloud.google.com/kubernetes-engine
