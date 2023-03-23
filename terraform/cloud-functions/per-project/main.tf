@@ -71,6 +71,17 @@ module "scheduler" {
   target_pubsub_topic     = module.autoscaler-functions.scaler_topic
   terraform_spanner_state = var.terraform_spanner_state
   state_spanner_name      = var.state_spanner_name
+
+  // Example of passing config as json
+  // json_config             = base64encode(jsonencode([{
+  //   "projectId": "${var.project_id}",
+  //   "instanceId": "${module.spanner.spanner_name}",
+  //   "scalerPubSubTopic": "${module.autoscaler.scaler_topic}",
+  //   "units": "NODES",
+  //   "minSize": 1
+  //   "maxSize": 3,
+  //   "scalingMethod": "LINEAR"
+  // }]))
 }
 
 module "monitoring" {
