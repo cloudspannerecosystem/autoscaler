@@ -145,6 +145,7 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
       },
       crossSeriesReducer: metric.reducer,
       perSeriesAligner: metric.aligner,
+      groupByFields: ['resource.location'],
     },
     view: 'FULL'
   };
