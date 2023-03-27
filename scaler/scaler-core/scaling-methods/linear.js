@@ -22,12 +22,34 @@
  * under 1000, or to nearest 1000 otherwise.
  */
 const baseModule = require('./base');
-const {maybeRound} = require('../utils.js');
+const {log, maybeRound} = require('../utils.js');
+
+function isScaleIn(suggestedSize, currentSize) {
+  return suggestedSize < currentSize;
+}
 
 function calculateSize(spanner) {
   return baseModule.loopThroughSpannerMetrics(spanner, (spanner, metric) => {
     if (baseModule.metricValueWithinRange(metric)) return spanner.currentSize;
-    else return maybeRound(Math.ceil(spanner.currentSize * metric.value / metric.threshold), spanner.units, metric.name, spanner.projectId, spanner.instanceId);
+    else {
+      var suggestedSize = Math.ceil(spanner.currentSize * metric.value / metric.threshold)
+      
+      if (isScaleIn(suggestedSize, spanner.currentSize) && spanner.scaleInLimit) {
+        const limit = spanner.currentSize * (spanner.scaleInLimit/100)
+        
+        log(`\tscaleInLimit = ${spanner.scaleInLimit}%, so the maximum scale-in allowed for current size of ${spanner.currentSize} is ${limit} ${spanner.units}.`,
+        {severity = 'DEBUG'});
+        
+        const originalSuggestedSize = suggestedSize
+        suggestedSize = Math.max(suggestedSize, Math.ceil(spanner.currentSize - limit))
+
+        if (suggestedSize != originalSuggestedSize) {
+          log(`\tscaleInLimit exceeded. Original suggested size was ${originalSuggestedSize} ${spanner.units}, new suggested size is ${suggestedSize} ${spanner.units}.`,
+          {severity = 'DEBUG'});
+        }        
+      }
+      return maybeRound(suggestedSize, spanner.units, metric.name);
+    }
   });
 }
 

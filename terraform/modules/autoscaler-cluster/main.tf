@@ -136,10 +136,10 @@ module "cluster" {
   region                 = var.region
   network                = google_compute_network.network.name
   subnetwork             = google_compute_subnetwork.subnetwork.name
+  kubernetes_version     = var.kubernetes_version
   master_ipv4_cidr_block = var.ip_range_master
   ip_range_pods          = var.ip_range_pods
   ip_range_services      = var.ip_range_services
-  release_channel        = var.release_channel
   enable_private_nodes   = true
   enable_shielded_nodes  = true
   network_policy         = true
