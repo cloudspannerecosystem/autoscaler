@@ -48,7 +48,7 @@ function calculateSize(spanner) {
           {severity: 'DEBUG', projectId: spanner.projectId, instanceId: spanner.instanceId});
         }        
       }
-      return maybeRound(suggestedSize, spanner.units, metric.name);
+      return maybeRound(suggestedSize, spanner.units, metric.name, spanner.projectId, spanner.instanceId);
     }
   });
 }
