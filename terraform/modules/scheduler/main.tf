@@ -21,8 +21,8 @@ locals {
         "instanceId" : "${var.spanner_name}",
         "scalerPubSubTopic" : "${var.target_pubsub_topic}",
         "units" : "${var.units}",
-        "minSize" : ${var.min_size},
-        "maxSize" : ${var.max_size},
+        "minSize" : var.min_size,
+        "maxSize" : var.max_size,
         "scalingMethod" : "${var.scaling_method}",
         "stateDatabase": var.terraform_spanner_state ? {
           "name":       "spanner",
