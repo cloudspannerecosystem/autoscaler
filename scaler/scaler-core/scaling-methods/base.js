@@ -85,16 +85,20 @@ function logSuggestion(spanner, metric, suggestedSize) {
   const rangeDetails = `${relativeToRange} the range [${range.min}%-${range.max}%]`;
 
   if (metric.name === OVERLOAD_METRIC && spanner.isOverloaded) {
-    log(`${metricDetails} ABOVE the ${OVERLOAD_THRESHOLD} overload threshold => ${getScaleSuggestionMessage(spanner, suggestedSize, RelativeToRange.ABOVE)}`);
+    log(`${metricDetails} ABOVE the ${OVERLOAD_THRESHOLD} overload threshold => ${getScaleSuggestionMessage(spanner, suggestedSize, RelativeToRange.ABOVE)}`,
+      {projectId: spanner.projectId, instanceId: spanner.instanceId});
   } else  {
-    log(`${metricDetails} ${rangeDetails} => ${getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange)}`);
+    log(`${metricDetails} ${rangeDetails} => ${getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange)}`,
+      {projectId: spanner.projectId, instanceId: spanner.instanceId});
   } 
 
 }
 
 function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
-  log(`---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} size suggestions----`);
-  log(`	Min=${spanner.minSize}, Current=${spanner.currentSize}, Max=${spanner.maxSize} ${spanner.units}`);
+  log(`---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} size suggestions----`,
+    {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  log(`	Min=${spanner.minSize}, Current=${spanner.currentSize}, Max=${spanner.maxSize} ${spanner.units}`,
+    {projectId: spanner.projectId, instanceId: spanner.instanceId});
 
   var maxSuggestedSize = spanner.minSize;
   spanner.isOverloaded = false;
@@ -115,7 +119,8 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   }
 
   maxSuggestedSize = Math.min(maxSuggestedSize, spanner.maxSize);
-  log(`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${spanner.units}`);
+  log(`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${spanner.units}`,
+    {projectId: spanner.projectId, instanceId: spanner.instanceId});
   return maxSuggestedSize;
 }
 

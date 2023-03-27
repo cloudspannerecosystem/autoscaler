@@ -18,7 +18,7 @@
  *
  */
 
-function log(message, severity = 'DEBUG', payload) {
+function log(message, {severity = 'DEBUG', projectId, instanceId, payload} = {} ) {
   // Structured logging
   // https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
 
@@ -36,6 +36,8 @@ function log(message, severity = 'DEBUG', payload) {
   const logEntry = {
     message: message,
     severity: severity,
+    projectId: projectId,
+    instanceId: instanceId,
     payload: payload
   };
   console.log(JSON.stringify(logEntry));
