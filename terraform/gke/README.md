@@ -481,6 +481,23 @@ following the instructions above.
 1.  Check there are no [Organizational Policy][organizational-policy] rules
     that may conflict with cluster creation.
 
+### If you do not see scaling operations as expected
+
+1.  The first step if you are encountering scaling issues is to check the logs
+    for the Autoscaler in [Cloud Logging][cloud-console-logging]. To retrieve
+    the logs for the `Poller` and `Scaler` components, use the following query:
+
+    ```terminal
+    resource.type="k8s_container"
+    resource.labels.namespace_name="spanner-autoscaler"
+    resource.labels.container_name="poller" OR resource.labels.container_name="scaler"
+    ```
+
+    If you do not see any log entries, check that you have selected the correct
+    time period to display in the Cloud Logging console, and that the GKE
+    cluster nodes have the correct permissions to write logs to the Cloud
+    Logging API ([roles/logging.logWriter][logging-iam-role]).
+
 ### If the Poller fails to run successfully
 
 1.  If you have chosen to use Firestore for Autoscaler state and you see the
@@ -517,6 +534,7 @@ following the instructions above.
 [kubernetes-configmap]: https://kubernetes.io/docs/concepts/configuration/configmap/
 [kubernetes-cronjob]: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 [kubernetes-job]: https://kubernetes.io/docs/concepts/workloads/controllers/job/
+[logging-iam-role]: https://cloud.google.com/logging/docs/access-control#logging.logWriter
 [spanner]: https://cloud.google.com/spanner/
 [cloud-monitoring]: https://cloud.google.com/monitoring
 [cloud-firestore]: https://cloud.google.com/firestore
