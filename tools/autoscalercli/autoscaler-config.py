@@ -26,7 +26,7 @@ from google.protobuf import field_mask_pb2
 
 
 def get_job(job):
-    """Prints the Spanner autoscaler configuration data"""
+    """Prints the autoscaler configuration data"""
     # Create a client
     client = scheduler.CloudSchedulerClient()
 
@@ -57,7 +57,7 @@ def get_pubsubtopic(job):
     return response.pubsub_target.topic_name
 
 def update_job(jobname, payload):
-    """replaces the Spanner autoscaler configuration data"""
+    """replaces the autoscaler configuration data"""
     # Create Client
     client = scheduler.CloudSchedulerClient()
 
@@ -91,7 +91,7 @@ def parse_json(inputfile):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='retrieve or replace Spanner Autoscaler configurations with a Cloud Scheduler job')
+        description='retrieve or replace autoscaler configurations with a Cloud Scheduler job')
     parser.add_argument('-v','--verbose', action='store_true',help='verbose output')
 
     subparser = parser.add_subparsers(dest="command",
