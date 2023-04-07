@@ -38,17 +38,17 @@ function calculateSize(spanner) {
         const limit = spanner.currentSize * (spanner.scaleInLimit/100)
         
         log(`\tscaleInLimit = ${spanner.scaleInLimit}%, so the maximum scale-in allowed for current size of ${spanner.currentSize} is ${limit} ${spanner.units}.`,
-        'DEBUG');
+        {severity: 'DEBUG', projectId: spanner.projectId, instanceId: spanner.instanceId});
         
         const originalSuggestedSize = suggestedSize
         suggestedSize = Math.max(suggestedSize, Math.ceil(spanner.currentSize - limit))
 
         if (suggestedSize != originalSuggestedSize) {
           log(`\tscaleInLimit exceeded. Original suggested size was ${originalSuggestedSize} ${spanner.units}, new suggested size is ${suggestedSize} ${spanner.units}.`,
-          'DEBUG');
+          {severity: 'DEBUG', projectId: spanner.projectId, instanceId: spanner.instanceId});
         }        
       }
-      return maybeRound(suggestedSize, spanner.units, metric.name);
+      return maybeRound(suggestedSize, spanner.units, metric.name, spanner.projectId, spanner.instanceId);
     }
   });
 }

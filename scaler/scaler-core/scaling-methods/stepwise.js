@@ -35,7 +35,7 @@ function calculateSize(spanner) {
     if(spanner.units.toUpperCase() == 'PROCESSING_UNITS' && spanner.currentSize > 1000 && stepSize < 1000) {
       stepSize = 1000;
       log(`\tCurrent=${spanner.currentSize} ${spanner.units} (> 1000) => overriding stepSize from ${spanner.stepSize} to 1000`,
-      'DEBUG');
+        {projectId: spanner.projectId, instanceId: spanner.instanceId, severity: 'DEBUG'});
     }
 
     var suggestedStep =
@@ -43,7 +43,7 @@ function calculateSize(spanner) {
     if (metric.name === baseModule.OVERLOAD_METRIC && spanner.isOverloaded)
       suggestedStep = spanner.overloadStepSize;
 
-    return maybeRound(Math.max(spanner.currentSize + suggestedStep, spanner.minSize), spanner.units, metric.name);
+    return maybeRound(Math.max(spanner.currentSize + suggestedStep, spanner.minSize), spanner.units, metric.name, spanner.projectId, spanner.instanceId);
   });
 }
 

@@ -23,8 +23,10 @@
 const {log} = require('../utils.js');
 
 function calculateSize(spanner) {
-  log(`---- DIRECT size suggestions for ${spanner.projectId}/${spanner.instanceId}----`);
-  log(`	Final DIRECT suggestion: ${spanner.maxSize} + ${spanner.units}}`);
+  log(`---- DIRECT size suggestions for ${spanner.projectId}/${spanner.instanceId}----`,
+    {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  log(`	Final DIRECT suggestion: ${spanner.maxSize} + ${spanner.units}}`,
+    {projectId: spanner.projectId, instanceId: spanner.instanceId});
   return spanner.maxSize;
 }
 
