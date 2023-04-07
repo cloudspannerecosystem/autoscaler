@@ -152,16 +152,22 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
 
   return metricsClient.listTimeSeries(request).then(metricResponses => {
     const resources = metricResponses[0];
-    maxValue = 0.0;
+    var maxValue = 0.0;
+    var maxLocation = 'global';
+
     for (const resource of resources) {
       for (const point of resource.points) {
         value = parseFloat(point.value.doubleValue) * 100;
         if (value > maxValue) {
           maxValue = value;
+          if(resource.resource.labels.location) {
+            maxLocation = resource.resource.labels.location;
+          }
         }
       }
     }
-    return maxValue;
+
+    return [maxValue, maxLocation];
   });
 }
 
@@ -311,7 +317,7 @@ async function getMetrics(spanner) {
       'INFO');
   var metrics = [];
   for (const metric of spanner.metrics) {
-    var maxMetricValue =
+    var [maxMetricValue, maxLocation] =
         await getMaxMetricValue(spanner.projectId, spanner.instanceId, metric);
 
     var threshold;
@@ -328,7 +334,7 @@ async function getMetrics(spanner) {
       margin = metric.multi_regional_margin;
     }
 
-    log(`	 ${metric.name} = ${maxMetricValue}, threshold = ${threshold}, margin = ${margin}`);
+    log(`	 ${metric.name} = ${maxMetricValue}, threshold = ${threshold}, margin = ${margin}, location = ${maxLocation}`);
 
     const metricsObject = {
       name: metric.name,
