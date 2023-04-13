@@ -6,7 +6,7 @@ stdout.
 
 ## Requirements
 
-* google-cloud-scheduler python package
+*   google-cloud-scheduler python package
 
 ```bash
 pip install google-cloud-scheduler
