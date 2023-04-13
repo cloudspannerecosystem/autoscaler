@@ -195,6 +195,7 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
       currentNodes: metadata['nodeCount'],
     };
 
+    spanner.close();
     return spannerMetadata;
   });
 }
