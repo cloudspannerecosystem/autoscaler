@@ -1,7 +1,7 @@
 # Autoscaler Commandline Configuration Tool
 
 This example python script allows replacing an Autoscaler configuration without
-use of the GCP Console. It also allows retrieving the current configuration to 
+use of the GCP Console. It also allows retrieving the current configuration to
 stdout.
 
 ## Requirements
@@ -11,7 +11,6 @@ stdout.
 ```bash
 pip install google-cloud-scheduler
 ```
-
 
 ## Usage
 
