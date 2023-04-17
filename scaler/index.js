@@ -37,7 +37,6 @@ function main() {
     app.listen(port);
   } catch (err) {
     scalerCore.log('Error in Scaler wrapper:', {severity: 'ERROR', payload: err});
-
   }
 }
 

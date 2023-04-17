@@ -127,10 +127,11 @@ function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
 
 function getSuggestedSize(spanner) {
   const scalingMethod = getScalingMethod(spanner.scalingMethod, spanner.projectId, spanner.instanceId);
-  if (scalingMethod.calculateSize)
+  if (scalingMethod.calculateSize) {
     return scalingMethod.calculateSize(spanner);
-  else
+  } else {
     return scalingMethod.calculateNumNodes(spanner);
+  }
 }
 
 async function processScalingRequest(spanner, autoscalerState) {
@@ -145,8 +146,8 @@ async function processScalingRequest(spanner, autoscalerState) {
   }
 
   if (!withinCooldownPeriod(
-          spanner, suggestedSize, await autoscalerState.get(),
-          autoscalerState.now)) {
+    spanner, suggestedSize, await autoscalerState.get(),
+    autoscalerState.now)) {
     try {
       await scaleSpannerInstance(spanner, suggestedSize);
       await autoscalerState.set();
@@ -164,10 +165,16 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
 
     var spanner = JSON.parse(payload);
-    await processScalingRequest(spanner, new State(spanner));
+    var state = new State(spanner);
+
+    await processScalingRequest(spanner, state);
+    await state.close();
+
   } catch (err) {
     log(`Failed to process scaling request\n`,
       { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner });
+    log(`Exception\n`,
+      { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err });
   }
 };
 
@@ -177,7 +184,11 @@ exports.scaleSpannerInstanceHTTP = async (req, res) => {
     const payload = fs.readFileSync('./test/sample-parameters.json');
 
     var spanner = JSON.parse(payload);
-    await processScalingRequest(spanner, new State(spanner));
+    var state = new State(spanner);
+
+    await processScalingRequest(spanner, state);
+    await state.close();
+
     res.status(200).end();
   } catch (err) {
     console.error(err);
@@ -188,10 +199,17 @@ exports.scaleSpannerInstanceHTTP = async (req, res) => {
 exports.scaleSpannerInstanceJSON = async (req, res) => {
   try {
     var spanner = req.body;
-    await processScalingRequest(spanner, new State(spanner));
+    var state = new State(spanner);
+
+    await processScalingRequest(spanner, state);
+    await state.close();
+
     res.status(200).end();
   } catch (err) {
-    console.error(err);
+    log(`Failed to process scaling request\n`,
+      { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner });
+    log(`Exception\n`,
+      { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err });
     res.status(500).end(err.toString());
   }
 };

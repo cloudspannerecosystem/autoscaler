@@ -54,6 +54,10 @@ class State {
     await this.state.set();
   }
 
+  async close() {
+    await this.state.close();
+  }
+
   get now() {
     return this.state.now;
   }
@@ -82,8 +86,9 @@ class StateSpanner {
     this.projectId = spanner.projectId;
     this.instanceId = spanner.instanceId;
 
-    const s = new Spanner({projectId: this.stateProjectId});
-    this.table = s.instance(spanner.stateDatabase.instanceId).database(spanner.stateDatabase.databaseId).table('spannerAutoscaler');
+    this.client = new Spanner({projectId: this.stateProjectId});
+    this.db = this.client.instance(spanner.stateDatabase.instanceId).database(spanner.stateDatabase.databaseId)
+    this.table = this.db.table('spannerAutoscaler');
   }
 
   async init() {
@@ -91,7 +96,7 @@ class StateSpanner {
       lastScalingTimestamp: Spanner.timestamp(new Date(0)),
       createdOn: Spanner.timestamp(Date.now()),
     };
-    this.updateState(initData);
+    await this.updateState(initData);
     return initData;
   }
 
@@ -119,6 +124,10 @@ class StateSpanner {
     };
     newData.lastScalingTimestamp = Spanner.timestamp(Date.now());
     await this.updateState(newData);
+  }
+
+  async close() {
+    await this.db.close();
   }
 
   /**
@@ -152,7 +161,7 @@ class StateSpanner {
         row[key] = row[key].toISOString();
       }
     });
-    this.table.upsert(row);
+    await this.table.upsert(row);
   }
 }
 
@@ -230,6 +239,10 @@ class StateFirestore {
     newData.lastScalingTimestamp = Firestore.FieldValue.serverTimestamp();
 
     await this.docRef.update(newData);
+  }
+
+  async close() {
+
   }
 
   get now() {
