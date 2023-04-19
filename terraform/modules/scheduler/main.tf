@@ -54,5 +54,30 @@ resource "google_cloud_scheduler_job" "poller_job" {
     data       = local.config
   }
 
+  retry_config {
+    retry_count          = 0
+    max_backoff_duration = "3600s"
+    max_retry_duration   = "0s"
+    max_doublings        = 5
+    min_backoff_duration = "5s"
+  }
+
   depends_on = [google_app_engine_application.app]
+
+  /**
+   * Uncomment this stanza if you would prefer to manage the Cloud Scheduler
+   * configuration manually following its initial creation, i.e. using the
+   * Google Cloud Web Console, the gcloud CLI, or any other non-Terraform
+   * mechanism. Without this change, the Terraform configuration will remain
+   * the source of truth, and any direct modifications to the Cloud Scheduler
+   * configuration will be reset on the next Terraform run. Please see the
+   * following link for more details:
+   *
+   * https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes
+   */
+  /*
+  lifecycle {
+    ignore_changes = [pubsub_target[0].data]
+  }
+  */
 }
