@@ -128,8 +128,9 @@ limitations under the License.
 The Autoscaler is a [Cloud Spanner Ecosystem](https://www.cloudspannerecosystem.dev/about)
 project based on open source contributions. We'd love for you to
 [report issues, file feature requests][new-issue], and [send pull requests][new-pr]
-(see [Contributing](README.md#contributing)). The Autoscaler is not officially
-covered by the Google Cloud Spanner product support.
+(see [Contributing](README.md#contributing)). You may file bugs and feature
+requests using GitHub's issue tracker or using the existing Cloud Spanner
+support channels.
 
 ## Contributing
 
