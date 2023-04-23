@@ -174,7 +174,7 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     if your project does not have yet.
 
     ```sh
-    gcloud firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
+    gcloud firestore databases create --location="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
     In case you want to use Cloud Spanner, no action is needed at this point.

@@ -232,7 +232,7 @@ In this section you prepare your project for deployment.
 4.  Create a database to store the state of the Autoscaler:
 
     ```sh
-    gcloud firestore databases create --region="${APP_ENGINE_LOCATION}"
+    gcloud firestore databases create --location="${APP_ENGINE_LOCATION}"
     ```
 
     You will also need to make a minor modification to the Autoscaler
