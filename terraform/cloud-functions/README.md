@@ -172,6 +172,15 @@ You can find the details about the parameters and their default values in the
 The Autoscaler is now configured and will start monitoring and scaling your
 instances in the next scheduled job run.
 
+Note that in the default configuration, any changes made to the Cloud Scheduler
+configuration as described above will be reset by a subsequent Terraform run.
+If you would prefer to manage the Cloud Scheduler configuration manually
+following its initial creation, i.e. using the Google Cloud Web Console, the
+`gcloud` CLI, or any other non-Terraform mechanism, please [see this link]
+[cloud-scheduler-lifecycle]. Without this change, the Terraform configuration
+will remain the source of truth, and any direct modifications to the Cloud
+Scheduler configuration will be reset on the next Terraform run.
+
 ## Monitoring
 
 The [monitoring](../modules/monitoring) module is an optional module for monitoring,
@@ -189,4 +198,5 @@ and creates the following resources.
 [cloud-monitoring]: https://cloud.google.com/monitoring
 [cloud-scheduler]: https://cloud.google.com/scheduler
 [cloud-scheduler-console]: https://console.cloud.google.com/cloudscheduler
+[cloud-scheduler-lifecycle]: ../../terraform/modules/scheduler/main.tf#L67
 [json]: https://www.json.org/

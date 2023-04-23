@@ -103,7 +103,10 @@ for more information on the deployment options available.
 ## Configuration
 
 The parameters for configuring the Autoscaler are identical regardless of the chosen
-deployment type, but the mechanism for configuration differs slightly.
+deployment type, but the mechanism for configuration differs slightly:
+
+*   [Cloud Functions](terraform/cloud-functions/README.md#configuration)
+*   [Google Kubernetes Engine (GKE)](terraform/gke/README.md#building-and-deploying-the-autoscaler-services)
 
 ## Licensing
 

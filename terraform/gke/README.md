@@ -438,7 +438,7 @@ similar process.
     You can autoscale multiple Spanner instances on a single schedule by
     including multiple YAML stanzas in any of the scheduled configurations. For
     the schema of the configuration, see the [Poller configuration]
-    autoscaler-config-params] section.
+    [autoscaler-config-params] section.
 
 9.  If you have chosen to use Firestore to hold the Autoscaler state as described
     above, edit the above files, and remove the following lines:
