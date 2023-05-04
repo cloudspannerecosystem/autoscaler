@@ -208,7 +208,7 @@ In this section you prepare your project for deployment.
 ## Using Firestore for Autoscaler state
 
 1.  To use Firestore for the Autoscaler state, choose the
-    [App Engine Location][app-engine-location] and 
+    [App Engine Location][app-engine-location] and
     [Firestore Location][firestore-location] where the Autoscaler
     infrastructure will be created, for example:
 

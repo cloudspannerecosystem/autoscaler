@@ -127,9 +127,9 @@ In this section you prepare your project for deployment.
 
     ```sh
     export PROJECT_ID=<INSERT_YOUR_PROJECT_ID>
-    gcloud config set project "${PROJE,
-    T_ID}"
-    `,
+    gcloud config set project "${PROJECT_ID}"
+    ```
+    
 4.  Choose the [region and zone][region-and-zone],
     [App Engine Location][app-engine-location] and
     [Firestore Location][firestore-location] where the Autoscaler

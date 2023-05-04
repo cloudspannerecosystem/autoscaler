@@ -146,7 +146,7 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     export AUTOSCALER_REGION=us-central1
     export AUTOSCALER_ZONE=us-central1-c
     export AUTOSCALER_APP_ENGINE_LOCATION=us-central
-    export FIRESTORE_DB_LOCATION=nam5 
+    export FIRESTORE_DB_LOCATION=nam5
     ```
 
 5.  Enable the required Cloud APIs :
