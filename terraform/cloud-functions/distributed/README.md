@@ -137,14 +137,16 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     gcloud config set project "${AUTOSCALER_PROJECT_ID}"
     ```
 
-4.  Choose the [region and zone][region-and-zone] and
-    [App Engine Location][app-engine-location] where the Autoscaler
+4.  Choose the [region and zone][region-and-zone],
+    [App Engine Location][app-engine-location] and
+    [Firestore Location][firestore-location] where the Autoscaler
     infrastructure will be located.
 
     ```sh
     export AUTOSCALER_REGION=us-central1
     export AUTOSCALER_ZONE=us-central1-c
     export AUTOSCALER_APP_ENGINE_LOCATION=us-central
+    export FIRESTORE_DB_LOCATION=nam5 
     ```
 
 5.  Enable the required Cloud APIs :
@@ -174,7 +176,7 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     if your project does not have yet.
 
     ```sh
-    gcloud firestore databases create --location="${AUTOSCALER_APP_ENGINE_LOCATION}"
+    gcloud firestore databases create --location="${FIRESTORE_DB_LOCATION}"
     ```
 
     In case you want to use Cloud Spanner, no action is needed at this point.
@@ -409,6 +411,7 @@ its configuration issues independently.
 [enable-billing]: https://cloud.google.com/billing/docs/how-to/modify-project
 [region-and-zone]: https://cloud.google.com/compute/docs/regions-zones#locations
 [app-engine-location]: https://cloud.google.com/appengine/docs/locations
+[firestore-location]: https://cloud.google.com/appengine/docs/standard/locations#cloud-firestore-location
 [cloud-console]: https://console.cloud.google.com
 [cloud-shell]: https://console.cloud.google.com/?cloudshell=true&_ga=2.43377068.820133692.1587377411-71235912.1585654570&_gac=1.118947195.1584696876.Cj0KCQjw09HzBRDrARIsAG60GP9u6OBk_qQ02rkzBXpwpMd6YZ30A2D4gSl2Wwte1CqPW_sY6mH_xbIaAmIgEALw_wcB
 [provider-issue]: https://github.com/hashicorp/terraform-provider-google/issues/6782
