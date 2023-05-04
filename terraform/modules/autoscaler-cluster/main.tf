@@ -56,9 +56,10 @@ resource "google_compute_network" "network" {
 }
 
 resource "google_compute_subnetwork" "subnetwork" {
-  name          = "spanner-autoscaler-subnetwork"
-  network       = google_compute_network.network.id
-  ip_cidr_range = "10.0.0.0/16"
+  name                     = "spanner-autoscaler-subnetwork"
+  network                  = google_compute_network.network.id
+  ip_cidr_range            = "10.0.0.0/16"
+  private_ip_google_access = true
 }
 
 resource "google_compute_router" "router" {
@@ -115,7 +116,7 @@ module "workload_identity_poller" {
   use_existing_k8s_sa = false
   use_existing_gcp_sa = true
   name                = local.poller_sa_name
-  depends_on          = [kubernetes_namespace.autoscaler_namespace]
+  depends_on          = [kubernetes_namespace.autoscaler_namespace, var.poller_sa_email]
 }
 
 module "workload_identity_scaler" {
@@ -125,7 +126,7 @@ module "workload_identity_scaler" {
   use_existing_k8s_sa = false
   use_existing_gcp_sa = true
   name                = local.scaler_sa_name
-  depends_on          = [kubernetes_namespace.autoscaler_namespace]
+  depends_on          = [kubernetes_namespace.autoscaler_namespace, var.scaler_sa_email]
 }
 
 module "cluster" {
