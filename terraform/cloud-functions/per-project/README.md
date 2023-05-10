@@ -162,14 +162,13 @@ In this section you prepare your project for deployment.
     gcloud app create --region="${APP_ENGINE_LOCATION}"
     ```
 
-7.  Create a database to store the state of the Autoscaler.
-    State can be stored in either Firestore or Cloud Spanner.
+7.  The Autoscaler state can be stored in either Firestore or Cloud Spanner.
 
-    In case you want to use Firestore, create a new instance
-    if your project does not have yet.
+    In case you want to use Firestore, update the database created with the
+    Google App Engine app to use [Firestore native mode][firestore-native].
 
     ```sh
-    gcloud firestore databases create --region="${APP_ENGINE_LOCATION}"
+    gcloud firestore databases update --type=firestore-native
     ```
 
     In case you want to use Cloud Spanner, no action is needed at this point.
@@ -335,3 +334,4 @@ page to [configure your Autoscaler](../README.md#configuration).
 [terraform-spanner-instance]: https://www.terraform.io/docs/providers/google/r/spanner_instance.html
 [terraform-spanner-db]: https://www.terraform.io/docs/providers/google/r/spanner_database.html
 [provider-issue]: https://github.com/hashicorp/terraform-provider-google/issues/6782
+[firestore-native]: https://cloud.google.com/datastore/docs/firestore-or-datastore#in_native_mode
