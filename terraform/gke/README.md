@@ -208,13 +208,11 @@ In this section you prepare your project for deployment.
 ## Using Firestore for Autoscaler state
 
 1.  To use Firestore for the Autoscaler state, choose the
-    [App Engine Location][app-engine-location] and
-    [Firestore Location][firestore-location] where the Autoscaler
+    [App Engine Location][app-engine-location] where the Autoscaler
     infrastructure will be created, for example:
 
     ```sh
     export APP_ENGINE_LOCATION=us-central
-    export FIRESTORE_DB_LOCATION=nam5
     ```
 
 2.  Enable the additional APIs:
@@ -234,7 +232,7 @@ In this section you prepare your project for deployment.
 4.  Create a database to store the state of the Autoscaler:
 
     ```sh
-    gcloud firestore databases create --location="${FIRESTORE_DB_LOCATION}"
+    gcloud firestore databases update --type=firestore-native
     ```
 
     You will also need to make a minor modification to the Autoscaler
@@ -549,7 +547,6 @@ following the instructions above.
 [cloud-console-logging]: https://console.cloud.google.com/logs/query
 [cloud-shell]: https://console.cloud.google.com/?cloudshell=true
 [app-engine-location]: https://cloud.google.com/appengine/docs/locations
-[firestore-location]: https://cloud.google.com/appengine/docs/standard/locations#cloud-firestore-location
 [terraform-import]: https://www.terraform.io/docs/import/index.html
 [terraform-import-usage]: https://www.terraform.io/docs/import/usage.html
 [terraform-spanner-instance]: https://www.terraform.io/docs/providers/google/r/spanner_instance.html

@@ -130,16 +130,14 @@ In this section you prepare your project for deployment.
     gcloud config set project "${PROJECT_ID}"
     ```
 
-4.  Choose the [region and zone][region-and-zone],
-    [App Engine Location][app-engine-location] and
-    [Firestore Location][firestore-location] where the Autoscaler
+4.  Choose the [region and zone][region-and-zone] and
+    [App Engine Location][app-engine-location] where the Autoscaler
     infrastructure will be located.
 
     ```sh
     export REGION=us-central1
     export ZONE=us-central1-c
     export APP_ENGINE_LOCATION=us-central
-    export FIRESTORE_DB_LOCATION=nam5
     ```
 
 5.  Enable the required Cloud APIs
@@ -171,7 +169,7 @@ In this section you prepare your project for deployment.
     if your project does not have yet.
 
     ```sh
-    gcloud firestore databases create --location="${FIRESTORE_DB_LOCATION}"
+    gcloud firestore databases update --type=firestore-native
     ```
 
     In case you want to use Cloud Spanner, no action is needed at this point.
@@ -332,7 +330,6 @@ page to [configure your Autoscaler](../README.md#configuration).
 [cloud-shell]: https://console.cloud.google.com/?cloudshell=true
 [region-and-zone]: https://cloud.google.com/compute/docs/regions-zones#locations
 [app-engine-location]: https://cloud.google.com/appengine/docs/locations
-[firestore-location]: https://cloud.google.com/appengine/docs/standard/locations#cloud-firestore-location
 [terraform-import]: https://www.terraform.io/docs/import/index.html
 [terraform-import-usage]: https://www.terraform.io/docs/import/usage.html
 [terraform-spanner-instance]: https://www.terraform.io/docs/providers/google/r/spanner_instance.html
