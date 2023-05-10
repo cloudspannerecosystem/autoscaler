@@ -26,10 +26,3 @@ resource "google_service_account" "scaler_sa" {
   account_id   = "scaler-sa"
   display_name = "Autoscaler - Scaler Function Service Account"
 }
-
-resource "google_project_iam_member" "poller_sa_spanner" {
-  project = var.project_id
-  role    = "roles/spanner.viewer"
-
-  member = "serviceAccount:${google_service_account.poller_sa.email}"
-}

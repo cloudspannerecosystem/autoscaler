@@ -53,23 +53,22 @@ resource "google_spanner_database" "test-database" {
 ## on the monitored Spanner instance
 ##
 
-# Allows poller to get Spanner metrics
-resource "google_project_iam_member" "poller_get_metrics_iam" {
-  role    = "roles/monitoring.viewer"
-  project = var.project_id
-  member  = "serviceAccount:${var.poller_sa_email}"
+# Limited role for Poller
+resource "google_project_iam_custom_role" "metrics_viewer_iam_role" {
+  role_id     = "spannerAutoscalerMetricsViewer"
+  title       = "Spanner Autoscaler Metrics Viewer Role"
+  description = "Allows a principal to get Spanner instances and view time series metrics"
+  permissions = ["spanner.instances.get", "monitoring.timeSeries.list"]
 }
 
-resource "google_spanner_instance_iam_member" "poller_get_metadata_iam" {
-  instance = var.spanner_name
-  role     = "roles/spanner.viewer"
+# Allows Poller to to get Spanner instances and view time series metrics
+resource "google_project_iam_member" "poller_metrics_viewer_iam" {
+  role     = google_project_iam_custom_role.metrics_viewer_iam_role.name
   project  = var.project_id
   member   = "serviceAccount:${var.poller_sa_email}"
-
-  depends_on = [google_spanner_instance.main]
 }
 
-# Limited role
+# Limited role for Scaler
 resource "google_project_iam_custom_role" "capacity_manager_iam_role" {
   role_id     = "spannerAutoscalerCapacityManager"
   title       = "Spanner Autoscaler Capacity Manager Role"
