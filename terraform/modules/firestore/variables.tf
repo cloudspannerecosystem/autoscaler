@@ -18,15 +18,20 @@ variable "project_id" {
   type = string
 }
 
-variable "poller_sa_email" {
-  type = string
-}
-
-variable "scaler_sa_email" {
-  type = string
-}
-
 variable "region" {
+  description = "The region where the infrastructure will be deployed."
   type    = string
   default = "us-central1"
+}
+
+variable "location" {
+  description = "The location within the region where the infrastructure will be deployed."
+  type = string
+  default = "nam5"
+}
+
+variable "firestore_database_type" {
+  description = "The database type. TYPE must be one of: datastore-mode, firestore-native"
+  type = string
+  default = "FIRESTORE_NATIVE" 
 }

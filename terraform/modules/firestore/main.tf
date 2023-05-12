@@ -21,9 +21,38 @@
  * is not being used to hold state.
  */
 
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 4.63.0"
+    }
+  }
+}
+
+provider "google" {
+  project = var.project_id
+  region  = var.region
+  zone    = var.zone
+}
+
 resource "google_project_iam_member" "scaler_sa_firestore" {
 
   project = var.project_id
   role    = "roles/datastore.user"
   member  = "serviceAccount:${var.scaler_sa_email}"
+}
+
+resource "google_project_service" "firestore" {
+  project = var.project_id
+  service = "firestore.googleapis.com"
+}
+
+resource "google_firestore_database" "database" {
+  project     = var.project_id
+  name        = "(default)"
+  location_id = var.location
+  type        = var.firestore_database_type
+
+  depends_on = [google_project_service.firestore]
 }
