@@ -35,3 +35,11 @@ variable "firestore_database_type" {
   type = string
   default = "FIRESTORE_NATIVE" 
 }
+
+variable "poller_sa_email" {
+  type = string
+}
+
+variable "scaler_sa_email" {
+  type = string
+}
