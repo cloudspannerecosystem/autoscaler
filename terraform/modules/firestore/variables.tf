@@ -43,3 +43,8 @@ variable "poller_sa_email" {
 variable "scaler_sa_email" {
   type = string
 }
+
+variable "terraform_firestore_create" {
+  type = bool
+  default = false
+}
