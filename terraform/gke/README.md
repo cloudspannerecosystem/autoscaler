@@ -207,6 +207,8 @@ In this section you prepare your project for deployment.
 
 ## Using Firestore for Autoscaler state
 
+### Setting up Firestore for storing Autoscaler state using terraform.
+
 1. If you want to create a new Firestore database for storing the state of the 
     Autoscaler, set the following variable.
 
@@ -217,7 +219,9 @@ In this section you prepare your project for deployment.
     On the other hand if you do not want to create the Firestore database using
     terraform,then continue with the below steps to manually create the Firestore
     database using gcloud commands.
-    
+
+### Manually setting up Firestore for storing Autoscaler state
+
 1.  To use Firestore for the Autoscaler state, choose the
     [App Engine Location][app-engine-location] where the Autoscaler
     infrastructure will be created, for example:
