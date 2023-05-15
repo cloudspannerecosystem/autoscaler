@@ -33,7 +33,7 @@ terraform {
 provider "google" {
   project = var.project_id
   region  = var.region
-  zone    = var.zone
+  #zone    = var.zone
 }
 
 resource "google_project_iam_member" "scaler_sa_firestore" {
