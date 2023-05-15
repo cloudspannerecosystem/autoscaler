@@ -21,21 +21,6 @@
  * is not being used to hold state.
  */
 
-terraform {
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "~> 4.63.0"
-    }
-  }
-}
-
-provider "google" {
-  project = var.project_id
-  region  = var.region
-  #zone    = var.zone
-}
-
 resource "google_project_iam_member" "scaler_sa_firestore" {
 
   project = var.project_id
@@ -44,11 +29,15 @@ resource "google_project_iam_member" "scaler_sa_firestore" {
 }
 
 resource "google_project_service" "firestore" {
+  count = var.terraform_firestore_create ? 1 : 0
+
   project = var.project_id
   service = "firestore.googleapis.com"
 }
 
 resource "google_firestore_database" "database" {
+  count = var.terraform_firestore_create ? 1 : 0
+
   project     = var.project_id
   name        = "(default)"
   location_id = var.location
