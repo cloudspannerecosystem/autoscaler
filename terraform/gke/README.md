@@ -216,6 +216,16 @@ In this section you prepare your project for deployment.
     export TF_VAR_terraform_firestore_create=true
     ``` 
 
+2.  Enable the additional APIs:
+
+    ```sh
+    gcloud services enable \
+      appengine.googleapis.com \
+      firestore.googleapis.com
+    ```
+
+3.  Next, continue to [Deploying the Autoscaler](#deploying-the-autoscaler)
+
     On the other hand if you do not want to create the Firestore database using
     terraform,then continue with the below steps to manually create the Firestore
     database using gcloud commands.

@@ -203,9 +203,15 @@ In this section you prepare your project for deployment.
     For more information on how to make your Spanner instance to be managed by
     Terraform, see [Importing your Spanner instances](#importing-your-spanner-instances)
 
-3.  If you chose to store the state in Firestore, skip this step. If you want
-    to store the state in Cloud Spanner and you don't have a Spanner
-    instance yet for that, then set the following variable so that Terraform
+3.  If you chose to store the state in Firestore, set the value of the following variable
+    to true and continue to step 5.
+    
+    ```sh
+    export TF_VAR_terraform_firestore_create=true
+    ```
+
+4.  Alternatively, If you want to store the state in Cloud Spanner and you don't have
+    a Spanner instance yet for that, then set the following variable so that Terraform
     creates an instance for you named `autoscale-test-state`:
 
     ```sh
@@ -244,20 +250,20 @@ In this section you prepare your project for deployment.
     For more information on how to make your existing Spanner instance to be
     managed by Terraform, see [Importing your Spanner instances](../per-project/README.md#importing-your-spanner-instances)
 
-4.  Change directory into the Terraform per-project directory and initialize it.
+5.  Change directory into the Terraform per-project directory and initialize it.
 
     ```sh
     cd "${AUTOSCALER_DIR}"
     terraform init
     ```
 
-5.  Import the existing AppEngine application into Terraform state
+6.  Import the existing AppEngine application into Terraform state
 
     ```sh
     terraform import module.scheduler.google_app_engine_application.app "${PROJECT_ID}"
     ```
 
-6.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
+7.  Create the Autoscaler infrastructure. Answer `yes` when prompted, after
     reviewing the resources that Terraform intends to create.
 
     ```sh
