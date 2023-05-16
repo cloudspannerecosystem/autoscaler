@@ -29,14 +29,14 @@ resource "google_project_iam_member" "scaler_sa_firestore" {
 }
 
 resource "google_project_service" "firestore" {
-  #count = var.terraform_firestore_create ? 1 : 0
+  count = var.terraform_firestore_create ? 1 : 0
 
   project = var.project_id
   service = "firestore.googleapis.com"
 }
 
 resource "google_firestore_database" "database" {
-  #count = var.terraform_firestore_create ? 1 : 0
+  count = var.terraform_firestore_create ? 1 : 0
 
   project     = var.project_id
   name        = "(default)"

@@ -61,9 +61,10 @@ module "autoscaler-cluster" {
 module "firestore" {
   source = "../modules/firestore"
 
-  project_id      = var.project_id
-  poller_sa_email = module.autoscaler-base.poller_sa_email
-  scaler_sa_email = module.autoscaler-base.scaler_sa_email
+  project_id                  = var.project_id
+  terraform_firestore_create  = var.terraform_firestore_create
+  poller_sa_email             = module.autoscaler-base.poller_sa_email
+  scaler_sa_email             = module.autoscaler-base.scaler_sa_email
 }
 
 module "spanner" {
