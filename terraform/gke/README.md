@@ -207,14 +207,14 @@ In this section you prepare your project for deployment.
 
 ## Using Firestore for Autoscaler state
 
-### Setting up Firestore for storing Autoscaler state using terraform.
+### Setting up Firestore for storing Autoscaler state using terraform
 
-1. If you want to create a new Firestore database for storing the state of the 
+1. If you want to create a new Firestore database for storing the state of the
     Autoscaler, set the following variable.
 
     ```sh
     export TF_VAR_terraform_firestore_create=true
-    ``` 
+    ```
 
 2.  Enable the additional APIs:
 

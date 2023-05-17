@@ -165,7 +165,7 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
 
     In case you want to use Firestore, set the value of the following variable
     to true.
-    
+
     ```sh
     export TF_VAR_terraform_firestore_create=true
     ```
