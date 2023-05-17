@@ -183,9 +183,9 @@ In this section you prepare your project for deployment.
     For more information on how to make your Spanner instance to be managed by
     Terraform, see [Importing your Spanner instances](#importing-your-spanner-instances)
 
-3.  If you chose to store the state in Firestore, set the value of the following variable
-    to true and continue to step 5.
-    
+3.  If you chose to store the state in Firestore, set the value of the following
+    variable to true and continue to step 5.
+
     ```sh
     export TF_VAR_terraform_firestore_create=true
     ```
@@ -209,7 +209,7 @@ In this section you prepare your project for deployment.
     ```
 
     If you already have a Spanner instance where state must be stored,
-    only set the the name of your instance:
+    only set the the name of your instance.
 
     ```sh
     export TF_VAR_state_spanner_name=<INSERT_YOUR_STATE_SPANNER_INSTANCE_NAME>
