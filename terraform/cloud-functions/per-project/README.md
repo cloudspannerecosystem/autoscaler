@@ -130,14 +130,12 @@ In this section you prepare your project for deployment.
     gcloud config set project "${PROJECT_ID}"
     ```
 
-4.  Choose the [region and zone][region-and-zone] and
-    [App Engine Location][app-engine-location] where the Autoscaler
+4.  Choose the [region and zone][region-and-zone] where the Autoscaler
     infrastructure will be located.
 
     ```sh
     export REGION=us-central1
     export ZONE=us-central1-c
-    export APP_ENGINE_LOCATION=us-central
     ```
 
 5.  Enable the required Cloud APIs
@@ -154,24 +152,6 @@ In this section you prepare your project for deployment.
       cloudscheduler.googleapis.com \
       cloudresourcemanager.googleapis.com
     ```
-
-6.  Create a Google App Engine app, to enable the APIs
-    for Cloud Scheduler and Firestore
-
-    ```sh
-    gcloud app create --region="${APP_ENGINE_LOCATION}"
-    ```
-
-7.  The Autoscaler state can be stored in either Firestore or Cloud Spanner.
-
-    In case you want to use Firestore, update the database created with the
-    Google App Engine app to use [Firestore native mode][firestore-native].
-
-    ```sh
-    gcloud firestore databases update --type=firestore-native
-    ```
-
-    In case you want to use Cloud Spanner, no action is needed at this point.
 
 ## Deploying the Autoscaler
 

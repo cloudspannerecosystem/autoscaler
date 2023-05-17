@@ -161,13 +161,7 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
         cloudresourcemanager.googleapis.com
     ```
 
-6.  Create a Google App Engine app, to enable the APIs for Cloud Scheduler and Firestore.
-
-    ```sh
-    gcloud app create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
-    ```
-
-7.  The Autoscaler state can be stored in either Firestore or Cloud Spanner.
+6.  The Autoscaler state can be stored in either Firestore or Cloud Spanner.
 
     In case you want to use Firestore, set the value of the following variable
     to true.
@@ -180,14 +174,13 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
 
 ### Deploying the Autoscaler
 
-1.  Set the project ID, region, zone and App Engine location in the
+1.  Set the project ID, region and zone in the
     corresponding Terraform environment variables
 
     ```sh
     export TF_VAR_project_id="${AUTOSCALER_PROJECT_ID}"
     export TF_VAR_region="${AUTOSCALER_REGION}"
     export TF_VAR_zone="${AUTOSCALER_ZONE}"
-    export TF_VAR_location="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
 2.  Change directory into the Terraform scaler-project directory and initialize
@@ -229,14 +222,12 @@ topic and function in the project where the Spanner instances live.
     gcloud config set project "${APP_PROJECT_ID}"
     ```
 
-4.  Choose the [region and zone][region-and-zone] and
-    [App Engine Location][app-engine-location] where the Application project
+4.  Choose the [region and zone][region-and-zone] where the Application project
     will be located.
 
     ```sh
     export APP_REGION=us-central1
     export APP_ZONE=us-central1-c
-    export APP_APP_ENGINE_LOCATION=us-central
     ```
 
 5.  Use the following command to enable the Cloud APIs:
@@ -252,13 +243,6 @@ topic and function in the project where the Spanner instances live.
         cloudbuild.googleapis.com
     ```
 
-6.  Create an App to enable Cloud Scheduler, but do not create a Firestore
-    database:
-
-    ```sh
-    gcloud app create --region="${APP_APP_ENGINE_LOCATION}"
-    ```
-
 ### Deploy the Application infrastructure
 
 1.  Set the project ID, region, zone and App Engine location in the
@@ -268,7 +252,6 @@ topic and function in the project where the Spanner instances live.
     export TF_VAR_project_id="${APP_PROJECT_ID}"
     export TF_VAR_region="${APP_REGION}"
     export TF_VAR_zone="${APP_ZONE}"
-    export TF_VAR_location="${APP_APP_ENGINE_LOCATION}"
     ```
 
 2.  If you want to create a new Spanner instance for testing the Autoscaler, set
