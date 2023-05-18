@@ -190,9 +190,9 @@ In this section you prepare your project for deployment.
     export TF_VAR_terraform_firestore_create=true
     ```
 
-4.  Alternatively, If you want to store the state in Cloud Spanner and you don't have
-    a Spanner instance yet for that, then set the following variable so that Terraform
-    creates an instance for you named `autoscale-test-state`:
+4.  Alternatively, if you want to store the state in Cloud Spanner and you don't
+    have a Spanner instance yet for that, then set the following variable so that
+    Terraform creates an instance for you named `autoscale-test-state`.
 
     ```sh
     export TF_VAR_terraform_spanner_state=true
