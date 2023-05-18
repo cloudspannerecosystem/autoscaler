@@ -209,7 +209,7 @@ In this section you prepare your project for deployment.
 
 ### Setting up Firestore for storing Autoscaler state using terraform
 
-1. If you want to create a new Firestore database for storing the state of the
+1.  If you want to create a new Firestore database for storing the state of the
     Autoscaler, set the following variable.
 
     ```sh
