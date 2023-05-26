@@ -200,7 +200,7 @@ function postPubSubMessage(spanner, metrics) {
 
   return topic.publish(messageBuffer)
       .then(
-          log(`----- Published message to topic: ${spanner.scalerPubSubTopic}`,
+          log(`Published message to topic: ${spanner.scalerPubSubTopic}`,
               'INFO', spanner))
       .catch(err => {
         log(`An error occurred when publishing the message to ${spanner.scalerPubSubTopic}`,
@@ -213,7 +213,7 @@ function callScalerHTTP(spanner, metrics) {
 
   return axios.post('http://scaler/metrics', spanner)
     .then(response => {
-      log(`----- Published message to scaler, response ${response.statusText}`, 'INFO', spanner);
+      log(`Published message to scaler, response ${response.statusText}`, 'INFO', spanner);
     })
     .catch(err => {
       log(`An error occurred when calling the scaler`, 'ERROR', err);

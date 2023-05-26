@@ -26,6 +26,7 @@
 const {Spanner} = require('@google-cloud/spanner');
 const {convertMillisecToHumanReadable} = require('./utils.js');
 const {log} = require('./utils.js');
+const {publishProtoMsgDownstream} = require('./utils.js');
 const State = require('./state.js');
 const fs = require('fs');
 
@@ -70,35 +71,19 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
       });
 }
 
-async function publishScaleEvent(spanner, suggestedSize) {
-  if (!spanner.scaleEventPubSubTopic) {
-    log(`scaleEventPubSubTopic not provided. Skipping`);
-    return Promise.resolve();
-  }
-
+async function publishDownstreamEvent(eventName, spanner, suggestedSize) {
+  
   const message = {
     projectId: spanner.projectId,
     instanceId: spanner.instanceId,
     currentSize: spanner.currentSize,
     suggestedSize: suggestedSize,
     units: spanner.units,
-    timestamp: Date.now(),
     metrics: spanner.metrics,
   };
-  const data = Buffer.from(JSON.stringify(message));
-  log(`Publishing scale event with data ${JSON.stringify(message)}`);
 
-  const {PubSub} = require('@google-cloud/pubsub');
-  const pubsub = new PubSub();
-  const topic = pubsub.topic(spanner.scaleEventPubSubTopic);
+  return publishProtoMsgDownstream(eventName, message, spanner.downstreamPubSubTopic);
 
-  return topic
-    .publishMessage({data})
-    .then(([messageId]) => log(`Message published. ID: ${messageId}`))
-    .catch(err => {
-      log(`Received error while publishing: ${err.message}`, 'WARNING');
-      return Promise.reject(err);
-    });
 }
 
 function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
@@ -176,7 +161,7 @@ async function processScalingRequest(spanner, autoscalerState) {
     try {
       await scaleSpannerInstance(spanner, suggestedSize);
       await autoscalerState.set();
-      await publishScaleEvent(spanner, suggestedSize);
+      await publishDownstreamEvent('SCALING', spanner, suggestedSize);
     } catch (err) {
       log(`----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt.`,
           'WARNING', err);
@@ -198,7 +183,7 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 // For testing with: https://cloud.google.com/functions/docs/functions-framework
 exports.scaleSpannerInstanceHTTP = async (req, res) => {
   try {
-    const payload = fs.readFileSync('./test/sample-parameters.json');
+    const payload = fs.readFileSync('./test/samples/parameters.json');
 
     var spanner = JSON.parse(payload);
     await processScalingRequest(spanner, new State(spanner));

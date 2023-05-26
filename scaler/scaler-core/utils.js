@@ -15,8 +15,12 @@
 
 /*
  * Helper functions
- *
  */
+
+// Create PubSub client and cache it
+const {PubSub} = require('@google-cloud/pubsub');
+const pubsub = new PubSub();
+const protobuf = require('protobufjs');
 
 function convertMillisecToHumanReadable(millisec) {
   // By Nofi @ https://stackoverflow.com/a/32180863
@@ -71,8 +75,40 @@ function log(message, severity = 'DEBUG', payload) {
   console.log(JSON.stringify(logEntry));
 }
 
+// Publish Pub/Sub messages with Protobuf schema
+async function createProtobufMessage(jsonData) {
+  const root = await protobuf.load('downstream.schema.proto');
+  const DownstreamEvent = root.lookupType('DownstreamEvent');
+  return message = DownstreamEvent.create(jsonData);
+}
+
+async function publishProtoMsgDownstream(eventName, jsonData, topicId) {
+  if (!topicId) {
+    log(`If you want ${eventName} messages published downstream then specify ` +
+        'downstreamPubSubTopic in your config.', 'DEBUG');
+    return Promise.resolve();
+  }
+
+  const topic = pubsub.topic(topicId);
+  const message = await createProtobufMessage(jsonData);
+  const data = Buffer.from(JSON.stringify(message.toJSON()))
+  const attributes = {
+    event: eventName
+  };
+  
+  return topic.publishMessage({data: data, attributes: attributes})
+    .then(
+      log(`Published ${eventName} message to topic: ${topicId}`,
+      'INFO'))
+    .catch(err => {
+      log(`An error occurred when publishing ${eventName} to topic: ${topicId}`,
+          'ERROR', err);
+    });
+}
+
 module.exports = {
   convertMillisecToHumanReadable,
   maybeRound,
-  log
+  log,
+  publishProtoMsgDownstream
 };

@@ -103,6 +103,10 @@ resource "google_cloudfunctions_function" "poller_function" {
   source_archive_bucket = google_storage_bucket.bucket_gcf_source.name
   source_archive_object = google_storage_bucket_object.gcs_functions_poller_source.name
   service_account_email = var.poller_sa_email
+
+  lifecycle {
+    ignore_changes = [max_instances]
+  }  
 }
 
 resource "google_cloudfunctions_function" "scaler_function" {

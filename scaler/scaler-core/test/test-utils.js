@@ -17,7 +17,7 @@ const fs = require('fs');
 const State = require('../state.js');
 
 function createSpannerParameters(overrideParams) {
-   return {...JSON.parse(fs.readFileSync('./test/sample-parameters.json')), ...overrideParams};
+   return {...JSON.parse(fs.readFileSync('./test/samples/parameters.json')), ...overrideParams};
 }
 
 function createStubState() {
@@ -28,7 +28,12 @@ function createStubState() {
   return stubState;
 }
 
+function createDownstreamMsg() {
+  return JSON.parse(fs.readFileSync('./test/samples/downstream-msg.json'));
+}
+
 module.exports = {
   createSpannerParameters,
-  createStubState
+  createStubState,
+  createDownstreamMsg
 };

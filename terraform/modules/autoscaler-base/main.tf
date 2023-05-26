@@ -33,3 +33,33 @@ resource "google_project_iam_member" "poller_sa_spanner" {
 
   member = "serviceAccount:${google_service_account.poller_sa.email}"
 }
+
+// Downstream topic
+
+resource "google_pubsub_topic" "downstream_topic" {
+  name = "downstream-topic"
+
+  depends_on = [google_pubsub_schema.scaler_downstream_pubsub_schema]
+  
+  schema_settings {
+    schema =  google_pubsub_schema.scaler_downstream_pubsub_schema.id
+    encoding = "JSON"
+  }  
+  
+  lifecycle {
+    replace_triggered_by = [google_pubsub_schema.scaler_downstream_pubsub_schema]
+  }  
+}
+
+resource "google_pubsub_topic_iam_member" "scaler_downstream_pub_iam" {
+  project = var.project_id
+  topic   = google_pubsub_topic.downstream_topic.name
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${google_service_account.scaler_sa.email}"
+}
+
+resource "google_pubsub_schema" "scaler_downstream_pubsub_schema" {
+  name = "downstream-schema"
+  type = "PROTOCOL_BUFFER"
+  definition = "${file("${path.module}/../../../scaler/scaler-core/downstream.schema.proto")}"
+}
