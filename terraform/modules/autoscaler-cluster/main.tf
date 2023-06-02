@@ -131,13 +131,13 @@ module "workload_identity_scaler" {
 
 module "cluster" {
   source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  version                = "22.1.0"
+  version                = "26.1.1"
   project_id             = var.project_id
   name                   = var.name
   region                 = var.region
   network                = google_compute_network.network.name
   subnetwork             = google_compute_subnetwork.subnetwork.name
-  kubernetes_version     = var.kubernetes_version
+  release_channel        = var.release_channel
   master_ipv4_cidr_block = var.ip_range_master
   ip_range_pods          = var.ip_range_pods
   ip_range_services      = var.ip_range_services
