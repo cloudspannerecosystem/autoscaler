@@ -42,3 +42,6 @@ terraform/*/*/*.json
 # Kubernetes manifests generated from templates
 kubernetes/autoscaler-config/*.yaml
 kubernetes/**/resourcegroup.yaml
+
+#python venv
+env/
