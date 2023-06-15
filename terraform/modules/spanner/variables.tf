@@ -30,6 +30,16 @@ variable "terraform_spanner_state" {
   default     = true
 }
 
+variable "terraform_spanner_test_processing_units" {
+  description = "Default processing units for test Spanner, if created"
+  default     = 100
+}
+
+variable "terraform_spanner_state_processing_units" {
+  description = "Default processing units for state Spanner, if created"
+  default     = 100
+}
+
 variable "spanner_name" {
   description = "Name of the Spanner instance to be autoscaled."
   type    = string
@@ -52,4 +62,3 @@ variable "region" {
   type    = string
   default = "us-central1"
 }
-

@@ -50,6 +50,16 @@ variable "terraform_spanner_state" {
   default     = false
 }
 
+variable "terraform_spanner_test_processing_units" {
+  description = "Default processing units for test Spanner, if created"
+  default     = 100
+}
+
+variable "terraform_spanner_state_processing_units" {
+  description = "Default processing units for state Spanner, if created"
+  default     = 100
+}
+
 variable "state_project_id" {
   type = string
 }

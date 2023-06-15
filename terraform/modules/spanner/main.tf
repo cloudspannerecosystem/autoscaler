@@ -25,7 +25,7 @@ resource "google_spanner_instance" "main" {
   display_name = var.spanner_name
   project      = var.project_id
 
-  processing_units = 100
+  processing_units = var.terraform_spanner_test_processing_units
 
   lifecycle {
     ignore_changes = [num_nodes, processing_units]
@@ -101,7 +101,7 @@ resource "google_spanner_instance" "state_instance" {
   display_name = var.state_spanner_name
   project      = var.project_id
 
-  processing_units = 100
+  processing_units = var.terraform_spanner_state_processing_units
 }
 
 resource "google_spanner_database" "state-database" {

@@ -50,6 +50,16 @@ variable "terraform_spanner_state" {
   default     = false
 }
 
+variable "terraform_spanner_test_processing_units" {
+  description = "Default processing units for test Spanner, if created"
+  default     = 100
+}
+
+variable "terraform_spanner_state_processing_units" {
+  description = "Default processing units for state Spanner, if created"
+  default     = 100
+}
+
 variable "app_project_id" {
   description = "The project where the Spanner instance(s) live. If specified and different than project_id => centralized deployment"
   type        = string
