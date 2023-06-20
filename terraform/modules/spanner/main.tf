@@ -25,7 +25,7 @@ resource "google_spanner_instance" "main" {
   display_name = var.spanner_name
   project      = var.project_id
 
-  processing_units = var.terraform_spanner_test_processing_units
+  processing_units = var.spanner_test_processing_units
 
   lifecycle {
     ignore_changes = [num_nodes, processing_units]
@@ -67,9 +67,9 @@ resource "google_project_iam_custom_role" "metrics_viewer_iam_role" {
 
 # Allows Poller to to get Spanner instances and view time series metrics
 resource "google_project_iam_member" "poller_metrics_viewer_iam" {
-  role     = google_project_iam_custom_role.metrics_viewer_iam_role.name
-  project  = var.project_id
-  member   = "serviceAccount:${var.poller_sa_email}"
+  role    = google_project_iam_custom_role.metrics_viewer_iam_role.name
+  project = var.project_id
+  member  = "serviceAccount:${var.poller_sa_email}"
 }
 
 # Limited role for Scaler
@@ -101,7 +101,7 @@ resource "google_spanner_instance" "state_instance" {
   display_name = var.state_spanner_name
   project      = var.project_id
 
-  processing_units = var.terraform_spanner_state_processing_units
+  processing_units = var.spanner_state_processing_units
 }
 
 resource "google_spanner_database" "state-database" {

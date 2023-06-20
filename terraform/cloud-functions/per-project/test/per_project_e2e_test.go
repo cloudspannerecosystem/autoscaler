@@ -122,10 +122,10 @@ func waitForSpannerProcessingUnits(t *testing.T, instanceAdmin *instance.Instanc
 func TestPerProjectEndToEndDeployment(t *testing.T) {
 
 	const (
-		spannerName                           = "autoscaler-test"
-		schedulerJobTfOutput                  = "scheduler_job_id"
-		terraformSpannerTestProcessingUnits   = 100
-		terraformSpannerTargetProcessingUnits = 200
+		schedulerJobTfOutput         = "scheduler_job_id"
+		spannerName                  = "autoscaler-test"
+		spannerTestProcessingUnits   = 100
+		spannerTargetProcessingUnits = 200
 	)
 
 	var config TestConfig
@@ -144,10 +144,10 @@ func TestPerProjectEndToEndDeployment(t *testing.T) {
 		terraformOptions := &terraform.Options{
 			TerraformDir: terraformDir,
 			Vars: map[string]interface{}{
-				"project_id":             config.ProjectId,
-				"spanner_name":           spannerName,
-				"terraform_spanner_test": true,
-				"terraform_spanner_test_processing_units": terraformSpannerTestProcessingUnits,
+				"project_id":                    config.ProjectId,
+				"spanner_name":                  spannerName,
+				"terraform_spanner_test":        true,
+				"spanner_test_processing_units": spannerTestProcessingUnits,
 			},
 		}
 
@@ -190,12 +190,12 @@ func TestPerProjectEndToEndDeployment(t *testing.T) {
 
 		// Wait up to a minute for Spanner to report initial processing units
 		spannerInstanceId := fmt.Sprintf("projects/%s/instances/%s", config.ProjectId, spannerName)
-		waitForSpannerProcessingUnits(t, instanceAdmin, spannerInstanceId, terraformSpannerTestProcessingUnits, 6, time.Second*10)
+		waitForSpannerProcessingUnits(t, instanceAdmin, spannerInstanceId, spannerTestProcessingUnits, 6, time.Second*10)
 
 		// Update the autoscaler config with a new minimum number of processing units
-		setAutoscalerConfigMinProcessingUnits(t, schedulerClient, schedulerJobId, terraformSpannerTargetProcessingUnits)
+		setAutoscalerConfigMinProcessingUnits(t, schedulerClient, schedulerJobId, spannerTargetProcessingUnits)
 
 		// Wait up to five minutes for Spanner to report final processing units
-		waitForSpannerProcessingUnits(t, instanceAdmin, spannerInstanceId, terraformSpannerTargetProcessingUnits, 5*6, time.Second*10)
+		waitForSpannerProcessingUnits(t, instanceAdmin, spannerInstanceId, spannerTargetProcessingUnits, 5*6, time.Second*10)
 	})
 }
