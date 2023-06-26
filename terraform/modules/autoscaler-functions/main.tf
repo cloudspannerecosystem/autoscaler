@@ -106,7 +106,7 @@ resource "google_cloudfunctions_function" "poller_function" {
 
   lifecycle {
     ignore_changes = [max_instances]
-  }  
+  }
 }
 
 resource "google_cloudfunctions_function" "scaler_function" {

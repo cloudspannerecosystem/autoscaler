@@ -177,21 +177,22 @@ The following is an example of a message published by the Autoscaler.
 Notable attributes are:
 
 *   **message.attributes.event:** the name of the event for which this message
-was triggered. The Autoscaler publishes a message when it scales a Spanner
-instance. The name of that event is `'SCALING'`. You can define [custom messages](#custom-messages)
-for your own event types.
+    was triggered. The Autoscaler publishes a message when it scales a Spanner
+    instance. The name of that event is `'SCALING'`. You can define
+    [custom messages](#custom-messages) for your own event types.
 *   **message.attributes.googclient_schemaname:** the
-[Pub/Sub schema][pub-sub-schema] defining the format that the data field must
-follow. The schema represents the contract between the message producer
-(Autoscaler) and the message consumers (downstream applications).
-Pub/Sub enforces the format. The default schema is defined as a Protocol Buffer
-in the file [downstream.schema.proto](scaler-core/downstream.schema.proto).
-*   **message.attributes.googclient_schemaencoding:** consumers will receive the
-data in the messages encoded as Base64 containing JSON.
+    [Pub/Sub schema][pub-sub-schema] defining the format that the data field
+    must follow. The schema represents the contract between the message
+    producer (Autoscaler) and the message consumers (downstream applications).
+    Pub/Sub enforces the format. The default schema is defined as a Protocol
+    Buffer in the file
+    [downstream.schema.proto](scaler-core/downstream.schema.proto).
+*   **message.attributes.googclient_schemaencoding:** consumers will receive
+    the data in the messages encoded as Base64 containing JSON.
 *   **message.publishTime:** timestamp when the message was published
 *   **message.data:** the message payload encoded as Base64 containing a JSON
-string. In the example, the [decoded][base-64-decode] string contains the
-following data:
+    string. In the example, the [decoded][base-64-decode] string contains the
+    following data:
 
 ```json
 {
@@ -244,23 +245,25 @@ section explains how to define one, which implies modifying the Scaler code.
 To publish a new event as a downstream message:
 
 *   Choose a unique name for your event. The convention is an all-caps
-alphanumeric + underscores ID with a verb. e.g. `'SCALING'`
+    alphanumeric + underscores ID with a verb. e.g. `'SCALING'`
 *   Call the Scaler function `publishDownstreamEvent`.
-For an example, look at the [Scaler](scaler-core/index.js) function `processScalingRequest`.
+    For an example, look at the [Scaler](scaler-core/index.js)
+    function `processScalingRequest`.
 
 In case you need to add fields to the message payload:
 
 1.  Add your custom fields to the [Pub/Sub schema protobuf](scaler-core/downstream.schema.proto).
-Your custom fields must use [field numbers][proto-field-numbers] over 1000.
-Field numbers from 1 to 1000 are [reserved][proto-reserved] for future Autoscaler
-enhancements. Make sure field numbers are unique within your org and not reused
-if previously deleted.
+    Your custom fields must use [field numbers][proto-field-numbers] over 1000.
+    Field numbers from 1 to 1000 are [reserved][proto-reserved] for future
+    Autoscaler enhancements. Make sure field numbers are unique within your org
+    and not reused if previously deleted.
 
 2.  Run `terraform apply` to update the downstream Pub/Sub topic with the new schema.
 
 3.  Create and call a function similar to the [Scaler](scaler-core/index.js)
-`publishDownstreamEvent()`. In this function you populate the message payload
-with the default fields and your new custom fields, and then call `publishProtoMsgDownstream()`.
+    `publishDownstreamEvent()`. In this function you populate the message
+    payload with the default fields and your new custom fields, and then call
+    `publishProtoMsgDownstream()`.
 
 ### Consuming messages
 

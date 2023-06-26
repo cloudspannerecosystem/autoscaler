@@ -1,4 +1,4 @@
-# Auto-generated when isntalling Node packages, e.g. CF emulator
+# Auto-generated when installing Node packages, e.g. CF emulator
 node_modules
 package-lock.json
 
