@@ -167,14 +167,13 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     gcloud app create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
-7.  Create database to store the state of the Autoscaler.
-    State can be stored in either Firestore or Cloud Spanner.
+7.  The Autoscaler state can be stored in either Firestore or Cloud Spanner.
 
-    In case you want to use Firestore, create a new instance
-    if your project does not have yet.
+    In case you want to use Firestore, update the database created with the
+    Google App Engine app to use [Firestore native mode][firestore-native].
 
     ```sh
-    gcloud firestore databases create --region="${AUTOSCALER_APP_ENGINE_LOCATION}"
+    gcloud firestore databases update --type=firestore-native
     ```
 
     In case you want to use Cloud Spanner, no action is needed at this point.
@@ -413,3 +412,4 @@ its configuration issues independently.
 [cloud-shell]: https://console.cloud.google.com/?cloudshell=true&_ga=2.43377068.820133692.1587377411-71235912.1585654570&_gac=1.118947195.1584696876.Cj0KCQjw09HzBRDrARIsAG60GP9u6OBk_qQ02rkzBXpwpMd6YZ30A2D4gSl2Wwte1CqPW_sY6mH_xbIaAmIgEALw_wcB
 [provider-issue]: https://github.com/hashicorp/terraform-provider-google/issues/6782
 [logs-viewer]: https://pantheon.corp.google.com/logs/query
+[firestore-native]: https://cloud.google.com/datastore/docs/firestore-or-datastore#in_native_mode

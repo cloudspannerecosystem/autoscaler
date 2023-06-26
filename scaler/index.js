@@ -18,7 +18,7 @@ const scalerCore = require('scaler-core');
 
 function main() {
 
-  scalerCore.log(`Scaler started`, 'INFO');
+  scalerCore.log(`Autoscaler Scaler started`, {severity: 'INFO'});
 
   const app  = express();
   const port = process.env.PORT || 3000;
@@ -36,7 +36,7 @@ function main() {
 
     app.listen(port);
   } catch (err) {
-    scalerCore.log(err);
+    scalerCore.log('Error in Scaler wrapper:', {severity: 'ERROR', payload: err});
   }
 }
 

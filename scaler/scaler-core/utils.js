@@ -40,19 +40,20 @@ function convertMillisecToHumanReadable(millisec) {
   }
 }
 
-function maybeRound(suggestedSize, units, label='') {
+function maybeRound(suggestedSize, units, label='', projectId, instanceId) {
   if (units == 'NODES')
     return suggestedSize;
   else {
     const roundTo = (suggestedSize < 1000) ? 100 : 1000;
     const roundedSize = Math.ceil(suggestedSize/roundTo)*roundTo;
     if (roundedSize != suggestedSize)
-      log(`\t${label}: Suggested ${suggestedSize}, rounded to ${roundedSize} ${units}`);
+      log(`\t${label}: Suggested ${suggestedSize}, rounded to ${roundedSize} ${units}`,
+        {projectId: projectId, instanceId: instanceId});
     return roundedSize;
   }
 }
 
-function log(message, severity = 'DEBUG', payload) {
+function log(message, {severity = 'DEBUG', projectId, instanceId, payload} = {} ) {
   // Structured logging
   // https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
 
@@ -70,6 +71,8 @@ function log(message, severity = 'DEBUG', payload) {
   const logEntry = {
     message: message,
     severity: severity,
+    projectId: projectId,
+    instanceId: instanceId,
     payload: payload
   };
   console.log(JSON.stringify(logEntry));

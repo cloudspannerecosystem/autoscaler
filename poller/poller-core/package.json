@@ -7,7 +7,7 @@
         "@google-cloud/functions-framework": "^3.0.0",
         "@google-cloud/monitoring": "^2.3.4",
         "@google-cloud/pubsub": "^3.1.0",
-        "@google-cloud/spanner": "^5.13.1",
+        "@google-cloud/spanner": "^6.8.0",
         "axios": "^0.27.2"
     },
     "scripts": {

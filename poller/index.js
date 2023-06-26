@@ -19,13 +19,31 @@ const fs         = require('fs/promises');
 
 async function main() {
 
-  pollerCore.log(`Autoscaler Poller job started`, 'INFO');
+  const DEFAULT_CONFIG_LOCATION = '/etc/autoscaler-config/autoscaler-config.yaml';
+
+  pollerCore.log(`Autoscaler Poller job started`, {severity: 'INFO'});
+
+  var configLocation = DEFAULT_CONFIG_LOCATION;
+
+  /*
+   * If set, the AUTOSCALER_CONFIG environment variable is used to
+   * retrieve the configuration for this instance of the poller.
+   * Please refer to the documentation in the README.md for GKE
+   * deployment for more details.
+   */
+
+  if (process.env.AUTOSCALER_CONFIG) {
+    configLocation = process.env.AUTOSCALER_CONFIG;
+    pollerCore.log(`Using custom config location ${configLocation}`);
+  } else {
+    pollerCore.log(`Using default config location ${configLocation}`);
+  }
 
   try {
-    const data = await fs.readFile('/etc/autoscaler-config.yaml', { encoding: 'utf8' });
+    const data = await fs.readFile(configLocation, { encoding: 'utf8' });
     await pollerCore.checkSpannerScaleMetricsJSON(JSON.stringify(yaml.load(data)))
   } catch (err) {
-    pollerCore.log(err);
+    pollerCore.log('Error in Poller wrapper:', {severity: 'ERROR', payload: err});
   }
 }
 

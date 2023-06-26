@@ -229,10 +229,11 @@ In this section you prepare your project for deployment.
     gcloud app create --region="${APP_ENGINE_LOCATION}"
     ```
 
-4.  Create a database to store the state of the Autoscaler:
+4.  To store the state of the Autoscaler, update the database created with the
+    Google App Engine app to use [Firestore native mode][firestore-native].
 
     ```sh
-    gcloud firestore databases create --region="${APP_ENGINE_LOCATION}"
+    gcloud firestore databases update --type=firestore-native
     ```
 
     You will also need to make a minor modification to the Autoscaler
@@ -407,25 +408,41 @@ similar process.
     kubectl apply -f autoscaler-pkg/ --recursive
     ```
 
+    The sample configuration creates two schedules to demonstrate autoscaling;
+    a [frequently running schedule][cron-frequent] to dynamically scale the
+    Spanner instance according to utilization, and an [hourly
+    schedule][cron-hourly] to directly scale the Spanner instance every hour.
+
 7.  To prepare to configure the Autoscaler, run the following command:
 
     ```sh
-    envsubst < autoscaler-config/autoscaler-config.yaml.template > autoscaler-config/autoscaler-config.yaml
+    for template in $(ls autoscaler-config/*.template) ; do envsubst < ${template} > ${template%.*} ; done
     ```
 
 8.  Next, to see how the Autoscaler is configured, run the following command to
     output the example configuration:
 
     ```sh
-    cat autoscaler-config/autoscaler-config.yaml
+    cat autoscaler-config/autoscaler-config*.yaml
     ```
 
-    Each stanza is used to configure a different Spanner instance. For the
-    schema of the configuration, see the
-    [Poller configuration][autoscaler-config-params] section.
+    These two files configure each instance of the autoscaler that you
+    scheduled in the previous step. Notice the environment variable
+    `AUTOSCALER_CONFIG`. You can use this variable to reference a configuration
+    that will be used by that individual instance of the autoscaler. This means
+    that you can configure multiple scaling schedules across multiple Spanner
+    instances.
+
+    If you do not supply this value, a default of `autoscaler-config.yaml` will
+    be used.
+
+    You can autoscale multiple Spanner instances on a single schedule by
+    including multiple YAML stanzas in any of the scheduled configurations. For
+    the schema of the configuration, see the [Poller configuration]
+    [autoscaler-config-params] section.
 
 9.  If you have chosen to use Firestore to hold the Autoscaler state as described
-    above, edit the above file, and remove the following lines:
+    above, edit the above files, and remove the following lines:
 
     ```yaml
      stateDatabase:
@@ -440,16 +457,16 @@ similar process.
     [Troubleshooting](#troubleshooting) section for more details.
 
     If you have chosen to use your own Spanner instance, please edit the above
-    configuration file accordingly.
+    configuration files accordingly.
 
 10.  To configure the Autoscaler and begin scaling operations, run the following
      command:
 
      ```sh
-     kubectl apply -f autoscaler-config/autoscaler-config.yaml
+     kubectl apply -f autoscaler-config/
      ```
 
-11.  Any changes made to the configuration file and applied with `kubectl
+11.  Any changes made to the configuration files and applied with `kubectl
      apply` will update the Autoscaler configuration.
 
 12.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
@@ -464,6 +481,23 @@ following the instructions above.
 
 1.  Check there are no [Organizational Policy][organizational-policy] rules
     that may conflict with cluster creation.
+
+### If you do not see scaling operations as expected
+
+1.  The first step if you are encountering scaling issues is to check the logs
+    for the Autoscaler in [Cloud Logging][cloud-console-logging]. To retrieve
+    the logs for the `Poller` and `Scaler` components, use the following query:
+
+    ```terminal
+    resource.type="k8s_container"
+    resource.labels.namespace_name="spanner-autoscaler"
+    resource.labels.container_name="poller" OR resource.labels.container_name="scaler"
+    ```
+
+    If you do not see any log entries, check that you have selected the correct
+    time period to display in the Cloud Logging console, and that the GKE
+    cluster nodes have the correct permissions to write logs to the Cloud
+    Logging API ([roles/logging.logWriter][logging-iam-role]).
 
 ### If the Poller fails to run successfully
 
@@ -493,12 +527,15 @@ following the instructions above.
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [autoscaler-poller]: ../../poller/README.md
 [autoscaler-config-params]: ../../poller/#configuration-parameters
+[cron-frequent]: ../../kubernetes/autoscaler-pkg/poller/poller.yaml
+[cron-hourly]: ../../kubernetes/autoscaler-pkg/poller/poller-hourly.yaml
 
 <!-- GKE deployment architecture -->
 [gke]: https://cloud.google.com/kubernetes-engine
 [kubernetes-configmap]: https://kubernetes.io/docs/concepts/configuration/configmap/
 [kubernetes-cronjob]: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
 [kubernetes-job]: https://kubernetes.io/docs/concepts/workloads/controllers/job/
+[logging-iam-role]: https://cloud.google.com/logging/docs/access-control#logging.logWriter
 [spanner]: https://cloud.google.com/spanner/
 [cloud-monitoring]: https://cloud.google.com/monitoring
 [cloud-firestore]: https://cloud.google.com/firestore
@@ -517,3 +554,4 @@ following the instructions above.
 [terraform-spanner-db]: https://www.terraform.io/docs/providers/google/r/spanner_database.html
 [provider-issue]: https://github.com/hashicorp/terraform-provider-google/issues/6782
 [organizational-policy]: https://cloud.google.com/resource-manager/docs/organization-policy/overview
+[firestore-native]: https://cloud.google.com/datastore/docs/firestore-or-datastore#in_native_mode

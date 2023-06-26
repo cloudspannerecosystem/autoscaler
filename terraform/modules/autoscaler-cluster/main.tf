@@ -56,9 +56,10 @@ resource "google_compute_network" "network" {
 }
 
 resource "google_compute_subnetwork" "subnetwork" {
-  name          = "spanner-autoscaler-subnetwork"
-  network       = google_compute_network.network.id
-  ip_cidr_range = "10.0.0.0/16"
+  name                     = "spanner-autoscaler-subnetwork"
+  network                  = google_compute_network.network.id
+  ip_cidr_range            = "10.0.0.0/16"
+  private_ip_google_access = true
 }
 
 resource "google_compute_router" "router" {
@@ -115,7 +116,7 @@ module "workload_identity_poller" {
   use_existing_k8s_sa = false
   use_existing_gcp_sa = true
   name                = local.poller_sa_name
-  depends_on          = [kubernetes_namespace.autoscaler_namespace]
+  depends_on          = [kubernetes_namespace.autoscaler_namespace, var.poller_sa_email]
 }
 
 module "workload_identity_scaler" {
@@ -125,21 +126,21 @@ module "workload_identity_scaler" {
   use_existing_k8s_sa = false
   use_existing_gcp_sa = true
   name                = local.scaler_sa_name
-  depends_on          = [kubernetes_namespace.autoscaler_namespace]
+  depends_on          = [kubernetes_namespace.autoscaler_namespace, var.scaler_sa_email]
 }
 
 module "cluster" {
   source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  version                = "22.1.0"
+  version                = "26.1.1"
   project_id             = var.project_id
   name                   = var.name
   region                 = var.region
   network                = google_compute_network.network.name
   subnetwork             = google_compute_subnetwork.subnetwork.name
+  release_channel        = var.release_channel
   master_ipv4_cidr_block = var.ip_range_master
   ip_range_pods          = var.ip_range_pods
   ip_range_services      = var.ip_range_services
-  release_channel        = var.release_channel
   enable_private_nodes   = true
   enable_shielded_nodes  = true
   network_policy         = true

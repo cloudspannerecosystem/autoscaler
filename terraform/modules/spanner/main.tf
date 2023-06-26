@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ## If Terraform must create a test instance to be Autoscaled
 ##
 resource "google_spanner_instance" "main" {
@@ -47,59 +48,46 @@ resource "google_spanner_database" "test-database" {
   deletion_protection = false
 }
 
-resource "google_project_iam_member" "poller_sa_cloud_monitoring" {
-  # Allows poller to get Spanner metrics
-  role    = "roles/monitoring.viewer"
-  project = var.project_id
-  member  = "serviceAccount:${var.poller_sa_email}"
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+## Give permissions to the poller and scaler service accounts
+## on the monitored Spanner instance
+##
+
+resource "random_id" "role_suffix" {
+  byte_length = 4
 }
 
-#
-# Depend on the created DB if one has been created
-#
-resource "google_spanner_instance_iam_member" "spanner_test_metadata_get_iam" {
-  count = var.terraform_spanner_test ? 1 : 0
-
-  instance = var.spanner_name
-  role     = "roles/spanner.viewer"
-  project  = var.project_id
-  member   = "serviceAccount:${var.poller_sa_email}"
-
-  depends_on = [google_spanner_instance.main]
+# Limited role for Poller
+resource "google_project_iam_custom_role" "metrics_viewer_iam_role" {
+  role_id     = "spannerAutoscalerMetricsViewer_${random_id.role_suffix.hex}"
+  title       = "Spanner Autoscaler Metrics Viewer Role"
+  description = "Allows a principal to get Spanner instances and view time series metrics"
+  permissions = ["spanner.instances.get", "monitoring.timeSeries.list"]
 }
 
-resource "google_spanner_instance_iam_member" "spanner_test_admin_iam" {
-  count = var.terraform_spanner_test ? 1 : 0
-
-  # Allows scaler to change the number of nodes of the Spanner instance
-  instance = var.spanner_name
-  role     = "roles/spanner.admin"
-  project  = var.project_id
-  member   = "serviceAccount:${var.scaler_sa_email}"
-
-  depends_on = [google_spanner_instance.main]
-}
-
-#
-# Otherwise do not depend on the created DB, and use a precreated DB
-#
-resource "google_spanner_instance_iam_member" "spanner_metadata_get_iam" {
-  count = var.terraform_spanner_test ? 0 : 1
-
-  instance = var.spanner_name
-  role     = "roles/spanner.viewer"
+# Allows Poller to to get Spanner instances and view time series metrics
+resource "google_project_iam_member" "poller_metrics_viewer_iam" {
+  role     = google_project_iam_custom_role.metrics_viewer_iam_role.name
   project  = var.project_id
   member   = "serviceAccount:${var.poller_sa_email}"
 }
 
-resource "google_spanner_instance_iam_member" "spanner_admin_iam" {
-  count = var.terraform_spanner_test ? 0 : 1
+# Limited role for Scaler
+resource "google_project_iam_custom_role" "capacity_manager_iam_role" {
+  role_id     = "spannerAutoscalerCapacityManager_${random_id.role_suffix.hex}"
+  title       = "Spanner Autoscaler Capacity Manager Role"
+  description = "Allows a principal to scale spanner instances"
+  permissions = ["spanner.instanceOperations.get", "spanner.instances.update"]
+}
 
-  # Allows scaler to change the number of nodes of the Spanner instance
+# Allows scaler to modify the capacity (nodes or PUs) of the Spanner instance
+resource "google_spanner_instance_iam_member" "scaler_update_capacity_iam" {
   instance = var.spanner_name
-  role     = "roles/spanner.admin"
+  role     = google_project_iam_custom_role.capacity_manager_iam_role.name
   project  = var.project_id
   member   = "serviceAccount:${var.scaler_sa_email}"
+
+  depends_on = [google_spanner_instance.main]
 }
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
@@ -138,10 +126,10 @@ resource "google_spanner_database" "state-database" {
   deletion_protection = false
 }
 
+# Allows scaler to read/write the state from/in Spanner
 resource "google_spanner_instance_iam_member" "spanner_state_user" {
   count = var.terraform_spanner_state ? 1 : 0
 
-  # Allows scaler to read/write the state from/in Spanner
   instance = var.state_spanner_name
   role     = "roles/spanner.databaseUser"
   project  = var.project_id

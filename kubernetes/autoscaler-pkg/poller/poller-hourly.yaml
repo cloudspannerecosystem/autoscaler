@@ -14,11 +14,11 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: poller
+  name: poller-hourly
   namespace: spanner-autoscaler # kpt-set: ${namespace}
 spec:
   concurrencyPolicy: Forbid
-  schedule: "*/2 * * * *"
+  schedule: "1 * * * *"
   jobTemplate:
     spec:
       template:
@@ -35,13 +35,16 @@ spec:
                 cpu: "250m"
               limits:
                 memory: "256Mi"
+            env:
+            - name: AUTOSCALER_CONFIG
+              value: "/etc/autoscaler-config/autoscaler-config-hourly.yaml"
             volumeMounts:
             - name: config-volume
               mountPath: /etc/autoscaler-config
           volumes:
           - name: config-volume
             configMap:
-              name: autoscaler-config
+              name: autoscaler-config-hourly
           nodeSelector:
             iam.gke.io/gke-metadata-server-enabled: "true"
           restartPolicy: Never

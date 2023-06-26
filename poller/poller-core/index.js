@@ -104,20 +104,20 @@ function createBaseFilter(projectId, instanceId) {
 }
 
 // checks to make sure required fields are present and populated
-function validateCustomMetric(metric) {
+function validateCustomMetric(metric, projectId, instanceId) {
   if(!metric.name) {
-    log('Missing name parameter for custom metric.', 'INFO');
+    log('Missing name parameter for custom metric.', {severity: 'INFO', projectId: projectId, instanceId: instanceId});
     return false;
   }
 
   if(!metric.filter) {
-    log('Missing filter parameter for custom metric.', 'INFO');
+    log('Missing filter parameter for custom metric.', {severity: 'INFO', projectId: projectId, instanceId: instanceId});
     return false;
   }
 
   if(!(metric.regional_threshold > 0 || metric.multi_regional_threshold > 0)) {
     log('Missing regional_threshold or multi_multi_regional_threshold ' +
-        'parameter for custom metric.', 'INFO');
+        'parameter for custom metric.', {severity: 'INFO', projectId: projectId, instanceId: instanceId});
     return false;
   }
 
@@ -126,7 +126,8 @@ function validateCustomMetric(metric) {
 
 function getMaxMetricValue(projectId, spannerInstanceId, metric) {
   const metricWindow = 5;
-  log(`Get max ${metric.name} from ${projectId}/${spannerInstanceId} over ${metricWindow} minutes.`);
+  log(`Get max ${metric.name} from ${projectId}/${spannerInstanceId} over ${metricWindow} minutes.`,
+    {projectId: projectId, instanceId: spannerInstanceId});
 
   const request = {
     name: 'projects/' + projectId,
@@ -145,41 +146,47 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
       },
       crossSeriesReducer: metric.reducer,
       perSeriesAligner: metric.aligner,
+      groupByFields: ['resource.location'],
     },
     view: 'FULL'
   };
 
   return metricsClient.listTimeSeries(request).then(metricResponses => {
     const resources = metricResponses[0];
-    maxValue = 0.0;
+    var maxValue = 0.0;
+    var maxLocation = 'global';
+
     for (const resource of resources) {
       for (const point of resource.points) {
         value = parseFloat(point.value.doubleValue) * 100;
         if (value > maxValue) {
           maxValue = value;
+          if(resource.resource.labels.location) {
+            maxLocation = resource.resource.labels.location;
+          }
         }
       }
     }
-    return maxValue;
+
+    return [maxValue, maxLocation];
   });
 }
 
 function getSpannerMetadata(projectId, spannerInstanceId, units) {
   log(`----- ${projectId}/${spannerInstanceId}: Getting Metadata -----`,
-      'INFO');
+    {severity: 'INFO', projectId: projectId, instanceId: spannerInstanceId});
 
   const spanner = new Spanner({
     projectId: projectId,
   });
   const spannerInstance = spanner.instance(spannerInstanceId);
 
-
   return spannerInstance.getMetadata().then(data => {
     const metadata = data[0];
-    log(`DisplayName:     ${metadata['displayName']}`);
-    log(`NodeCount:       ${metadata['nodeCount']}`);
-    log(`ProcessingUnits: ${metadata['processingUnits']}`);
-    log(`Config:          ${metadata['config'].split('/').pop()}`);
+    log(`DisplayName:     ${metadata['displayName']}`, {projectId: projectId, instanceId: spannerInstanceId});
+    log(`NodeCount:       ${metadata['nodeCount']}`, {projectId: projectId, instanceId: spannerInstanceId});
+    log(`ProcessingUnits: ${metadata['processingUnits']}`, {projectId: projectId, instanceId: spannerInstanceId});
+    log(`Config:          ${metadata['config'].split('/').pop()}`, {projectId: projectId, instanceId: spannerInstanceId});
 
     const spannerMetadata = {
       currentSize: (units == 'NODES') ? metadata['nodeCount'] : metadata['processingUnits'],
@@ -188,6 +195,7 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
       currentNodes: metadata['nodeCount'],
     };
 
+    spanner.close();
     return spannerMetadata;
   });
 }
@@ -204,7 +212,7 @@ function postPubSubMessage(spanner, metrics) {
               'INFO', spanner))
       .catch(err => {
         log(`An error occurred when publishing the message to ${spanner.scalerPubSubTopic}`,
-            'ERROR', err);
+          {severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
       });
 }
 
@@ -216,7 +224,8 @@ function callScalerHTTP(spanner, metrics) {
       log(`Published message to scaler, response ${response.statusText}`, 'INFO', spanner);
     })
     .catch(err => {
-      log(`An error occurred when calling the scaler`, 'ERROR', err);
+      log(`An error occurred when calling the scaler`,
+        {severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
     });
 }
 
@@ -249,7 +258,7 @@ async function parseAndEnrichPayload(payload) {
       // if minNodes or minSize are provided set the other, and if both are set and not match throw an error
       if(spanners[sIdx].minNodes && !spanners[sIdx].minSize) {
         log(`DEPRECATION: minNodes is deprecated, remove minNodes from your config and instead use: units = 'NODES' and minSize = ${spanners[sIdx].minNodes}`,
-        'WARNING');
+          {severity: 'WARNING', projectId: spanners[sIdx].projectId, instanceId: spanners[sIdx].instanceId});
         spanners[sIdx].minSize = spanners[sIdx].minNodes;
       } else if(spanners[sIdx].minSize && spanners[sIdx].minNodes && spanners[sIdx].minSize != spanners[sIdx].minNodes) {
         throw new Error('INVALID CONFIG: minSize and minNodes are both set but do not match, make them match or only set minSize');
@@ -258,7 +267,7 @@ async function parseAndEnrichPayload(payload) {
       // if maxNodes or maxSize are provided set the other, and if both are set and not match throw an error
       if(spanners[sIdx].maxNodes && !spanners[sIdx].maxSize) {
         log(`DEPRECATION: maxNodes is deprecated, remove maxSize from your config and instead use: units = 'NODES' and maxSize = ${spanners[sIdx].maxNodes}`,
-        'WARNING');
+          {severity: 'WARNING', projectId: spanners[sIdx].projectId, instanceId: spanners[sIdx].instanceId});
         spanners[sIdx].maxSize = spanners[sIdx].maxNodes;
       } else if(spanners[sIdx].maxSize && spanners[sIdx].maxNodes && spanners[sIdx].maxSize != spanners[sIdx].maxNodes) {
         throw new Error('INVALID CONFIG: maxSize and maxNodes are both set but do not match, make them match or only set maxSize');
@@ -282,7 +291,7 @@ async function parseAndEnrichPayload(payload) {
         }
         else {
           var metric = {...metricDefaults, ...metricOverrides[oIdx]};
-          if(validateCustomMetric(metric)) {
+          if(validateCustomMetric(metric, spanners[sIdx].projectId, spanners[sIdx].instanceId)) {
             metric.filter = createBaseFilter(spanners[sIdx].projectId, spanners[sIdx].instanceId) + metric.filter;
             spanners[sIdx].metrics.push(metric);
           }
@@ -298,7 +307,8 @@ async function parseAndEnrichPayload(payload) {
       };
       spannersFound.push(spanners[sIdx]);
     } catch (err) {
-      log(`Unable to retrieve Spanner metadata for ${spanners[sIdx].projectId}/${spanners[sIdx].instanceId}`, 'ERROR', err);
+      log(`Unable to retrieve Spanner metadata for ${spanners[sIdx].projectId}/${spanners[sIdx].instanceId}`,
+        {severity: 'ERROR', projectId: spanners[sIdx].projectId, instanceId: spanners[sIdx].instanceId, payload: err});
     }
   }
 
@@ -307,10 +317,10 @@ async function parseAndEnrichPayload(payload) {
 
 async function getMetrics(spanner) {
   log(`----- ${spanner.projectId}/${spanner.instanceId}: Getting Metrics -----`,
-      'INFO');
+    {severity: 'INFO', projectId: spanner.projectId, instanceId: spanner.instanceId});
   var metrics = [];
   for (const metric of spanner.metrics) {
-    var maxMetricValue =
+    var [maxMetricValue, maxLocation] =
         await getMaxMetricValue(spanner.projectId, spanner.instanceId, metric);
 
     var threshold;
@@ -327,7 +337,8 @@ async function getMetrics(spanner) {
       margin = metric.multi_regional_margin;
     }
 
-    log(`	 ${metric.name} = ${maxMetricValue}, threshold = ${threshold}, margin = ${margin}`);
+    log(`  ${metric.name} = ${maxMetricValue}, threshold = ${threshold}, margin = ${margin}, location = ${maxLocation}`,
+      {projectId: spanner.projectId, instanceId: spanner.instanceId});
 
     const metricsObject = {
       name: metric.name,
@@ -346,7 +357,8 @@ forwardMetrics = async (forwarderFunction, spanners) => {
       var metrics = await getMetrics(spanner);
       forwarderFunction(spanner, metrics); // Handles exceptions
     } catch (err) {
-      log(`Unable to retrieve metrics for ${spanner.projectId}/${spanner.instanceId}`, 'ERROR', err);
+      log(`Unable to retrieve metrics for ${spanner.projectId}/${spanner.instanceId}`,
+        {severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
     }
   }
 };
@@ -355,10 +367,11 @@ exports.checkSpannerScaleMetricsPubSub = async (pubSubEvent, context) => {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
     const spanners = await parseAndEnrichPayload(payload);
-    log('Autoscaler poller started (PubSub).', 'DEBUG', spanners);
+    log('Autoscaler poller started (PubSub).', {severity: 'DEBUG', payload: spanners});
     await forwardMetrics(postPubSubMessage, spanners);
   } catch (err) {
-    log(`An error occurred in the Autoscaler poller function (PubSub)`, 'ERROR', err);
+    log(`An error occurred in the Autoscaler poller function (PubSub)`, {severity: 'ERROR', payload: err});
+    log(`JSON payload`, {severity: 'ERROR', payload: payload });
   }
 };
 
@@ -371,7 +384,8 @@ exports.checkSpannerScaleMetricsHTTP = async (req, res) => {
     await forwardMetrics(postPubSubMessage, spanners);
     res.status(200).end();
   } catch (err) {
-    log(`An error occurred in the Autoscaler poller function (HTTP)`, 'ERROR', err);
+    log(`An error occurred in the Autoscaler poller function (HTTP)`, {severity: 'ERROR', payload: err});
+    log(`JSON payload`, {severity: 'ERROR', payload: payload });
     res.status(500).end(err.toString());
   }
 };
@@ -379,11 +393,11 @@ exports.checkSpannerScaleMetricsHTTP = async (req, res) => {
 exports.checkSpannerScaleMetricsJSON = async (payload) => {
   try {
     const spanners = await parseAndEnrichPayload(payload);
-    log('Autoscaler poller started (JSON/HTTP).', 'DEBUG', spanners);
+    log('Autoscaler poller started (JSON/HTTP).', {severity: 'DEBUG', payload: spanners});
     await forwardMetrics(callScalerHTTP, spanners);
   } catch (err) {
-    log(`An error occurred in the Autoscaler poller function (JSON)`, 'ERROR', err);
-    log(`JSON payload`, 'ERROR', payload);
+    log(`An error occurred in the Autoscaler poller function (JSON)`, {severity: 'ERROR', payload: err});
+    log(`JSON payload`, {severity: 'ERROR', payload: payload });
   }
 };
 

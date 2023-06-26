@@ -15,10 +15,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: autoscaler-config
+  name: autoscaler-config-hourly
   namespace: spanner-autoscaler
 data:
-  autoscaler-config.yaml: |
+  autoscaler-config-hourly.yaml: |
     ---
     - projectId: ${PROJECT_ID}
       instanceId: autoscale-test
@@ -27,7 +27,7 @@ data:
         name: spanner
         instanceId: autoscale-test-state
         databaseId: spanner-autoscaler-state
-      scalingMethod: LINEAR
+      scalingMethod: DIRECT
       units: PROCESSING_UNITS
-      minSize: 100
-      maxSize: 500
+      minSize: 200
+      maxSize: 200
