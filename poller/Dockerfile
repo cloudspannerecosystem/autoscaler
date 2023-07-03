@@ -9,6 +9,6 @@ RUN npm install
 
 FROM gcr.io/distroless/nodejs:${NODE_VERSION}
 COPY --from=build-env /usr/src/app /usr/src/app
-WORKDIR /usr/src/app
+WORKDIR /usr/src/app/poller-core
 
-CMD ["index.js"]
+CMD ["../index.js"]
