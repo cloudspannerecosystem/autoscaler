@@ -163,14 +163,7 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
 
 6.  The Autoscaler state can be stored in either Firestore or Cloud Spanner.
 
-    In case you want to use Firestore, set the value of the following variable
-    to true.
-
-    ```sh
-    export TF_VAR_terraform_firestore_create=true
-    ```
-
-    In case you want to use Cloud Spanner, no action is needed at this point.
+    Firestore database will be created by default, In case you want to use Cloud Spanner, no action is needed at this point.
 
 ### Deploying the Autoscaler
 

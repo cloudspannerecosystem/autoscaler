@@ -30,12 +30,6 @@ variable "location" {
   default = "nam5"
 }
 
-variable "firestore_database_type" {
-  description = "The database type. TYPE must be one of: datastore-mode, firestore-native"
-  type = string
-  default = "FIRESTORE_NATIVE" 
-}
-
 variable "poller_sa_email" {
   type = string
 }

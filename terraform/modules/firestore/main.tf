@@ -15,8 +15,8 @@
  */
 
 /*
- * While the Firestore database is created using the gcloud CLI, the
- * Terraform-created service account used by the Scaler needs read/write
+ * The Firestore database is created using this terraform module and the
+ * terraform-created service account used by the Scaler needs read/write
  * permissions to the instance in the appropriate project if Spanner
  * is not being used to hold state.
  */
@@ -29,19 +29,14 @@ resource "google_project_iam_member" "scaler_sa_firestore" {
 }
 
 resource "google_project_service" "firestore" {
-  count = var.terraform_firestore_create ? 1 : 0
-
   project = var.project_id
   service = "firestore.googleapis.com"
 }
 
 resource "google_firestore_database" "database" {
-  count = var.terraform_firestore_create ? 1 : 0
-
   project     = var.project_id
   name        = "(default)"
   location_id = var.location
-  type        = var.firestore_database_type
-
+  type        = "FIRESTORE_NATIVE"
   depends_on = [google_project_service.firestore]
 }
