@@ -81,7 +81,7 @@ variable "state_project_id" {
   default  = null
 }
 
-variable "state_spanner_name" {
+variable "spanner_state_name" {
   type     = string
   nullable = true
   default  = null
