@@ -44,7 +44,7 @@ module "spanner" {
   terraform_spanner_test         = var.terraform_spanner_test
   project_id                     = var.project_id
   spanner_name                   = var.spanner_name
-  state_spanner_name             = var.state_spanner_name
+  spanner_state_name             = var.spanner_state_name
   spanner_test_processing_units  = var.spanner_test_processing_units
   spanner_state_processing_units = var.spanner_state_processing_units
   poller_sa_email                = data.terraform_remote_state.autoscaler.outputs.poller_sa_email
@@ -68,7 +68,7 @@ module "scheduler" {
   target_pubsub_topic     = data.terraform_remote_state.autoscaler.outputs.scaler_topic
   terraform_spanner_state = var.terraform_spanner_state
   state_project_id        = var.state_project_id
-  state_spanner_name      = var.state_spanner_name
+  spanner_state_name      = var.spanner_state_name
 }
 
 module "monitoring" {

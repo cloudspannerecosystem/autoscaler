@@ -55,7 +55,7 @@ variable "spanner_state_processing_units" {
   default     = 100
 }
 
-variable "state_spanner_name" {
+variable "spanner_state_name" {
   type    = string
   default = "autoscale-test-state"
 }

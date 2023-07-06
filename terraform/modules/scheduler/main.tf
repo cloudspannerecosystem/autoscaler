@@ -26,7 +26,7 @@ locals {
         "scalingMethod" : "${var.scaling_method}",
         "stateDatabase": var.terraform_spanner_state ? {
           "name":       "spanner",
-          "instanceId": "${var.state_spanner_name}"
+          "instanceId": "${var.spanner_state_name}"
           "databaseId": "spanner-autoscaler-state"
         } : {
           "name":       "firestore",

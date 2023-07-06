@@ -45,7 +45,7 @@ variable "spanner_name" {
   type    = string
 }
 
-variable "state_spanner_name" {
+variable "spanner_state_name" {
   description = "Name of the Spanner instance where the Autoscaler state is stored."
   type    = string
 }

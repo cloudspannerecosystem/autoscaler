@@ -58,7 +58,7 @@ module "spanner" {
   terraform_spanner_test         = var.terraform_spanner_test
   project_id                     = local.app_project_id
   spanner_name                   = var.spanner_name
-  state_spanner_name             = var.state_spanner_name
+  spanner_state_name             = var.spanner_state_name
   spanner_test_processing_units  = var.spanner_test_processing_units
   spanner_state_processing_units = var.spanner_state_processing_units
   poller_sa_email                = module.autoscaler-base.poller_sa_email
@@ -73,7 +73,7 @@ module "scheduler" {
   pubsub_topic            = module.autoscaler-functions.poller_topic
   target_pubsub_topic     = module.autoscaler-functions.scaler_topic
   terraform_spanner_state = var.terraform_spanner_state
-  state_spanner_name      = var.state_spanner_name
+  spanner_state_name      = var.spanner_state_name
 
   // Example of passing config as json
   // json_config             = base64encode(jsonencode([{

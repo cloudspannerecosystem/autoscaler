@@ -33,7 +33,7 @@ variable "spanner_name" {
   default = "autoscale-test"
 }
 
-variable "state_spanner_name" {
+variable "spanner_state_name" {
   type    = string
   default = "autoscale-test-state"
 }
