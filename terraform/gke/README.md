@@ -184,7 +184,9 @@ In this section you prepare your project for deployment.
     export TF_VAR_terraform_spanner_test=true
     ```
 
-    On the other hand, if you do not want to create a new Spanner instance because you already have an instance for the Autoscaler to monitor, set thevname of your instance in the following variable
+    On the other hand, if you do not want to create a new Spanner instance because
+    you already have an instance for the Autoscaler to monitor, set the name of your
+    instance in the following variable
 
     ```sh
     export TF_VAR_spanner_name=<INSERT_YOUR_SPANNER_INSTANCE_NAME>
@@ -484,8 +486,8 @@ following the instructions above.
 
 ### If the Poller fails to run successfully
 
-1.  If you have chosen to use Firestore (default) for storing Autoscaler state and you see the
-    following error in the logs:
+1.  If you have chosen to use Firestore (default) for storing Autoscaler state and you
+    see the following error in the logs:
 
     ```sh
      Error: 5 NOT_FOUND: Database not found: projects/<YOUR_PROJECT>/instances/autoscale-test/databases/spanner-autoscaler-state

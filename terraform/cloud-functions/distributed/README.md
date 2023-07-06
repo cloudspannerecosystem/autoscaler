@@ -163,7 +163,8 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
 
 6.  The Autoscaler state can be stored in either Firestore or Cloud Spanner.
 
-    Firestore database will be created by default, In case you want to use Cloud Spanner, no action is needed at this point.
+    Firestore database will be created by default, In case you want to use Cloud Spanner,
+    no action is needed at this point.
 
 ### Deploying the Autoscaler
 
