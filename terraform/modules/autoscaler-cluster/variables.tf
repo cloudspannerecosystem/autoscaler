@@ -26,11 +26,6 @@ variable "region" {
   description = "The name of the region to run the cluster"
 }
 
-variable "kubernetes_version" {
-  description = "Version string for the master Kubernetes version"
-  default     = "1.23"
-}
-
 variable "ip_range_master" {
   description = "The range for the private master"
 }
