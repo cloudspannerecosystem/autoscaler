@@ -294,7 +294,7 @@ topic and function in the project where the Spanner instances live.
     will create:
 
     ```sh
-    export TF_VAR_state_spanner_name=<INSERT_STATE_SPANNER_INSTANCE_NAME>
+    export TF_VAR_spanner_state_name=<INSERT_STATE_SPANNER_INSTANCE_NAME>
     ```
 
     If you already have an Spanner instance where state must be stored,
@@ -302,7 +302,7 @@ topic and function in the project where the Spanner instances live.
 
     ```sh
     export TF_VAR_state_project_id=<INSERT_YOUR_STATE_PROJECT_ID>
-    export TF_VAR_state_spanner_name=<INSERT_YOUR_STATE_SPANNER_INSTANCE_NAME>
+    export TF_VAR_spanner_state_name=<INSERT_YOUR_STATE_SPANNER_INSTANCE_NAME>
     ```
 
     In your own instance, make sure you create the the database
