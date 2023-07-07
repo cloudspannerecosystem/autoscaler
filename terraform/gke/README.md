@@ -486,8 +486,8 @@ following the instructions above.
 
 ### If the Poller fails to run successfully
 
-1.  If you have chosen to use Firestore (default) for storing Autoscaler state and you
-    see the following error in the logs:
+1.  If you have chosen to use Firestore (default) for storing Autoscaler state
+    and you see the following error in the logs:
 
     ```sh
      Error: 5 NOT_FOUND: Database not found: projects/<YOUR_PROJECT>/instances/autoscale-test/databases/spanner-autoscaler-state
