@@ -88,10 +88,10 @@ jobs:
         run: |-
           gcloud app create --region=us-central --project ${PROJECT_ID}
 
-      - name: 'Enable Firestore'
-        id: 'enable-firestore'
+      - name: 'Configure Firestore'
+        id: 'configure-firestore'
         run: |-
-          gcloud firestore databases update --type=firestore-native --project ${PROJECT_ID}
+          for i in {1..10}; do gcloud firestore databases update --type=firestore-native --project ${PROJECT_ID} && break || sleep 10; done
 
       - name: 'Run the E2E test'
         id: 'run-e2e-test'
