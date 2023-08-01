@@ -17,7 +17,7 @@
 resource "google_monitoring_dashboard" "dashboard" {
   project        = var.project_id
   dashboard_json = templatefile("${path.module}/dashboard.json.tftpl", {
-    thresholds_high_priority_cpu_percentage = var.dashboard_threshold_high_priority_cpu_percentage
+    thresholds_high_priority_cpu_percentage = var.dashboard_threshold_high_priority_cpu_percentage/100
     thresholds_rolling_24hr_cpu_percentage  = var.dashboard_threshold_rolling_24_hr_percentage
     thresholds_storage_percentage           = var.dashboard_threshold_storage_percentage
   })
