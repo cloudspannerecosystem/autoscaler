@@ -219,7 +219,7 @@ function postPubSubMessage(spanner, metrics) {
 function callScalerHTTP(spanner, metrics) {
   spanner.scalerURL ||= 'http://scaler';
   const url = new URL('/metrics', spanner.scalerURL);
-  
+
   spanner.metrics = metrics;
 
   return axios.post(url.toString(), spanner)
