@@ -203,6 +203,13 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
 function postPubSubMessage(spanner, metrics) {
   const topic = pubSub.topic(spanner.scalerPubSubTopic);
 
+  // Set the publish timeout to its previous default value (10m) to avoid publish errors
+  topic.setPublishOptions({
+    gaxOpts: {
+      timeout: 600000, // Milliseconds
+    }
+  });
+
   spanner.metrics = metrics;
   const messageBuffer = Buffer.from(JSON.stringify(spanner), 'utf8');
 
