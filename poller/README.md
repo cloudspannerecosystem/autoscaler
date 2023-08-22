@@ -101,6 +101,7 @@ Key                      | Default Value  | Description
 `scaleInLimit`           | `undefined`    | Percentage (integer) of the total instance size that can be removed in a scale in event when using the linear algorithm. For example if set to `20`, only 20% of the instance size can be removed in a single scaling event, when `scaleInLimit` is `undefined` a limit is not enforced.
 `minNodes` (DEPRECATED)  | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
 `maxNodes` (DEPRECATED)  | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
+`scalerURL`              | `http://scaler`| URL where the scaler service receives HTTP requests.
 
 ## Metrics parameters
 
