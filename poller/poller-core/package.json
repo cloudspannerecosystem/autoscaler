@@ -4,11 +4,11 @@
     "license": "Apache-2.0",
     "author": "Google Inc.",
     "dependencies": {
-        "@google-cloud/functions-framework": "^3.0.0",
-        "@google-cloud/monitoring": "^2.3.4",
-        "@google-cloud/pubsub": "^3.1.0",
-        "@google-cloud/spanner": "^6.8.0",
-        "axios": "^0.27.2"
+        "@google-cloud/functions-framework": "^3.3.0",
+        "@google-cloud/monitoring": "^4.0.0",
+        "@google-cloud/pubsub": "^4.0.1",
+        "@google-cloud/spanner": "^6.16.0",
+        "axios": "^1.4.0"
     },
     "scripts": {
         "start": "functions-framework --target=checkSpannerScaleMetricsHTTP",
@@ -17,12 +17,12 @@
         "mdlint": "cd .. && markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"
     },
     "devDependencies": {
-        "markdownlint": "^0.25.1",
-        "mocha": "^9.0.3",
+        "markdownlint": "^0.30.0",
+        "mocha": "^10.2.0",
         "mocha-suppress-logs": "^0.3.1",
         "nyc": "^15.1.0",
-        "rewire": "^6.0.0",
+        "rewire": "^7.0.0",
         "should": "^13.2.3",
-        "sinon": "^11.1.2"
+        "sinon": "^15.2.0"
     }
 }
