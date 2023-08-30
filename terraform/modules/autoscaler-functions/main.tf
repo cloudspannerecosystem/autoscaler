@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+terraform {
+  provider_meta "google" {
+    module_name = "cloud-solutions/spanner-autoscaler-deploy-cf-v1.0"
+  }
+}
+
 // PubSub
 
 resource "google_pubsub_topic" "poller_topic" {

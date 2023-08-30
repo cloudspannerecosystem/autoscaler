@@ -60,6 +60,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
 
   const spannerClient = new Spanner({
     projectId: spanner.projectId,
+    userAgent: "cloud-solutions/spanner-autoscaler-scaler-usage-v1.0"
   });
 
   return spannerClient.instance(spanner.instanceId)

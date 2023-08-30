@@ -178,6 +178,7 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
 
   const spanner = new Spanner({
     projectId: projectId,
+    userAgent: "cloud-solutions/spanner-autoscaler-poller-usage-v1.0"
   });
   const spannerInstance = spanner.instance(spannerInstanceId);
 
