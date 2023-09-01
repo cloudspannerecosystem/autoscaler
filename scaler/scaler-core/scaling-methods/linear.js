@@ -46,9 +46,11 @@ function calculateSize(spanner) {
         if (suggestedSize != originalSuggestedSize) {
           log(`\tscaleInLimit exceeded. Original suggested size was ${originalSuggestedSize} ${spanner.units}, new suggested size is ${suggestedSize} ${spanner.units}.`,
           {severity: 'DEBUG', projectId: spanner.projectId, instanceId: spanner.instanceId});
-        }        
+        }
       }
-      return maybeRound(suggestedSize, spanner.units, metric.name, spanner.projectId, spanner.instanceId);
+      var linearRoundingPrecision = spanner.linearRoundingPrecision || 1000;
+
+      return maybeRound(suggestedSize, spanner.units, metric.name, spanner.projectId, spanner.instanceId, linearRoundingPrecision);
     }
   });
 }

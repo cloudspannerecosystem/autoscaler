@@ -75,6 +75,14 @@ describe('#linear.calculateSize', () => {
     calculateSize(spanner).should.equal(2000);
     assert.equals(callbackStub.callCount, 1);
   });
+
+  it('should return the number of processing units rounded to next 100 if over 1000', () => {
+    const spanner = createSpannerParameters({currentSize : 900, linearRoundingPrecision: 10000}, true);
+    const callbackStub = stubBaseModule(spanner, {value : 85, threshold : 65}, false);
+
+    calculateSize(spanner).should.equal(1200);
+    assert.equals(callbackStub.callCount, 1);
+  });
   
   it('should return the higher instance size if a scaleInLimit is specified', () => {
     const spanner = createSpannerParameters({units : 'NODES', currentSize: 20, scaleInLimit: 10}, true);

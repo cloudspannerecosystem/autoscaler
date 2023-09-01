@@ -36,11 +36,11 @@ function convertMillisecToHumanReadable(millisec) {
   }
 }
 
-function maybeRound(suggestedSize, units, label='', projectId, instanceId) {
+function maybeRound(suggestedSize, units, label='', projectId, instanceId, linearRoundingPrecision) {
   if (units == 'NODES')
     return suggestedSize;
   else {
-    const roundTo = (suggestedSize < 1000) ? 100 : 1000;
+    const roundTo = (suggestedSize < linearRoundingPrecision) ? 100 : 1000;
     const roundedSize = Math.ceil(suggestedSize/roundTo)*roundTo;
     if (roundedSize != suggestedSize)
       log(`\t${label}: Suggested ${suggestedSize}, rounded to ${roundedSize} ${units}`,

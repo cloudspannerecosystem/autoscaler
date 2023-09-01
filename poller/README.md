@@ -23,20 +23,23 @@
 
 ## Table of Contents
 
-*   [Table of Contents](#table-of-contents)
-*   [Overview](#overview)
-*   [Configuration parameters](#configuration-parameters)
-    *   [Required](#required)
-    *   [Optional](#optional)
-*   [Metrics parameters](#metrics-parameters)
-    *   [Selectors](#selectors)
-    *   [Parameters](#parameters)
-*   [Custom metrics, thresholds and margins](#custom-metrics-thresholds-and-margins)
-    *   [Thresholds](#thresholds)
-    *   [Margins](#margins)
-    *   [Metrics](#metrics)
-*   [Example configuration for Cloud Functions](#example-configuration-for-cloud-functions)
-*   [Example configuration for Google Kubernetes Engine](#example-configuration-for-google-kubernetes-engine)
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+- [Configuration parameters](#configuration-parameters)
+  - [Required](#required)
+  - [Required for a Cloud Functions deployment](#required-for-a-cloud-functions-deployment)
+  - [Optional](#optional)
+- [Metrics parameters](#metrics-parameters)
+  - [Selectors](#selectors)
+  - [Parameters](#parameters)
+- [Custom metrics, thresholds and margins](#custom-metrics-thresholds-and-margins)
+  - [Thresholds](#thresholds)
+  - [Margins](#margins)
+  - [Metrics](#metrics)
+- [State Database](#state-database)
+  - [State Managing in Cloud Spanner](#state-managing-in-cloud-spanner)
+- [Example configuration for Cloud Functions](#example-configuration-for-cloud-functions)
+- [Example configuration for Google Kubernetes Engine](#example-configuration-for-google-kubernetes-engine)
 
 ## Overview
 
@@ -102,6 +105,7 @@ Key                      | Default Value  | Description
 `minNodes` (DEPRECATED)  | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
 `maxNodes` (DEPRECATED)  | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
 `scalerURL`              | `http://scaler`| URL where the scaler service receives HTTP requests.
+`linearRoundingPrecision`| 1000           | Number used for suggested size comparison that rounds up by 100 PU if suggestedSize is less than this value, or rounds up by 1000 PU if suggestedSize is greater than this value. Only used when scaling with the `LINEAR` method.
 
 ## Metrics parameters
 
