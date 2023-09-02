@@ -201,15 +201,8 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
   });
 }
 
-function postPubSubMessage(spanner, metrics) {
+async function postPubSubMessage(spanner, metrics) {
   const topic = pubSub.topic(spanner.scalerPubSubTopic);
-
-  // Set the publish timeout to its previous default value (10m) to avoid publish errors
-  topic.setPublishOptions({
-    gaxOpts: {
-      timeout: 600000, // Milliseconds
-    }
-  });
 
   spanner.metrics = metrics;
   const messageBuffer = Buffer.from(JSON.stringify(spanner), 'utf8');
@@ -224,7 +217,7 @@ function postPubSubMessage(spanner, metrics) {
       });
 }
 
-function callScalerHTTP(spanner, metrics) {
+async function callScalerHTTP(spanner, metrics) {
   spanner.scalerURL ||= 'http://scaler';
   const url = new URL('/metrics', spanner.scalerURL);
 
@@ -367,7 +360,7 @@ forwardMetrics = async (forwarderFunction, spanners) => {
   for (const spanner of spanners) {
     try {
       var metrics = await getMetrics(spanner);
-      forwarderFunction(spanner, metrics); // Handles exceptions
+      await forwarderFunction(spanner, metrics); // Handles exceptions
     } catch (err) {
       log(`Unable to retrieve metrics for ${spanner.projectId}/${spanner.instanceId}`,
         {severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
