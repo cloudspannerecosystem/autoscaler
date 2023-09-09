@@ -165,16 +165,19 @@ async function processScalingRequest(spanner, autoscalerState) {
   if (!withinCooldownPeriod(
     spanner, suggestedSize, await autoscalerState.get(),
     autoscalerState.now)) {
+    let eventType;
     try {
       await scaleSpannerInstance(spanner, suggestedSize);
       await autoscalerState.set();
-      await publishDownstreamEvent('SCALING', spanner, suggestedSize);
+      eventType = 'SCALING';
     } catch (err) {
       log(`----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt.`,
         { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
       log(`----- ${spanner.projectId}/${spanner.instanceId}: Spanner payload:`,
         { severity: 'WARNING', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner});
+      eventType = 'SCALING_FAILURE';
     }
+    await publishDownstreamEvent(eventType, spanner, suggestedSize);
   }
 }
 
