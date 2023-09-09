@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+terraform {
+  provider_meta "google" {
+    module_name = "cloud-solutions/spanner-autoscaler-deploy-cf-v1.0"
+  }
+}
+
 // PubSub
 
 resource "google_pubsub_topic" "poller_topic" {
@@ -95,7 +101,7 @@ resource "google_cloudfunctions_function" "poller_function" {
   ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
   available_memory_mb = "256"
   entry_point         = "checkSpannerScaleMetricsPubSub"
-  runtime             = "nodejs10"
+  runtime             = "nodejs${var.nodejs_version}"
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = google_pubsub_topic.poller_topic.id
@@ -116,7 +122,7 @@ resource "google_cloudfunctions_function" "scaler_function" {
   ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
   available_memory_mb = "256"
   entry_point         = "scaleSpannerInstancePubSub"
-  runtime             = "nodejs10"
+  runtime             = "nodejs${var.nodejs_version}"
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = google_pubsub_topic.scaler_topic.id

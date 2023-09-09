@@ -51,8 +51,11 @@ The Scaler component supports three scaling methods out of the box:
 
 *   [LINEAR](scaler-core/scaling-methods/linear.js): This method suggests
     adding or removing nodes or processing units calculated with a simple
-    linear [cross multiplication][cross-multiplication]. This way, the new
-    number of nodes or processing units is
+    linear [cross multiplication][cross-multiplication].
+    In other words, the new number of processing units divided by the max
+    number of processing units is equal to the metric value divided by the
+    metric threshold value.
+    Using this method, the new number of nodes or processing units is
     [directly proportional][directly-proportional] to the current resource
     utilization.
 
@@ -281,16 +284,4 @@ you can follow [this example][pub-sub-receive-proto].
 [autoscaler-poller-parameters]: ../poller/README.md#configuration-parameters
 [spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
 [directly-proportional]: https://en.wikipedia.org/wiki/Proportionality_(mathematics)#Direct_proportionality
-[cross-multiplication]: https://en.wikipedia.org/wiki/Cross-multiplication
-[pub-sub-schema]: https://cloud.google.com/pubsub/docs/schemas
-[base-64-decode]: https://www.base64decode.org/
-[log-based-metrics]: https://cloud.google.com/logging/docs/logs-based-metrics
-[charts-and-alerts]: https://cloud.google.com/logging/docs/logs-based-metrics#monitoring
-[notification-channels]: https://cloud.google.com/monitoring/support/notification-options
-[alert-incidents]: https://cloud.google.com/monitoring/alerts/log-based-incidents
-[proto-field-numbers]: https://protobuf.dev/programming-guides/proto3/#assigning
-[proto-reserved]: https://protobuf.dev/programming-guides/proto3/#fieldreserved
-[pub-sub-receive]: https://cloud.google.com/pubsub/docs/publish-receive-messages-client-library#receive_messages
-[pub-sub-receive-proto]: https://cloud.google.com/pubsub/docs/samples/pubsub-subscribe-proto-messages#pubsub_subscribe_proto_messages-nodejs_javascript
-[pub-sub-create-subscription]: https://cloud.google.com/pubsub/docs/create-subscription#pubsub_create_push_subscription-nodejs
-[regional-multi-regional]: https://cloud.google.com/spanner/docs/instance-configurations
+[cross-multiplication]: https://github.com/cloudspannerecosystem/autoscaler/blob/83ed3f5d37eceedd031ff679c1f2b9de7b0a3dbf/scaler/scaler-core/scaling-methods/linear.js#L35

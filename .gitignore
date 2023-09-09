@@ -1,6 +1,5 @@
 # Auto-generated when installing Node packages, e.g. CF emulator
 node_modules
-package-lock.json
 
 # General
 tmp
@@ -42,3 +41,6 @@ terraform/*/*/*.json
 # Kubernetes manifests generated from templates
 kubernetes/autoscaler-config/*.yaml
 kubernetes/**/resourcegroup.yaml
+
+# Terratest
+.test-data

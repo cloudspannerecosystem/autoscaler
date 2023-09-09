@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+terraform {
+  provider_meta "google" {
+    module_name = "cloud-solutions/spanner-autoscaler-deploy-gke-v1.0"
+  }
+}
+
 resource "google_service_account" "service_account" {
   project      = var.project_id
   account_id   = "cluster-sa"

@@ -102,6 +102,7 @@ Key                      | Default Value  | Description
 `minNodes` (DEPRECATED)  | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
 `maxNodes` (DEPRECATED)  | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
 `downstreamPubSubTopic`  | `undefined`    | Set this parameter to `projects/${projectId}/topics/downstream-topic` if you want the the Autoscaler to publish events that can be consumed by downstream applications.  See [Downstream messaging](../scaler/README.md#downstream-messaging) for more information.
+`scalerURL`              | `http://scaler`| URL where the scaler service receives HTTP requests.
 
 ## Metrics parameters
 

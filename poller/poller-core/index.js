@@ -178,6 +178,7 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
 
   const spanner = new Spanner({
     projectId: projectId,
+    userAgent: "cloud-solutions/spanner-autoscaler-poller-usage-v1.0"
   });
   const spannerInstance = spanner.instance(spannerInstanceId);
 
@@ -200,7 +201,7 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
   });
 }
 
-function postPubSubMessage(spanner, metrics) {
+async function postPubSubMessage(spanner, metrics) {
   const topic = pubSub.topic(spanner.scalerPubSubTopic);
 
   spanner.metrics = metrics;
@@ -216,10 +217,13 @@ function postPubSubMessage(spanner, metrics) {
       });
 }
 
-function callScalerHTTP(spanner, metrics) {
+async function callScalerHTTP(spanner, metrics) {
+  spanner.scalerURL ||= 'http://scaler';
+  const url = new URL('/metrics', spanner.scalerURL);
+
   spanner.metrics = metrics;
 
-  return axios.post('http://scaler/metrics', spanner)
+  return axios.post(url.toString(), spanner)
     .then(response => {
       log(`Published message to scaler, response ${response.statusText}`, 'INFO', spanner);
     })
@@ -355,7 +359,7 @@ forwardMetrics = async (forwarderFunction, spanners) => {
   for (const spanner of spanners) {
     try {
       var metrics = await getMetrics(spanner);
-      forwarderFunction(spanner, metrics); // Handles exceptions
+      await forwarderFunction(spanner, metrics); // Handles exceptions
     } catch (err) {
       log(`Unable to retrieve metrics for ${spanner.projectId}/${spanner.instanceId}`,
         {severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
