@@ -6,6 +6,7 @@
   "dependencies": {
     "@google-cloud/firestore": "^6.7.0",
     "@google-cloud/functions-framework": "^3.3.0",
+    "@google-cloud/pubsub": "^3.3.0",
     "@google-cloud/spanner": "^6.16.0"
   },
   "scripts": {

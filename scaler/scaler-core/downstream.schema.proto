@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+message DownstreamEvent {
+
+  message Metric {
+    reserved 5 to 1000;
+    string name = 1;
+    float threshold = 2;
+    float value = 3;
+    float margin = 4;
+  }
+
+  reserved 7 to 1000;
+  string project_id = 1;
+  string instance_id = 2;
+  optional int32 current_size = 3;
+  optional int32 suggested_size = 4;
+  optional Units units = 5;
+  repeated Metric metrics = 6;
+}
+
+enum Units {
+  NODES = 0;
+  PROCESSING_UNITS = 1;
+}

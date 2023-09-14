@@ -26,6 +26,7 @@
 const {Spanner} = require('@google-cloud/spanner');
 const {convertMillisecToHumanReadable} = require('./utils.js');
 const {log} = require('./utils.js');
+const {publishProtoMsgDownstream} = require('./utils.js');
 const State = require('./state.js');
 const fs = require('fs');
 
@@ -70,6 +71,21 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
         log(`Cloud Spanner started the scaling operation: ${operation.name}`,
           {projectId: spanner.projectId, instanceId: spanner.instanceId});
       });
+}
+
+async function publishDownstreamEvent(eventName, spanner, suggestedSize) {
+  
+  const message = {
+    projectId: spanner.projectId,
+    instanceId: spanner.instanceId,
+    currentSize: spanner.currentSize,
+    suggestedSize: suggestedSize,
+    units: spanner.units,
+    metrics: spanner.metrics,
+  };
+
+  return publishProtoMsgDownstream(eventName, message, spanner.downstreamPubSubTopic);
+
 }
 
 function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
@@ -149,15 +165,19 @@ async function processScalingRequest(spanner, autoscalerState) {
   if (!withinCooldownPeriod(
     spanner, suggestedSize, await autoscalerState.get(),
     autoscalerState.now)) {
+    let eventType;
     try {
       await scaleSpannerInstance(spanner, suggestedSize);
       await autoscalerState.set();
+      eventType = 'SCALING';
     } catch (err) {
       log(`----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt.`,
         { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
       log(`----- ${spanner.projectId}/${spanner.instanceId}: Spanner payload:`,
         { severity: 'WARNING', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner});
+      eventType = 'SCALING_FAILURE';
     }
+    await publishDownstreamEvent(eventType, spanner, suggestedSize);
   }
 }
 
@@ -182,7 +202,7 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 // For testing with: https://cloud.google.com/functions/docs/functions-framework
 exports.scaleSpannerInstanceHTTP = async (req, res) => {
   try {
-    const payload = fs.readFileSync('./test/sample-parameters.json');
+    const payload = fs.readFileSync('./test/samples/parameters.json');
 
     var spanner = JSON.parse(payload);
     var state = new State(spanner);

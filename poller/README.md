@@ -80,7 +80,7 @@ instructions on how to change the payload.
 
 | Key                 | Description
 | ------------------- | -----------
-| `scalerPubSubTopic` | PubSub topic for the Poller function to publish messages for the Scaler function
+| `scalerPubSubTopic` | PubSub topic for the Poller function to publish messages for the Scaler function. The topic must be in the format `projects/{projects}/topics/{topicId}`.
 
 ### Optional
 
@@ -101,6 +101,7 @@ Key                      | Default Value  | Description
 `scaleInLimit`           | `undefined`    | Percentage (integer) of the total instance size that can be removed in a scale in event when using the linear algorithm. For example if set to `20`, only 20% of the instance size can be removed in a single scaling event, when `scaleInLimit` is `undefined` a limit is not enforced.
 `minNodes` (DEPRECATED)  | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
 `maxNodes` (DEPRECATED)  | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
+`downstreamPubSubTopic`  | `undefined`    | Set this parameter to `projects/${projectId}/topics/downstream-topic` if you want the the Autoscaler to publish events that can be consumed by downstream applications.  See [Downstream messaging](../scaler/README.md#downstream-messaging) for more information.
 `scalerURL`              | `http://scaler`| URL where the scaler service receives HTTP requests.
 
 ## Metrics parameters
