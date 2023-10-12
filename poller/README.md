@@ -71,38 +71,38 @@ instructions on how to change the payload.
 
 ### Required
 
-| Key                 | Description
-| ------------------- | -----------
-| `projectId`         | Project ID of the Cloud Spanner to be monitored by the Autoscaler
-| `instanceId`        | Instance ID of the Cloud Spanner to be monitored by the Autoscaler
+| Key                 | Description |
+| ------------------- | ----------- |
+| `projectId`         | Project ID of the Cloud Spanner to be monitored by the Autoscaler |
+| `instanceId`        | Instance ID of the Cloud Spanner to be monitored by the Autoscaler |
 
 ### Required for a Cloud Functions deployment
 
-| Key                 | Description
-| ------------------- | -----------
-| `scalerPubSubTopic` | PubSub topic for the Poller function to publish messages for the Scaler function. The topic must be in the format `projects/{projects}/topics/{topicId}`.
+| Key                 | Description |
+| ------------------- | ----------- |
+| `scalerPubSubTopic` | PubSub topic for the Poller function to publish messages for the Scaler function. The topic must be in the format `projects/{projects}/topics/{topicId}`. |
 
 ### Optional
 
-Key                      | Default Value  | Description
------------------------- | -------------- | -----------
-`units`                  | `NODES`        | Specifies the units that capacity will be measured in `NODES` or `PROCESSING_UNITS`.
-`minSize`                | 1 N or 100 PU  | Minimum number of Cloud Spanner nodes or processing units that the instance can be scaled IN to.
-`maxSize`                | 3 N or 2000 PU | Maximum number of Cloud Spanner nodes or processing units that the instance can be scaled OUT to.
-`scalingMethod`          | `STEPWISE`     | Scaling method that should be used. Options are: `STEPWISE`, `LINEAR`, `DIRECT`. See the [scaling methods section][autoscaler-scaler-methods] in the Scaler component page for more information.
-`stepSize`               | 2 N or 200 PU  | Number of nodes that should be added or removed when scaling with the `STEPWISE` method. When the Spanner instance size is over 1000 PUs, scaling will be done in steps of 1000 PUs. For more information see the [Spanner compute capacity][compute-capacity] documentation.
-`overloadStepSize`       | 5 N or 500 PU  | Number of nodes that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used.
-`scaleOutCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed.
-`scaleInCoolingMinutes`  | 30             | Minutes to wait after scaling IN or OUT before a scale IN event can be processed.
-`overloadCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed, when the Spanner instance is overloaded. An instance is overloaded if its High Priority CPU utilization is over 90%.
-`stateProjectId`         | `${projectId}` | The project ID where the Autoscaler state will be persisted. By default it is persisted using [Cloud Firestore][cloud-firestore] in the same project as the Spanner instance.
-`stateDatabase`          | Object         | An Object that can override the database for managing the state of the Autoscaler. The default database is Firestore. Refer to the [state database](#state-database) for details.
-`metrics`                | Array          | Array of objects that can override the values in the metrics used to decide when the Cloud Spanner instance should be scaled IN or OUT. Refer to the [metrics definition table](#metrics-parameters) to see the fields used for defining metrics.
-`scaleInLimit`           | `undefined`    | Percentage (integer) of the total instance size that can be removed in a scale in event when using the linear algorithm. For example if set to `20`, only 20% of the instance size can be removed in a single scaling event, when `scaleInLimit` is `undefined` a limit is not enforced.
-`minNodes` (DEPRECATED)  | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to.
-`maxNodes` (DEPRECATED)  | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to.
-`downstreamPubSubTopic`  | `undefined`    | Set this parameter to `projects/${projectId}/topics/downstream-topic` if you want the the Autoscaler to publish events that can be consumed by downstream applications.  See [Downstream messaging](../scaler/README.md#downstream-messaging) for more information.
-`scalerURL`              | `http://scaler`| URL where the scaler service receives HTTP requests.
+| Key                      | Default Value  | Description |
+| ------------------------ | -------------- | ----------- |
+| `units`                  | `NODES`        | Specifies the units that capacity will be measured in `NODES` or `PROCESSING_UNITS`. |
+| `minSize`                | 1 N or 100 PU  | Minimum number of Cloud Spanner nodes or processing units that the instance can be scaled IN to. |
+| `maxSize`                | 3 N or 2000 PU | Maximum number of Cloud Spanner nodes or processing units that the instance can be scaled OUT to. |
+| `scalingMethod`          | `STEPWISE`     | Scaling method that should be used. Options are: `STEPWISE`, `LINEAR`, `DIRECT`. See the [scaling methods section][autoscaler-scaler-methods] in the Scaler component page for more information. |
+| `stepSize`               | 2 N or 200 PU  | Number of nodes that should be added or removed when scaling with the `STEPWISE` method. When the Spanner instance size is over 1000 PUs, scaling will be done in steps of 1000 PUs. For more information see the [Spanner compute capacity][compute-capacity] documentation. |
+| `overloadStepSize`       | 5 N or 500 PU  | Number of nodes that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used. |
+| `scaleOutCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed. |
+| `scaleInCoolingMinutes`  | 30             | Minutes to wait after scaling IN or OUT before a scale IN event can be processed. |
+| `overloadCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed, when the Spanner instance is overloaded. An instance is overloaded if its High Priority CPU utilization is over 90%. |
+| `stateProjectId`         | `${projectId}` | The project ID where the Autoscaler state will be persisted. By default it is persisted using [Cloud Firestore][cloud-firestore] in the same project as the Spanner instance. |
+| `stateDatabase`          | Object         | An Object that can override the database for managing the state of the Autoscaler. The default database is Firestore. Refer to the [state database](#state-database) for details. |
+| `metrics`                | Array          | Array of objects that can override the values in the metrics used to decide when the Cloud Spanner instance should be scaled IN or OUT. Refer to the [metrics definition table](#metrics-parameters) to see the fields used for defining metrics. |
+| `scaleInLimit`           | `undefined`    | Percentage (integer) of the total instance size that can be removed in a scale in event when using the linear algorithm. For example if set to `20`, only 20% of the instance size can be removed in a single scaling event, when `scaleInLimit` is `undefined` a limit is not enforced. |
+| `minNodes` (DEPRECATED)  | 1              | DEPRECATED: Minimum number of Cloud Spanner nodes that the instance can be scaled IN to. |
+| `maxNodes` (DEPRECATED)  | 3              | DEPRECATED: Maximum number of Cloud Spanner nodes that the instance can be scaled OUT to. |
+| `downstreamPubSubTopic`  | `undefined`    | Set this parameter to `projects/${projectId}/topics/downstream-topic` if you want the the Autoscaler to publish events that can be consumed by downstream applications.  See [Downstream messaging](../scaler/README.md#downstream-messaging) for more information. |
+| `scalerURL`              | `http://scaler`| URL where the scaler service receives HTTP requests. |
 
 ## Metrics parameters
 
@@ -116,9 +116,9 @@ will be merged with the default metric parameters.
 
 ### Selectors
 
-Key                  | Description
----------------------| -----------
-`name`               | A unique name of the for the metric to be evaulated. If you want to override the default metrics, their names are: `high_priority_cpu`, `rolling_24_hr` and `storage`.
+| Key                   | Description |
+| --------------------- | ----------- |
+| `name`                | A unique name of the for the metric to be evaulated. If you want to override the default metrics, their names are: `high_priority_cpu`, `rolling_24_hr` and `storage`. |
 
 ### Parameters
 
@@ -130,16 +130,16 @@ metric is critical to the opertional of the Autoscaler, please refer to
 for a complete discussion on building metric filters and aggregating data
 points.
 
-Key                        | Default      | Description
--------------------------- | ------------ | -----------
-`filter`                   |              | The [Cloud Spanner metric][spanner-metrics] and [filter][time-series-filter] that should be used when querying for data. The Autoscaler will automatically add the filter expressions for [Spanner instance resources, instance id][spanner-filter] and project id.
-`reducer`                  | `REDUCE_SUM` | The reducer specifies how the data points should be aggregated when querying for metrics, typically `REDUCE_SUM`. For more details please refer to [Alert Policies - Reducer][alertpolicy-reducer] documentation.
-`aligner`                  | `ALIGN_MAX`  | The aligner specifies how the data points should be aligned in the time series, typically `ALIGN_MAX`. For more details please refer to [Alert Policies - Aligner][alertpolicy-aligner] documentation.
-`period`                   | 60           | Defines the period of time in units of seconds at which aggregation takes place. Typically the period should be 60.
-`regional_threshold`       |              | Threshold used to evaluate if a regional instance needs to be scaled in or out.
-`multi_regional_threshold` |              | Threshold used to evaluate if a multi-regional instance needs to be scaled in or out.
-`regional_margin`       |      5       | Margin above and below the threshold where the metric value is allowed. If the metric falls outside of the range `[threshold - margin, threshold + margin]`, then the regional instance needs to be scaled in or out.
-`multi_regional_margin` |      5       | Margin above and below the threshold where the metric value is allowed. If the metric falls outside of the range `[threshold - margin, threshold + margin]`, then the multi regional instance needs to be scaled in or out.
+| Key                        | Default      | Description |
+| -------------------------- | ------------ | ----------- |
+| `filter`                   |              | The [Cloud Spanner metric][spanner-metrics] and [filter][time-series-filter] that should be used when querying for data. The Autoscaler will automatically add the filter expressions for [Spanner instance resources, instance id][spanner-filter] and project id. |
+| `reducer`                  | `REDUCE_SUM` | The reducer specifies how the data points should be aggregated when querying for metrics, typically `REDUCE_SUM`. For more details please refer to [Alert Policies - Reducer][alertpolicy-reducer] documentation. |
+| `aligner`                  | `ALIGN_MAX`  | The aligner specifies how the data points should be aligned in the time series, typically `ALIGN_MAX`. For more details please refer to [Alert Policies - Aligner][alertpolicy-aligner] documentation. |
+| `period`                   | 60           | Defines the period of time in units of seconds at which aggregation takes place. Typically the period should be 60. |
+| `regional_threshold`       |              | Threshold used to evaluate if a regional instance needs to be scaled in or out. |
+| `multi_regional_threshold` |              | Threshold used to evaluate if a multi-regional instance needs to be scaled in or out. |
+| `regional_margin`       |      5       | Margin above and below the threshold where the metric value is allowed. If the metric falls outside of the range `[threshold - margin, threshold + margin]`, then the regional instance needs to be scaled in or out. |
+| `multi_regional_margin` |      5       | Margin above and below the threshold where the metric value is allowed. If the metric falls outside of the range `[threshold - margin, threshold + margin]`, then the multi regional instance needs to be scaled in or out. |
 
 ## Custom metrics, thresholds and margins
 
@@ -203,18 +203,18 @@ one of the default metrics, in which case you may either:
 The table describes the objects used to specify the database
 for managing the state of the Autoscaler.
 
-Key                        | Default      | Description
--------------------------- | ------------ | -----------
-`name`                     | `firestore`  | Name of the database for managing the state of the Autoscaler. By default, Firestore is used. The currently supported values are `firestore` and `spanner`.
+| Key                        | Default      | Description |
+| -------------------------- | ------------ | ----------- |
+| `name`                     | `firestore`  | Name of the database for managing the state of the Autoscaler. By default, Firestore is used. The currently supported values are `firestore` and `spanner`. |
 
 ### State Managing in Cloud Spanner
 
 If the value of `name` is `spanner`, the following values are required.
 
-Key                        | Description
--------------------------- | -----------
-`instanceId`               | The instance id of Cloud Spanner which you want to manage the state.
-`databaseId`               | The database id of Cloud Spanner instance which you want to manage the state.
+| Key                        | Description |
+| -------------------------- | ----------- |
+| `instanceId`               | The instance id of Cloud Spanner which you want to manage the state. |
+| `databaseId`               | The database id of Cloud Spanner instance which you want to manage the state. |
 
 When using Cloud Spanner to manage the state,
 a table with the following DDL is created at runtime.
