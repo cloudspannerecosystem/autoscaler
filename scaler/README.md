@@ -285,3 +285,15 @@ you can follow [this example][pub-sub-receive-proto].
 [spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
 [directly-proportional]: https://en.wikipedia.org/wiki/Proportionality_(mathematics)#Direct_proportionality
 [cross-multiplication]: https://github.com/cloudspannerecosystem/autoscaler/blob/83ed3f5d37eceedd031ff679c1f2b9de7b0a3dbf/scaler/scaler-core/scaling-methods/linear.js#L35
+[pub-sub-schema]: https://cloud.google.com/pubsub/docs/schemas
+[base-64-decode]: https://www.base64decode.org/
+[log-based-metrics]: https://cloud.google.com/logging/docs/logs-based-metrics
+[charts-and-alerts]: https://cloud.google.com/logging/docs/logs-based-metrics#monitoring
+[notification-channels]: https://cloud.google.com/monitoring/support/notification-options
+[alert-incidents]: https://cloud.google.com/monitoring/alerts/log-based-incidents
+[proto-field-numbers]: https://protobuf.dev/programming-guides/proto3/#assigning
+[proto-reserved]: https://protobuf.dev/programming-guides/proto3/#fieldreserved
+[pub-sub-receive]: https://cloud.google.com/pubsub/docs/publish-receive-messages-client-library#receive_messages
+[pub-sub-receive-proto]: https://cloud.google.com/pubsub/docs/samples/pubsub-subscribe-proto-messages#pubsub_subscribe_proto_messages-nodejs_javascript
+[pub-sub-create-subscription]: https://cloud.google.com/pubsub/docs/create-subscription#pubsub_create_push_subscription-nodejs
+[regional-multi-regional]: https://cloud.google.com/spanner/docs/instance-configurations

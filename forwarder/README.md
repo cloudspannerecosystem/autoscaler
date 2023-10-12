@@ -73,6 +73,6 @@ variable `POLLER_TOPIC`.
 
 ### Required
 
-Key            | Description
--------------- | -------------------------------------------
-`POLLER_TOPIC` | PubSub topic the Poller function listens on
+| Key            | Description |
+| -------------- | ------------------------------------------- |
+| `POLLER_TOPIC` | PubSub topic the Poller function listens on |
