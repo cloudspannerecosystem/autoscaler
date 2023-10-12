@@ -184,9 +184,9 @@ In this section you prepare your project for deployment.
     export TF_VAR_terraform_spanner_test=true
     ```
 
-    On the other hand, if you do not want to create a new Spanner instance
-    because you already have an instance for the Autoscaler to monitor, set the
-    name name of your instance in the following variable
+    On the other hand, if you do not want to create a new Spanner instance because
+    you already have an instance for the Autoscaler to monitor, set the name of your
+    instance in the following variable
 
     ```sh
     export TF_VAR_spanner_name=<INSERT_YOUR_SPANNER_INSTANCE_NAME>
@@ -207,38 +207,23 @@ In this section you prepare your project for deployment.
 
 ## Using Firestore for Autoscaler state
 
-1.  To use Firestore for the Autoscaler state, choose the
-    [App Engine Location][app-engine-location] where the Autoscaler
-    infrastructure will be created, for example:
+### Setting up Firestore for storing Autoscaler state using terraform
+
+1.  A Firestore database will be created by default for storing the state of the
+    Autoscaler in the [Firestore native mode][firestore-native].
+
+2.  Enable the additional APIs necessary for using Firestore:
 
     ```sh
-    export APP_ENGINE_LOCATION=us-central
-    ```
-
-2.  Enable the additional APIs:
-
-    ```sh
-    gcloud services enable \
+      gcloud services enable \
       appengine.googleapis.com \
       firestore.googleapis.com
     ```
 
-3.  Create a Google App Engine app to enable the API for Firestore:
+3.  Next, continue to [Deploying the Autoscaler](#deploying-the-autoscaler)
 
-    ```sh
-    gcloud app create --region="${APP_ENGINE_LOCATION}"
-    ```
-
-4.  To store the state of the Autoscaler, update the database created with the
-    Google App Engine app to use [Firestore native mode][firestore-native].
-
-    ```sh
-    gcloud firestore databases update --type=firestore-native
-    ```
-
-    You will also need to make a minor modification to the Autoscaler
-    configuration. The required steps to do this are later in these
-    instructions.
+4.  You will also need to make a minor modification to the Autoscaler
+    configuration. The required steps to do this are later in these instructions.
 
 5.  Next, continue to [Deploying the Autoscaler](#deploying-the-autoscaler)
 
@@ -441,7 +426,7 @@ similar process.
     the schema of the configuration, see the [Poller configuration]
     [autoscaler-config-params] section.
 
-9.  If you have chosen to use Firestore to hold the Autoscaler state as described
+9.  If you wish to use Firestore to hold the Autoscaler state as described
     above, edit the above files, and remove the following lines:
 
     ```yaml
@@ -501,8 +486,8 @@ following the instructions above.
 
 ### If the Poller fails to run successfully
 
-1.  If you have chosen to use Firestore for Autoscaler state and you see the
-    following error in the logs:
+1.  If you have chosen to use Firestore (default) for storing Autoscaler state
+    and you see the following error in the logs:
 
     ```sh
      Error: 5 NOT_FOUND: Database not found: projects/<YOUR_PROJECT>/instances/autoscale-test/databases/spanner-autoscaler-state

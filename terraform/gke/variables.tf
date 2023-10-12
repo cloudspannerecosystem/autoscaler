@@ -71,3 +71,8 @@ variable "terraform_dashboard" {
   type        = bool
   default     = true
 }
+
+variable "terraform_firestore_create" {
+  type    = bool
+  default = false
+}

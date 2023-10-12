@@ -18,6 +18,18 @@ variable "project_id" {
   type = string
 }
 
+variable "region" {
+  description = "The region where the infrastructure will be deployed."
+  type    = string
+  default = "us-central1"
+}
+
+variable "location" {
+  description = "The location within the region where the infrastructure will be deployed."
+  type = string
+  default = "nam5"
+}
+
 variable "poller_sa_email" {
   type = string
 }
@@ -26,7 +38,7 @@ variable "scaler_sa_email" {
   type = string
 }
 
-variable "region" {
-  type    = string
-  default = "us-central1"
+variable "terraform_firestore_create" {
+  type = bool
+  default = false
 }
