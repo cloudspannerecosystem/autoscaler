@@ -20,7 +20,7 @@ variable "project_id" {
 
 variable "location" {
   type    = string
-  default = "us-central"
+  default = "nam5"
 }
 
 variable "schedule" {
