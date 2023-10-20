@@ -87,11 +87,11 @@ instructions on how to change the payload.
 | Key                      | Default Value  | Description |
 | ------------------------ | -------------- | ----------- |
 | `units`                  | `NODES`        | Specifies the units that capacity will be measured in `NODES` or `PROCESSING_UNITS`. |
-| `minSize`                | 1 N or 100 PU  | Minimum number of Cloud Spanner nodes or processing units that the instance can be scaled IN to. |
-| `maxSize`                | 3 N or 2000 PU | Maximum number of Cloud Spanner nodes or processing units that the instance can be scaled OUT to. |
+| `minSize`                | 1 N or 100 PU  | Minimum number of Cloud Spanner nodes or processing units that the instance can be scaled IN to.　Do not include the unit (`N` or `PU`) in the value. |
+| `maxSize`                | 3 N or 2000 PU | Maximum number of Cloud Spanner nodes or processing units that the instance can be scaled OUT to.　Do not include the unit (`N` or `PU`) in the value. |
 | `scalingMethod`          | `STEPWISE`     | Scaling method that should be used. Options are: `STEPWISE`, `LINEAR`, `DIRECT`. See the [scaling methods section][autoscaler-scaler-methods] in the Scaler component page for more information. |
-| `stepSize`               | 2 N or 200 PU  | Number of nodes that should be added or removed when scaling with the `STEPWISE` method. When the Spanner instance size is over 1000 PUs, scaling will be done in steps of 1000 PUs. For more information see the [Spanner compute capacity][compute-capacity] documentation. |
-| `overloadStepSize`       | 5 N or 500 PU  | Number of nodes that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used. |
+| `stepSize`               | 2 N or 200 PU  | Number of nodes that should be added or removed when scaling with the `STEPWISE` method. When the Spanner instance size is over 1000 PUs, scaling will be done in steps of 1000 PUs. For more information see the [Spanner compute capacity][compute-capacity] documentation.　Do not include the unit (`N` or `PU`) in the value. |
+| `overloadStepSize`       | 5 N or 500 PU  | Number of nodes that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used.　Do not include the unit (`N` or `PU`) in the value. |
 | `scaleOutCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed. |
 | `scaleInCoolingMinutes`  | 30             | Minutes to wait after scaling IN or OUT before a scale IN event can be processed. |
 | `overloadCoolingMinutes` | 5              | Minutes to wait after scaling IN or OUT before a scale OUT event can be processed, when the Spanner instance is overloaded. An instance is overloaded if its High Priority CPU utilization is over 90%. |
