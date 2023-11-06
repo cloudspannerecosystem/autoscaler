@@ -8,11 +8,11 @@
     <br />
     Home
     ·
-    <a href="poller/README.md">Poller component</a>
+    <a href="src/poller/README.md">Poller component</a>
     ·
-    <a href="scaler/README.md">Scaler component</a>
+    <a href="src/scaler/README.md">Scaler component</a>
     ·
-    <a href="forwarder/README.md">Forwarder component</a>
+    <a href="src/forwarder/README.md">Forwarder component</a>
     ·
     <a href="terraform/README.md">Terraform configuration</a>
     ·
@@ -45,9 +45,9 @@ instance.
 The Autoscaler monitors your instances and automatically adds or
 removes compute capacity to ensure that they stay within the
 [recommended maximums for CPU utilization][spanner-max-cpu] and the
-[recommended limit for storage per node][spanner-max-storage], plus or minus an
-[allowed margin](poller/README.md#margins). Note that the recommended thresholds
-are different depending if a Spanner instance is
+[recommended limit for storage per node][spanner-max-storage], plus or
+minus an [allowed margin](src/poller/README.md#margins). Note that the
+recommended thresholds are different depending if a Spanner instance is
 [regional or multi-region][spanner-regional].
 
 ## Architecture
@@ -64,7 +64,7 @@ interaction flow:
     These can be deployed to either [Cloud Functions][cloud-functions] or
     [Google Kubernetes Engine (GKE)][gke], and configured so that the
     Autoscaler runs according to a user-defined schedule. In certain deployment
-    topologies a third component, the [Forwarder](forwarder/README.md), is also
+    topologies a third component, the [Forwarder][autoscaler-forwarder], is also
     deployed.
 
 2.  At the specified time and frequency, the Poller component queries the
@@ -76,9 +76,9 @@ interaction flow:
     specific Spanner instance, and some of its corresponding configuration
     parameters.
 
-4.  Using the chosen [scaling method](scaler/README.md#scaling-methods), the
-    Scaler compares the Spanner instance metrics against the recommended
-    thresholds, (plus or minus an [allowed margin](poller/README.md#margins)),
+4.  Using the chosen [scaling method](src/scaler/README.md#scaling-methods),
+    the Scaler compares the Spanner instance metrics against the recommended
+    thresholds, (plus or minus an [allowed margin](src/poller/README.md#margins)),
     and determines if the instance should be scaled, and the number of nodes or
     processing units that it should be scaled to. If the configured cooldown
     period has passed, then the Scaler component requests the Spanner Instance
@@ -142,8 +142,9 @@ support channels.
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
-[autoscaler-poller]: poller/README.md
-[autoscaler-scaler]: scaler/README.md
+[autoscaler-poller]: src/poller/README.md
+[autoscaler-scaler]: src/scaler/README.md
+[autoscaler-forwarder]: src/forwarder/README.md
 [cloud-functions]: https://cloud.google.com/functions
 [cloud-monitoring]: https://cloud.google.com/monitoring
 [cloud-logging]: https://cloud.google.com/logging

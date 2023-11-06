@@ -1,13 +1,13 @@
 <br />
 <p align="center">
   <h2 align="center">Autoscaler tool for Cloud Spanner</h2>
-  <img alt="Autoscaler" src="../resources/BlogHeader_Database_3.max-2200x2200.jpg">
+  <img alt="Autoscaler" src="../../resources/BlogHeader_Database_3.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
     Automatically increase or reduce the size of one Spanner instance
     <br />
-    <a href="../README.md">Home</a>
+    <a href="../../README.md">Home</a>
     ·
     <a href="../poller/README.md">Poller component</a>
     ·
@@ -15,9 +15,9 @@
     ·
     <a href="../forwarder/README.md">Forwarder component</a>
     ·
-    <a href="../terraform/README.md">Terraform configuration</a>
+    <a href="../../terraform/README.md">Terraform configuration</a>
     ·
-    <a href="../terraform/README.md#Monitoring">Monitoring</a>
+    <a href="../../terraform/README.md#Monitoring">Monitoring</a>
   </p>
 </p>
 
@@ -151,7 +151,7 @@ as the value of the `downstreamPubSubTopic` parameter in the [Poller configurati
 Make sure you replace the placeholder `${projectId}` with your actual project ID.
 
 The topic is created at deployment time as specified in the
-[base module Terraform config](../terraform/modules/autoscaler-base/main.tf).
+[base module Terraform config](../../terraform/modules/autoscaler-base/main.tf).
 
 ### Message structure
 

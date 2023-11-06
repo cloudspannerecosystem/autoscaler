@@ -9,11 +9,11 @@
     <br />
     <a href="../../README.md">Home</a>
     ·
-    <a href="../../scaler/README.md">Scaler component</a>
+    <a href="../../src/scaler/README.md">Scaler component</a>
     ·
-    <a href="../../poller/README.md">Poller component</a>
+    <a href="../../src/poller/README.md">Poller component</a>
     ·
-    <a href="../../forwarder/README.md">Forwarder component</a>
+    <a href="../../src/forwarder/README.md">Forwarder component</a>
     ·
     Terraform configuration
     ·
@@ -78,9 +78,9 @@ interaction flow:
 
 6.  For each message pushed into the Scaler topic, an instance of the
     [Scaler Cloud Function][autoscaler-scaler] is created to handle it. \
-    Using the chosen [scaling method](../../scaler/README.md#scaling-methods), the
+    Using the chosen [scaling method][scaling-methods] the
     Scaler function compares the Spanner instance metrics against the
-    recommended thresholds, plus or minus an [allowed margin](../../poller/README.md#margins)
+    recommended thresholds, plus or minus an [allowed margin][margins]
     and determines if the instance should be scaled, and the number of nodes
     or processiing units that it should be scaled to.
 
@@ -190,8 +190,8 @@ and creates the following resources.
     started. This dashboard has 4 metrics: High CPU utilization, Smoothed CPU
     utilization, Storage utilization and Processing units.
 
-[autoscaler-poller]: ../../poller/README.md
-[autoscaler-scaler]: ../../scaler/README.md
+[autoscaler-poller]: ../../src/poller/README.md
+[autoscaler-scaler]: ../../src/scaler/README.md
 [cloud-firestore]: https://firebase.google.com/docs/firestore
 [cloud-logging]: https://cloud.google.com/logging
 [cloud-pub-sub]: https://cloud.google.com/pubsub
@@ -200,3 +200,5 @@ and creates the following resources.
 [cloud-scheduler-console]: https://console.cloud.google.com/cloudscheduler
 [cloud-scheduler-lifecycle]: ../../terraform/modules/scheduler/main.tf#L67
 [json]: https://www.json.org/
+[margins]: ../../src/scaler/README.md#margins
+[scaling-methods]: ../../src/scaler/README.md#scaling-methods

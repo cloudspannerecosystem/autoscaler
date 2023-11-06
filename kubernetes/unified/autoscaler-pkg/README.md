@@ -1,12 +1,12 @@
-# scaler
+# autoscaler-pkg
 
 ## Description
 
-Config for Scaler component of Spanner Autoscaler
+Config for Spanner Autoscaler
 
 ### View package content
 
-`kpt pkg tree scaler`
+`kpt pkg tree autoscaler-pkg`
 [Details](https://kpt.dev/reference/cli/pkg/tree/)
 
 ## Installation

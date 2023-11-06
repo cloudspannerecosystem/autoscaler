@@ -368,6 +368,21 @@ forwardMetrics = async (forwarderFunction, spanners) => {
   }
 };
 
+aggregateMetrics = async (spanners) => {
+  var aggregatedMetrics = [];
+  for (const spanner of spanners) {
+    try {
+      spanner.metrics = await getMetrics(spanner);
+      aggregatedMetrics.push(spanner);
+    } catch (err) {
+      log(`Unable to retrieve metrics for ${spanner.projectId}/${spanner.instanceId}`,
+        {severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
+    }
+  }
+  return aggregatedMetrics;
+};
+
+
 exports.checkSpannerScaleMetricsPubSub = async (pubSubEvent, context) => {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
@@ -401,7 +416,18 @@ exports.checkSpannerScaleMetricsJSON = async (payload) => {
     log('Autoscaler poller started (JSON/HTTP).', {severity: 'DEBUG', payload: spanners});
     await forwardMetrics(callScalerHTTP, spanners);
   } catch (err) {
-    log(`An error occurred in the Autoscaler poller function (JSON)`, {severity: 'ERROR', payload: err});
+    log(`An error occurred in the Autoscaler poller function (JSON/HTTP)`, {severity: 'ERROR', payload: err});
+    log(`JSON payload`, {severity: 'ERROR', payload: payload });
+  }
+};
+
+exports.checkSpannerScaleMetricsLocal = async (payload) => {
+  try {
+    const spanners = await parseAndEnrichPayload(payload);
+    log('Autoscaler poller started (JSON/local).', {severity: 'DEBUG', payload: spanners});
+    return await aggregateMetrics(spanners);
+  } catch (err) {
+    log(`An error occurred in the Autoscaler poller function (JSON/local)`, {severity: 'ERROR', payload: err});
     log(`JSON payload`, {severity: 'ERROR', payload: payload });
   }
 };

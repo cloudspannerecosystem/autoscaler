@@ -1,5 +1,5 @@
 /**
- * Copyright 2020 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,35 +39,43 @@ provider "google-beta" {
   zone    = var.zone
 }
 
-module "autoscaler-base" {
-  source = "../modules/autoscaler-base"
+resource "google_service_account" "autoscaler_sa" {
+  account_id   = "scaler-sa"
+  display_name = "Spanner Autoscaler - Metrics Poller/Scaler Service Account"
+}
 
-  project_id = var.project_id
+module "autoscaler-base" {
+  source = "../../modules/autoscaler-base"
+
+  project_id      = var.project_id
+  poller_sa_email = google_service_account.autoscaler_sa.email
+  scaler_sa_email = google_service_account.autoscaler_sa.email
 }
 
 module "autoscaler-cluster" {
-  source = "../modules/autoscaler-cluster"
+  source = "../../modules/autoscaler-cluster"
 
-  region            = var.region
-  project_id        = var.project_id
-  name              = "spanner-autoscaler"
-  ip_range_master   = "10.1.0.0/28"
-  ip_range_pods     = ""
-  ip_range_services = ""
-  poller_sa_email   = module.autoscaler-base.poller_sa_email
-  scaler_sa_email   = module.autoscaler-base.scaler_sa_email
+  region             = var.region
+  project_id         = var.project_id
+  name               = "spanner-autoscaler"
+  ip_range_master    = "10.1.0.0/28"
+  ip_range_pods      = ""
+  ip_range_services  = ""
+  unified_components = true
+  poller_sa_email    = google_service_account.autoscaler_sa.email
+  scaler_sa_email    = google_service_account.autoscaler_sa.email
 }
 
 module "firestore" {
-  source = "../modules/firestore"
+  source = "../../modules/firestore"
 
   project_id      = var.project_id
-  poller_sa_email = module.autoscaler-base.poller_sa_email
-  scaler_sa_email = module.autoscaler-base.scaler_sa_email
+  poller_sa_email = google_service_account.autoscaler_sa.email
+  scaler_sa_email = google_service_account.autoscaler_sa.email
 }
 
 module "spanner" {
-  source = "../modules/spanner"
+  source = "../../modules/spanner"
 
   terraform_spanner_state        = var.terraform_spanner_state
   terraform_spanner_test         = var.terraform_spanner_test
@@ -76,13 +84,13 @@ module "spanner" {
   spanner_state_name             = var.spanner_state_name
   spanner_test_processing_units  = var.spanner_test_processing_units
   spanner_state_processing_units = var.spanner_state_processing_units
-  poller_sa_email                = module.autoscaler-base.poller_sa_email
-  scaler_sa_email                = module.autoscaler-base.scaler_sa_email
+  poller_sa_email                = google_service_account.autoscaler_sa.email
+  scaler_sa_email                = google_service_account.autoscaler_sa.email
 }
 
 module "monitoring" {
   count  = var.terraform_dashboard ? 1 : 0
-  source = "../modules/monitoring"
+  source = "../../modules/monitoring"
 
   project_id = var.project_id
 }

@@ -9,11 +9,11 @@
     <br />
     <a href="../../README.md">Home</a>
     ·
-    <a href="../../scaler/README.md">Scaler component</a>
+    <a href="../../src/scaler/README.md">Scaler component</a>
     ·
-    <a href="../../poller/README.md">Poller component</a>
+    <a href="../../src/poller/README.md">Poller component</a>
     ·
-    <a href="../../forwarder/README.md">Forwarder component</a>
+    <a href="../../src/forwarder/README.md">Forwarder component</a>
     ·
     Terraform configuration
     ·
@@ -37,9 +37,13 @@
 *   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
     *   [Using Firestore for Autoscaler state](#using-firestore-for-autoscaler-state)
     *   [Using Spanner for Autoscaler state](#using-spanner-for-autoscaler-state)
-*   [Deploying the Autoscaler](#deploying-the-autoscaler)
+*   [Creating Autoscaler infrastructure](#creating-autoscaler-infrastructure)
 *   [Importing your Spanner instances](#importing-your-spanner-instances)
-*   [Building and Deploying the Autoscaler Services](#building-and-deploying-the-autoscaler-services)
+*   [Building the Autoscaler](#building-the-autoscaler)
+    *   [Building the Autoscaler for a unified deployment model](#building-the-autoscaler-for-a-unified-deployment-model)
+    *   [Building the Autoscaler for a decoupled deployment model](#building-the-autoscaler-for-a-decoupled-deployment-model)
+*   [Deploying the Autoscaler](#deploying-the-autoscaler)
+*   [Troubleshooting](#troubleshooting)
 
 ## Overview
 
@@ -56,15 +60,15 @@ infrastructure and configuration of their own Autoscalers on Kubernetes.
 
 ## Architecture
 
-![architecture-gke](../../resources/architecture-gke.png)
+![architecture-gke][architecture-gke]
 
 1.  Using a [Kubernetes ConfigMap][kubernetes-configmap] you define which
     Spanner instances you would like to be managed by the autoscaler. Currently
     these must be in the same project as the cluster that runs the autoscaler.
 
 2.  Using a [Kubernetes CronJob][kubernetes-cronjob], the autoscaler is
-    configured to run on a schedule. By default this is every minute, though
-    this is configurable.
+    configured to run on a schedule. By default this is every two minutes,
+    though this is configurable.
 
 3.  When scheduled, an instance of the [Poller][autoscaler-poller]
     is created as a [Kubernetes Job][kubernetes-job].
@@ -76,12 +80,11 @@ infrastructure and configuration of their own Autoscalers on Kubernetes.
     API. The request payload contains the utilization metrics for the specific
     Spanner instance, and some of its corresponding configuration parameters.
 
-6.  Using the chosen [scaling method](../../scaler/README.md#scaling-methods),
+6.  Using the chosen [scaling method][scaling-methods]
     the Scaler compares the Spanner instance metrics against the recommended
-    thresholds, plus or minus an [allowed
-    margin](../../poller/README.md#margins) and determines if the instance
-    should be scaled, and the number of nodes or processing units that it
-    should be scaled to.
+    thresholds, plus or minus an [allowed margin][margins] and determines
+    if the instance should be scaled, and the number of nodes or processing units
+    that it should be scaled to.
 
 7.  The Scaler retrieves the time when the instance was last scaled from the
     state data stored in [Cloud Firestore][cloud-firestore] (or alternatively
@@ -115,6 +118,29 @@ The GKE deployment has the following pros and cons:
 *   **Audit**: because of the high level of control by each team, a centralized
     audit may become more complex.
 
+## Further options for GKE deployment
+
+For deployment to GKE there are two further options to choose from:
+
+1.  Deployment of decoupled Poller and Scaler components, running in separate pods.
+
+2.  Deployment of a unified Autoscaler, with Poller and Scaler components
+    combined.
+
+The decoupled deployment model has the advantage that Poller and Scaler
+components can be assigned individual permissions (i.e. run as separate service
+accounts), and the two components can be managed and scaled as required to suit
+your needs. However, this deployment model relies on the Scaler component being
+deployed as a long-running service, which consumes resources.
+
+In contrast, the unified deployment model has the advantage that the Poller and
+Scaler components can be deployed as a single pod, which runs as a Kubernetes
+cron job. This means there are no long-running components. As well as this,
+with Poller and Scaler components combined, only a single service account is
+required.
+
+For most use cases, the unified deployment model is recommended.
+
 ## Before you begin
 
 In this section you prepare your environment.
@@ -134,11 +160,30 @@ In this section you prepare your environment.
     git clone https://github.com/cloudspannerecosystem/autoscaler.git
     ```
 
-4.  Export variables for the working directories:
+4.  Export a variable for the Autoscaler working directory:
 
     ```sh
-    export AUTOSCALER_ROOT="$(pwd)/autoscaler"
-    export AUTOSCALER_DIR=${AUTOSCALER_ROOT}/terraform/gke
+    cd autoscaler && export AUTOSCALER_ROOT="$(pwd)"
+    ```
+
+5.  Export a variable to indicate your chosen deployment model:
+
+    For the decoupled deployment model:
+
+    ```sh
+    export AUTOSCALER_DEPLOYMENT_MODEL=decoupled
+    ```
+
+    Alternatively, for the decoupled deployment model:
+
+    ```sh
+    export AUTOSCALER_DEPLOYMENT_MODEL=unified
+    ```
+
+6.  Export a variable for the root of the deployment:
+
+    ```sh
+    export AUTOSCALER_DIR="${AUTOSCALER_ROOT}/terraform/gke/${AUTOSCALER_DEPLOYMENT_MODEL}"
     ```
 
 ## Preparing the Autoscaler Project
@@ -205,7 +250,7 @@ In this section you prepare your project for deployment.
     [Using Firestore for Autoscaler State](#using-firestore-for-autoscaler-state).
     For Spanner, follow the steps in [Using Spanner for Autoscaler state](#using-spanner-for-autoscaler-state).
 
-## Using Firestore for Autoscaler state
+### Using Firestore for Autoscaler state
 
 1.  To use Firestore for the Autoscaler state, choose the
     [App Engine Location][app-engine-location] where the Autoscaler
@@ -240,9 +285,9 @@ In this section you prepare your project for deployment.
     configuration. The required steps to do this are later in these
     instructions.
 
-5.  Next, continue to [Deploying the Autoscaler](#deploying-the-autoscaler)
+5.  Next, continue to [Creating Autoscaler infrastructure](#creating-autoscaler-infrastructure).
 
-## Using Spanner for Autoscaler state
+### Using Spanner for Autoscaler state
 
 1.  If you want to store the state in Cloud Spanner and you don't have a Spanner
     instance yet for that, then set the following variable so that Terraform
@@ -281,9 +326,11 @@ In this section you prepare your project for deployment.
     ) PRIMARY KEY (id)
     ```
 
-2.  Next, continue to [Deploying the Autoscaler](#deploying-the-autoscaler)
+2.  Next, continue to [Creating Autoscaler infrastructure](#creating-autoscaler-infrastructure).
 
-## Deploying the Autoscaler
+## Creating Autoscaler infrastructure
+
+In this section you deploy the Autoscaler infrastructure.
 
 1.  Set the project ID and region in the corresponding Terraform
     environment variables:
@@ -311,8 +358,6 @@ If you are running this command in Cloud Shell and encounter errors of the form
 "`Error: cannot assign requested address`", this is a
 [known issue][provider-issue] in the Terraform Google provider, please retry
 with `-parallelism=1`.
-
-Next, continue to [Building and Deploying the Autoscaler Services](#building-and-deploying-the-autoscaler-services).
 
 ## Importing your Spanner instances
 
@@ -361,13 +406,60 @@ Importing Spanner databases is also possible using the
 [`google_spanner_database`][terraform-spanner-db] resource and following a
 similar process.
 
-## Building and Deploying the Autoscaler Services
+## Building the Autoscaler
 
-1.  To build the Autoscaler images and push them to Artifact Registry, run the
-    following commands:
+1.  Change to the directory that contains the Autoscaler source code:
 
     ```sh
-    cd ${AUTOSCALER_ROOT} && \
+    cd ${AUTOSCALER_ROOT}/src
+    ```
+
+2.  Build the Autoscaler components by following the instructions in the
+    appropriate section:
+
+    *   [Building the Autoscaler for a unified deployment model] (#building-the-autoscaler-for-a-unified-deployment-model)
+    *   [Building the Autoscaler for a decoupled deployment model] (#building-the-autoscaler-for-a-decoupled-deployment-model)
+
+### Building the Autoscaler for a unified deployment model
+
+To build the Autoscaler and push the image to Artifact Registry, run the
+following commands:
+
+1.  Build the Autoscaler:
+
+    ```sh
+    gcloud builds submit . --config=cloudbuild.yaml --region=${REGION}
+    ```
+
+2.  Construct the path to the image:
+
+    ```sh
+    SCALER_PATH="${REGION}-docker.pkg.dev/${PROJECT_ID}/spanner-autoscaler/scaler"
+    ```
+
+3.  Retrieve the SHA256 hash of the image:
+
+    ```sh
+    SCALER_SHA=$(gcloud artifacts docker images describe ${SCALER_PATH}:latest --format='value(image_summary.digest)')
+    ```
+
+4.  Construct the full path to the image, including the SHA256 hash:
+
+    ```sh
+    SCALER_IMAGE="${SCALER_PATH}@${SCALER_SHA}"
+    ```
+
+Next, follow the instructions in the
+[Deploying the Autoscaler](#deploying-the-autoscaler) section.
+
+### Building the Autoscaler for a decoupled deployment model
+
+To build the Autoscaler and push the images to Artifact Registry, run the
+following commands:
+
+1.  Build the Autoscaler components:
+
+    ```sh
     gcloud builds submit poller --config=poller/cloudbuild.yaml --region=${REGION} && \
     gcloud builds submit scaler --config=scaler/cloudbuild.yaml --region=${REGION}
     ```
@@ -393,33 +485,33 @@ similar process.
     SCALER_IMAGE="${SCALER_PATH}@${SCALER_SHA}"
     ```
 
-5.  Retrieve the credentials for the cluster where the Autoscaler will be deployed:
+Next, follow the instructions in the
+[Deploying the Autoscaler](#deploying-the-autoscaler) section.
+
+## Deploying the Autoscaler
+
+1.  Retrieve the credentials for the cluster where the Autoscaler will be deployed:
 
     ```sh
     gcloud container clusters get-credentials spanner-autoscaler --region=${REGION}
     ```
 
-6.  Next, to configure the Kubernetes manifests and deploy the Autoscaler to
+2.  Next, to configure the Kubernetes manifests and deploy the Autoscaler to
     the cluster, run the following commands:
 
     ```sh
-    cd ${AUTOSCALER_ROOT}/kubernetes && \
+    cd ${AUTOSCALER_ROOT}/kubernetes/${AUTOSCALER_DEPLOYMENT_MODEL} && \
     kpt fn eval --image gcr.io/kpt-fn/apply-setters:v0.1.1 autoscaler-pkg -- poller_image=${POLLER_IMAGE} scaler_image=${SCALER_IMAGE} && \
     kubectl apply -f autoscaler-pkg/ --recursive
     ```
 
-    The sample configuration creates two schedules to demonstrate autoscaling;
-    a [frequently running schedule][cron-frequent] to dynamically scale the
-    Spanner instance according to utilization, and an [hourly
-    schedule][cron-hourly] to directly scale the Spanner instance every hour.
-
-7.  To prepare to configure the Autoscaler, run the following command:
+3.  To prepare to configure the Autoscaler, run the following command:
 
     ```sh
     for template in $(ls autoscaler-config/*.template) ; do envsubst < ${template} > ${template%.*} ; done
     ```
 
-8.  Next, to see how the Autoscaler is configured, run the following command to
+4.  Next, to see how the Autoscaler is configured, run the following command to
     output the example configuration:
 
     ```sh
@@ -441,7 +533,13 @@ similar process.
     the schema of the configuration, see the [Poller configuration]
     [autoscaler-config-params] section.
 
-9.  If you have chosen to use Firestore to hold the Autoscaler state as described
+    The sample configuration creates two schedules to demonstrate autoscaling;
+    a [frequently running schedule][cron-frequent] to dynamically scale the
+    Spanner instance according to utilization, and an [hourly schedule][cron-hourly]
+    to directly scale the Spanner instance every hour. When you configure the
+    Autoscaler for production, you can configure this schedule to fit your needs.
+
+5.  If you have chosen to use Firestore to hold the Autoscaler state as described
     above, edit the above files, and remove the following lines:
 
     ```yaml
@@ -459,17 +557,17 @@ similar process.
     If you have chosen to use your own Spanner instance, please edit the above
     configuration files accordingly.
 
-10.  To configure the Autoscaler and begin scaling operations, run the following
+6.  To configure the Autoscaler and begin scaling operations, run the following
      command:
 
      ```sh
      kubectl apply -f autoscaler-config/
      ```
 
-11.  Any changes made to the configuration files and applied with `kubectl
+7.  Any changes made to the configuration files and applied with `kubectl
      apply` will update the Autoscaler configuration.
 
-12.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
+8.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
      Logging][cloud-console-logging] interface in the Google Cloud console.
 
 ## Troubleshooting
@@ -525,10 +623,13 @@ following the instructions above.
     ```
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[autoscaler-poller]: ../../poller/README.md
-[autoscaler-config-params]: ../../poller/#configuration-parameters
-[cron-frequent]: ../../kubernetes/autoscaler-pkg/poller/poller.yaml
-[cron-hourly]: ../../kubernetes/autoscaler-pkg/poller/poller-hourly.yaml
+[architecture-gke]: ../../resources/architecture-gke.png
+[autoscaler-poller]: ../../src/poller/README.md
+[autoscaler-config-params]: ../../src/poller/#configuration-parameters
+[cron-frequent]: ../../kubernetes/decoupled/autoscaler-pkg/poller/poller.yaml
+[cron-hourly]: ../../kubernetes/decoupled/autoscaler-pkg/poller/poller-hourly.yaml
+[margins]: ../../src/poller/README.md#margins
+[scaling-methods]: ../../src/scaler/README.md#scaling-methods
 
 <!-- GKE deployment architecture -->
 [gke]: https://cloud.google.com/kubernetes-engine

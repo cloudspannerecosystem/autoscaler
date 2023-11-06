@@ -1,0 +1,16 @@
+{
+    "name": "poller",
+    "description": "Spanner metrics poller cron job",
+    "license": "Apache-2.0",
+    "author": "Google Inc.",
+    "dependencies": {
+        "@google-cloud/pubsub": "^3.1.0",
+        "js-yaml": "^4.1.0",
+        "poller-core": "file:poller/poller-core",
+	"scaler-core": "file:scaler/scaler-core",
+        "run": "^1.4.0"
+    },
+    "scripts": {
+        "start": "node index.js"
+    }
+}

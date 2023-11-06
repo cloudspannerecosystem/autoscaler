@@ -1,13 +1,13 @@
 <br />
 <p align="center">
   <h2 align="center">Autoscaler tool for Cloud Spanner</h2>
-  <img alt="Autoscaler" src="../resources/BlogHeader_Database_3.max-2200x2200.jpg">
+  <img alt="Autoscaler" src="../../resources/BlogHeader_Database_3.max-2200x2200.jpg">
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
     Retrieve metrics for one or more Cloud Spanner Instances
     <br />
-    <a href="../README.md">Home</a>
+    <a href="../../README.md">Home</a>
     ·
     Poller component
     ·
@@ -15,9 +15,9 @@
     ·
     <a href="../forwarder/README.md">Forwarder component</a>
     ·
-    <a href="../terraform/README.md">Terraform configuration</a>
+    <a href="../../terraform/README.md">Terraform configuration</a>
     ·
-    <a href="../terraform/README.md#Monitoring">Monitoring</a>
+    <a href="../../terraform/README.md#Monitoring">Monitoring</a>
   </p>
 </p>
 

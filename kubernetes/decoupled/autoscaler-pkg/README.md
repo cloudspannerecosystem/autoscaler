@@ -1,12 +1,12 @@
-# poller
+# autoscaler-pkg
 
 ## Description
 
-Config for Poller component of Spanner Autoscaler
+Config for Spanner Autoscaler
 
 ### View package content
 
-`kpt pkg tree poller`
+`kpt pkg tree autoscaler-pkg`
 [Details](https://kpt.dev/reference/cli/pkg/tree/)
 
 ## Installation

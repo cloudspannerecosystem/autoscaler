@@ -40,8 +40,8 @@ async function main() {
   }
 
   try {
-    const data = await fs.readFile(configLocation, { encoding: 'utf8' });
-    await pollerCore.checkSpannerScaleMetricsJSON(JSON.stringify(yaml.load(data)))
+    const config = await fs.readFile(configLocation, { encoding: 'utf8' });
+    await pollerCore.checkSpannerScaleMetricsJSON(JSON.stringify(yaml.load(config)))
   } catch (err) {
     pollerCore.log('Error in Poller wrapper:', {severity: 'ERROR', payload: err});
   }

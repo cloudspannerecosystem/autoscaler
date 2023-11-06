@@ -74,7 +74,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
 }
 
 async function publishDownstreamEvent(eventName, spanner, suggestedSize) {
-  
+
   const message = {
     projectId: spanner.projectId,
     instanceId: spanner.instanceId,
@@ -174,7 +174,7 @@ async function processScalingRequest(spanner, autoscalerState) {
       log(`----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt.`,
         { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
       log(`----- ${spanner.projectId}/${spanner.instanceId}: Spanner payload:`,
-        { severity: 'WARNING', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner});
+        { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner});
       eventType = 'SCALING_FAILURE';
     }
     await publishDownstreamEvent(eventType, spanner, suggestedSize);
@@ -232,6 +232,22 @@ exports.scaleSpannerInstanceJSON = async (req, res) => {
     log(`Exception\n`,
       { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err });
     res.status(500).end(err.toString());
+  }
+};
+
+exports.scaleSpannerInstanceLocal = async (spanner) => {
+
+  try {
+    var state = new State(spanner);
+
+    await processScalingRequest(spanner, state);
+    await state.close();
+
+  } catch (err) {
+    log(`Failed to process scaling request\n`,
+      { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner });
+    log(`Exception\n`,
+      { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err });
   }
 };
 
