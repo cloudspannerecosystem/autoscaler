@@ -26,6 +26,7 @@
 const express = require('express');
 // eslint-disable-next-line no-unused-vars -- spannerProtos used for type checks
 const {Spanner, protos: spannerProtos} = require('@google-cloud/spanner');
+const Counters = require('./counters.js');
 const sanitize = require('sanitize-filename');
 const {convertMillisecToHumanReadable} = require('./utils.js');
 const {logger} = require('../../autoscaler-common/logger');
@@ -273,15 +274,33 @@ async function processScalingRequest(spanner, autoscalerState) {
   });
 
   const suggestedSize = getSuggestedSize(spanner);
-  if (suggestedSize == spanner.currentSize) {
+  if (suggestedSize === spanner.maxSize) {
     logger.info({
       message: `----- ${spanner.projectId}/${spanner.instanceId}: has ${
         spanner.currentSize} ${
-        spanner.units}, no scaling needed at the moment`,
+        spanner.units}, no scaling possible - at maxSize`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: spanner,
     });
+    await Counters.incScalingDeniedCounter(
+        spanner,
+        suggestedSize,
+        'MAX_SIZE');
+    return;
+  } else if (suggestedSize === spanner.currentSize) {
+    logger.info({
+      message: `----- ${spanner.projectId}/${spanner.instanceId}: has ${
+        spanner.currentSize} ${
+        spanner.units}, no scaling needed - at current size`,
+      projectId: spanner.projectId,
+      instanceId: spanner.instanceId,
+      payload: spanner,
+    });
+    await Counters.incScalingDeniedCounter(
+        spanner,
+        suggestedSize,
+        'CURRENT_SIZE');
     return;
   }
 
@@ -293,6 +312,9 @@ async function processScalingRequest(spanner, autoscalerState) {
       await scaleSpannerInstance(spanner, suggestedSize);
       await autoscalerState.set();
       eventType = 'SCALING';
+      await Counters.incScalingSuccessCounter(
+          spanner,
+          suggestedSize);
     } catch (err) {
       logger.error({
         message: `----- ${spanner.projectId}/${
@@ -310,8 +332,24 @@ async function processScalingRequest(spanner, autoscalerState) {
         payload: spanner,
       });
       eventType = 'SCALING_FAILURE';
+      await Counters.incScalingFailedCounter(
+          spanner,
+          suggestedSize);
     }
     await publishDownstreamEvent(eventType, spanner, suggestedSize);
+  } else {
+    logger.info({
+      message: `----- ${spanner.projectId}/${spanner.instanceId}: has ${
+        spanner.currentSize} ${
+        spanner.units}, no scaling possible - within cooldown period`,
+      projectId: spanner.projectId,
+      instanceId: spanner.instanceId,
+      payload: spanner,
+    });
+    await Counters.incScalingDeniedCounter(
+        spanner,
+        suggestedSize,
+        'WITHIN_COOLDOWN');
   }
 }
 
@@ -330,6 +368,7 @@ async function scaleSpannerInstancePubSub(pubSubEvent, context) {
 
       await processScalingRequest(spanner, state);
       await state.close();
+      await Counters.incRequestsSuccessCounter();
     } catch (err) {
       logger.error({
         message: `Failed to process scaling request\n`,
@@ -343,6 +382,7 @@ async function scaleSpannerInstancePubSub(pubSubEvent, context) {
         instanceId: spanner.instanceId,
         err: err,
       });
+      await Counters.incRequestsFailedCounter();
     }
   } catch (err) {
     logger.error({
@@ -350,6 +390,9 @@ async function scaleSpannerInstancePubSub(pubSubEvent, context) {
       payload: pubSubEvent.data,
       err: err,
     });
+    await Counters.incRequestsFailedCounter();
+  } finally {
+    await Counters.tryFlush();
   }
 }
 
@@ -370,15 +413,20 @@ async function scaleSpannerInstanceHTTP(req, res) {
       await state.close();
 
       res.status(200).end();
+      await Counters.incRequestsSuccessCounter();
     } catch (err) {
       console.error(err);
       res.status(500).end(err.toString());
+      await Counters.incRequestsFailedCounter();
     }
   } catch (err) {
     logger.error({
       message: `Failed to parse http scaling request\n`,
       err: err,
     });
+    await Counters.incRequestsFailedCounter();
+  } finally {
+    await Counters.tryFlush();
   }
 }
 
@@ -397,6 +445,7 @@ async function scaleSpannerInstanceJSON(req, res) {
     await state.close();
 
     res.status(200).end();
+    await Counters.incRequestsSuccessCounter();
   } catch (err) {
     logger.error({
       message: `Failed to process scaling request\n`,
@@ -415,6 +464,9 @@ async function scaleSpannerInstanceJSON(req, res) {
       'Content-Type': 'text/plain',
     });
     res.end(err.toString());
+    await Counters.incRequestsFailedCounter();
+  } finally {
+    await Counters.tryFlush();
   }
 }
 
@@ -428,6 +480,7 @@ async function scaleSpannerInstanceLocal(spanner) {
 
     await processScalingRequest(spanner, state);
     await state.close();
+    await Counters.incRequestsSuccessCounter();
   } catch (err) {
     logger.error({
       message: `Failed to process scaling request\n`,
@@ -442,6 +495,8 @@ async function scaleSpannerInstanceLocal(spanner) {
       payload: err,
       err: err,
     });
+  } finally {
+    await Counters.tryFlush();
   }
 }
 

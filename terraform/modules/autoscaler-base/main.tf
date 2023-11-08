@@ -50,3 +50,15 @@ resource "google_pubsub_schema" "scaler_downstream_pubsub_schema" {
   type = "PROTOCOL_BUFFER"
   definition = "${file("${path.module}/../../../src/scaler/scaler-core/downstream.schema.proto")}"
 }
+
+resource "google_project_iam_member" "metrics_publisher_iam_poller" {
+  project = var.project_id
+  role    = "roles/monitoring.metricWriter"
+  member  = "serviceAccount:${var.poller_sa_email}"
+}
+
+resource "google_project_iam_member" "metrics_publisher_iam_scaler" {
+  project = var.project_id
+  role    = "roles/monitoring.metricWriter"
+  member  = "serviceAccount:${var.scaler_sa_email}"
+}

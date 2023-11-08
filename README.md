@@ -100,6 +100,58 @@ In both of the above instances, the Google Cloud Platform resources are
 deployed using Terraform. Please see the [Terraform instructions](terraform/README.md)
 for more information on the deployment options available.
 
+## Monitoring
+
+The autoscaler publishes the following metrics to Cloud Monitoring which can be
+used to monitor the behavior of the autoscaler, and to configure alerts.
+
+### Poller
+
+*   Message processing counters:
+    *   `cloudspannerecosystem/autoscaler/poller/requests-success` - the number
+        of polling request messages recieved and processed successfully.
+    *   `cloudspannerecosystem/autoscaler/poller/requests-success` - the number
+        of polling request messages which failed processing.
+
+*   Spanner Instance polling counters:
+    *   `cloudspannerecosystem/autoscaler/poller/polling-success` - the number
+        of successful polls of the Spanner instance metrics.
+    *   `cloudspannerecosystem/autoscaler/poller/polling-failed` - the number of
+        failed polls of the Spanner instance metrics.
+    *   Both of these metrics have `projectid` and `instanceid` to identify the
+        Spanner instance.
+
+### Scaler
+
+*   Message processing counters:
+    *   `cloudspannerecosystem/autoscaler/scaler/requests-success` - the number
+        of scaling request messages recieved and processed successfully.
+    *   `cloudspannerecosystem/autoscaler/scaler/requests-success` - the number
+        of scaling request messages which failed processing.
+*   Spanner Instance scaling counters:
+    *   `cloudspannerecosystem/autoscaler/scaler/scaling-success` - the number
+        of succesful rescales of the Spanner instance.
+    *   `cloudspannerecosystem/autoscaler/scaler/scaling-denied` - the number of
+        Spanner instance rescale attempts that failed
+    *   `cloudspannerecosystem/autoscaler/scaler/scaling-failed` - the number of
+        Spanner instance rescale attempts that were denied by autoscaler
+        configuration or policy.
+
+    *   These three metrics have the following attributes:
+        *   `projectid` - Spanner Project ID
+        *   `instanceid` - Spanner Instance ID
+        *   `method` - the scaling method used
+        *   `direction` - which can be `SCALE_UP`, `SCALE_DOWN` or `SCALE_SAME`
+            (when the calculated rescale size is equal to the current size)
+    *   In addition, the `scaling-denied` counter has a `reason` attribute
+        containing the reason why the scaling was not performed, which can be:
+        *   `SAME_SIZE` - when the calculated rescale size is equal to the
+            current instance size.
+        *   `MAX_SIZE` - when the instance has already been scaled up to the
+            maximum configured size.
+        *   `WITHIN_COOLDOWN` - when the instance has been recently rescaled,
+            and the autoscaler is waiting for the cooldown period to end.
+
 ## Configuration
 
 The parameters for configuring the Autoscaler are identical regardless of the chosen

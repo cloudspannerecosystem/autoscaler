@@ -48,33 +48,134 @@ describe('#getNewMetadata', () => {
   });
 });
 
+
 const processScalingRequest = app.__get__('processScalingRequest');
+const countersStub = {
+  incScalingSuccessCounter: sinon.stub(),
+  incScalingFailedCounter: sinon.stub(),
+  incScalingDeniedCounter: sinon.stub(),
+};
+const stubScaleSpannerInstance = sinon.stub();
+const getSuggestedSizeStub = sinon.stub();
+const withinCooldownPeriod = sinon.stub();
+
 describe('#processScalingRequest', () => {
+  beforeEach(() => {
+    // Setup common stubs
+    stubScaleSpannerInstance.resolves();
+    app.__set__('scaleSpannerInstance', stubScaleSpannerInstance);
+    app.__set__('Counters', countersStub);
+    app.__set__('withinCooldownPeriod', withinCooldownPeriod.returns(false));
+    app.__set__('getSuggestedSize', getSuggestedSizeStub);
+  });
+
+  afterEach(() => {
+    // reset stubs
+    Object.values(countersStub).forEach((stub) => stub.reset());
+    stubScaleSpannerInstance.reset();
+    getSuggestedSizeStub.reset();
+    withinCooldownPeriod.reset();
+  });
+
   it('should not autoscale if suggested size is equal to current size',
       async function() {
         const spanner = createSpannerParameters();
-        app.__set__(
-            'getSuggestedSize', sinon.stub().returns(spanner.currentSize));
-        app.__set__('withinCooldownPeriod', sinon.stub().returns(false));
-        const stubScaleSpannerInstance = sinon.stub().resolves(0);
-        app.__set__('scaleSpannerInstance', stubScaleSpannerInstance);
+        getSuggestedSizeStub.returns(spanner.currentSize);
 
         await processScalingRequest(spanner, createStubState());
 
         assert.equals(stubScaleSpannerInstance.callCount, 0);
+
+        assert.equals(countersStub.incScalingSuccessCounter.callCount, 0);
+        assert.equals(countersStub.incScalingDeniedCounter.callCount, 1);
+        assert.equals(
+            countersStub.incScalingDeniedCounter.getCall(0).args[1],
+            spanner.currentSize);
+        assert.equals(
+            countersStub.incScalingDeniedCounter.getCall(0).args[2],
+            'CURRENT_SIZE');
+        assert.equals(countersStub.incScalingFailedCounter.callCount, 0);
+      });
+
+  it('should not autoscale if suggested size is equal to max size',
+      async function() {
+        const spanner = createSpannerParameters();
+        getSuggestedSizeStub.returns(spanner.maxSize);
+
+        await processScalingRequest(spanner, createStubState());
+
+        assert.equals(stubScaleSpannerInstance.callCount, 0);
+
+        assert.equals(countersStub.incScalingSuccessCounter.callCount, 0);
+        assert.equals(countersStub.incScalingDeniedCounter.callCount, 1);
+        assert.equals(
+            countersStub.incScalingDeniedCounter.getCall(0).args[1],
+            spanner.maxSize);
+        assert.equals(
+            countersStub.incScalingDeniedCounter.getCall(0).args[2],
+            'MAX_SIZE');
+        assert.equals(countersStub.incScalingFailedCounter.callCount, 0);
       });
 
   it('should autoscale if suggested size is not equal to current size',
       async function() {
         const spanner = createSpannerParameters();
-        app.__set__('getSuggestedSize',
-            sinon.stub().returns(spanner.currentSize + 100));
-        app.__set__('withinCooldownPeriod', sinon.stub().returns(false));
-        const stubScaleSpannerInstance = sinon.stub().resolves(0);
-        app.__set__('scaleSpannerInstance', stubScaleSpannerInstance);
+        const suggestedSize = spanner.currentSize + 100;
+        getSuggestedSizeStub.returns(suggestedSize);
 
         await processScalingRequest(spanner, createStubState());
 
-        refute.equals(stubScaleSpannerInstance.callCount, 0);
+        assert.equals(stubScaleSpannerInstance.callCount, 1);
+        assert.equals(
+            stubScaleSpannerInstance.getCall(0).args[1],
+            suggestedSize);
+        assert.equals(countersStub.incScalingSuccessCounter.callCount, 1);
+        assert.equals(
+            countersStub.incScalingSuccessCounter.getCall(0).args[1],
+            suggestedSize);
+        assert.equals(countersStub.incScalingDeniedCounter.callCount, 0);
+        assert.equals(countersStub.incScalingFailedCounter.callCount, 0);
+      });
+
+  it('should not autoscale if in cooldown period',
+      async function() {
+        const spanner = createSpannerParameters();
+        const suggestedSize = spanner.currentSize + 100;
+        getSuggestedSizeStub.returns(suggestedSize);
+        withinCooldownPeriod.returns(true);
+
+        await processScalingRequest(spanner, createStubState());
+
+        assert.equals(stubScaleSpannerInstance.callCount, 0);
+        assert.equals(countersStub.incScalingSuccessCounter.callCount, 0);
+        assert.equals(countersStub.incScalingDeniedCounter.callCount, 1);
+        assert.equals(
+            countersStub.incScalingDeniedCounter.getCall(0).args[1],
+            suggestedSize);
+        assert.equals(
+            countersStub.incScalingDeniedCounter.getCall(0).args[2],
+            'WITHIN_COOLDOWN');
+        assert.equals(countersStub.incScalingFailedCounter.callCount, 0);
+      });
+
+  it('Scaling failures increment counter',
+      async function() {
+        const spanner = createSpannerParameters();
+        const suggestedSize = spanner.currentSize + 100;
+        getSuggestedSizeStub.returns(suggestedSize);
+        stubScaleSpannerInstance.rejects('Error');
+
+        await processScalingRequest(spanner, createStubState());
+
+        assert.equals(stubScaleSpannerInstance.callCount, 1);
+        assert.equals(
+            stubScaleSpannerInstance.getCall(0).args[1],
+            suggestedSize);
+        assert.equals(countersStub.incScalingSuccessCounter.callCount, 0);
+        assert.equals(countersStub.incScalingDeniedCounter.callCount, 0);
+        assert.equals(countersStub.incScalingFailedCounter.callCount, 1);
+        assert.equals(
+            countersStub.incScalingFailedCounter.getCall(0).args[1],
+            suggestedSize);
       });
 });
