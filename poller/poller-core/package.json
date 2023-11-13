@@ -8,7 +8,7 @@
         "@google-cloud/monitoring": "^4.0.0",
         "@google-cloud/pubsub": "^4.0.1",
         "@google-cloud/spanner": "^6.16.0",
-        "axios": "^1.4.0"
+        "axios": "^1.6.0"
     },
     "scripts": {
         "start": "functions-framework --target=checkSpannerScaleMetricsHTTP",
