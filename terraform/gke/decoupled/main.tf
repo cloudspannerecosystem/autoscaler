@@ -20,10 +20,20 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 4.63.0"
     }
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 4.63.0"
+    }
   }
 }
 
 provider "google" {
+  project = var.project_id
+  region  = var.region
+  zone    = var.zone
+}
+
+provider "google-beta" {
   project = var.project_id
   region  = var.region
   zone    = var.zone
@@ -40,49 +50,51 @@ resource "google_service_account" "scaler_sa" {
 }
 
 module "autoscaler-base" {
-  source = "../../../modules/autoscaler-base"
+  source = "../../modules/autoscaler-base"
 
   project_id      = var.project_id
   poller_sa_email = google_service_account.poller_sa.email
   scaler_sa_email = google_service_account.scaler_sa.email
 }
 
-module "autoscaler-functions" {
-  source = "../../../modules/autoscaler-functions"
+module "autoscaler-cluster" {
+  source = "../../modules/autoscaler-cluster"
 
-  project_id          = var.project_id
-  poller_sa_email     = google_service_account.poller_sa.email
-  scaler_sa_email     = google_service_account.scaler_sa.email
-  forwarder_sa_emails = var.forwarder_sa_emails
+  region            = var.region
+  project_id        = var.project_id
+  name              = "spanner-autoscaler"
+  ip_range_master   = "10.1.0.0/28"
+  ip_range_pods     = ""
+  ip_range_services = ""
+  poller_sa_email   = google_service_account.poller_sa.email
+  scaler_sa_email   = google_service_account.scaler_sa.email
 }
 
 module "firestore" {
-  source = "../../../modules/firestore"
+  source = "../../modules/firestore"
 
   project_id      = var.project_id
   poller_sa_email = google_service_account.poller_sa.email
   scaler_sa_email = google_service_account.scaler_sa.email
 }
 
-output "poller_sa_email" {
-  value = google_service_account.poller_sa.email
-}
+module "spanner" {
+  source = "../../modules/spanner"
 
-output "scaler_sa_email" {
-  value = google_service_account.scaler_sa.email
-}
-
-output "poller_topic" {
-  value = module.autoscaler-functions.poller_topic
-}
-
-output "scaler_topic" {
-  value = module.autoscaler-functions.scaler_topic
+  terraform_spanner_state        = var.terraform_spanner_state
+  terraform_spanner_test         = var.terraform_spanner_test
+  project_id                     = var.project_id
+  spanner_name                   = var.spanner_name
+  spanner_state_name             = var.spanner_state_name
+  spanner_test_processing_units  = var.spanner_test_processing_units
+  spanner_state_processing_units = var.spanner_state_processing_units
+  poller_sa_email                = google_service_account.poller_sa.email
+  scaler_sa_email                = google_service_account.scaler_sa.email
 }
 
 module "monitoring" {
   count  = var.terraform_dashboard ? 1 : 0
-  source = "../../../modules/monitoring"
+  source = "../../modules/monitoring"
 
   project_id = var.project_id
 }

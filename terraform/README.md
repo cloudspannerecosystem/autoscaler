@@ -9,11 +9,11 @@
     <br />
     <a href="../README.md">Home</a>
     ·
-    <a href="../scaler/README.md">Scaler component</a>
+    <a href="../src/scaler/README.md">Scaler component</a>
     ·
-    <a href="../poller/README.md">Poller component</a>
+    <a href="../src/poller/README.md">Poller component</a>
     ·
-    <a href="../forwarder/README.md">Forwarder component</a>
+    <a href="../src/forwarder/README.md">Forwarder component</a>
     ·
     Terraform configuration
     ·

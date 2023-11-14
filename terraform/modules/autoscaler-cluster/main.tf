@@ -116,6 +116,7 @@ resource "kubernetes_namespace" "autoscaler_namespace" {
 }
 
 module "workload_identity_poller" {
+  count               = var.unified_components ? 0 : 1
   source              = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
   project_id          = var.project_id
   namespace           = "spanner-autoscaler"

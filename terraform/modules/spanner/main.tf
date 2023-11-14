@@ -59,6 +59,7 @@ resource "random_id" "role_suffix" {
 
 # Limited role for Poller
 resource "google_project_iam_custom_role" "metrics_viewer_iam_role" {
+  project     = var.project_id
   role_id     = "spannerAutoscalerMetricsViewer_${random_id.role_suffix.hex}"
   title       = "Spanner Autoscaler Metrics Viewer Role"
   description = "Allows a principal to get Spanner instances and view time series metrics"
@@ -74,6 +75,7 @@ resource "google_project_iam_member" "poller_metrics_viewer_iam" {
 
 # Limited role for Scaler
 resource "google_project_iam_custom_role" "capacity_manager_iam_role" {
+  project     = var.project_id
   role_id     = "spannerAutoscalerCapacityManager_${random_id.role_suffix.hex}"
   title       = "Spanner Autoscaler Capacity Manager Role"
   description = "Allows a principal to scale spanner instances"

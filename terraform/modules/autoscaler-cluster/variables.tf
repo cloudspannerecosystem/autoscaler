@@ -68,3 +68,9 @@ variable "poller_sa_email" {
 variable "scaler_sa_email" {
   type = string
 }
+
+variable "unified_components" {
+  description = "Whether Poller and Scaler are unified"
+  type        = bool
+  default     = false
+}
