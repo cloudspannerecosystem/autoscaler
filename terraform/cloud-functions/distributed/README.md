@@ -411,5 +411,5 @@ its configuration issues independently.
 [cloud-console]: https://console.cloud.google.com
 [cloud-shell]: https://console.cloud.google.com/?cloudshell=true&_ga=2.43377068.820133692.1587377411-71235912.1585654570&_gac=1.118947195.1584696876.Cj0KCQjw09HzBRDrARIsAG60GP9u6OBk_qQ02rkzBXpwpMd6YZ30A2D4gSl2Wwte1CqPW_sY6mH_xbIaAmIgEALw_wcB
 [provider-issue]: https://github.com/hashicorp/terraform-provider-google/issues/6782
-[logs-viewer]: https://pantheon.corp.google.com/logs/query
+[logs-viewer]: https://console.cloud.google.com/logs/query
 [firestore-native]: https://cloud.google.com/datastore/docs/firestore-or-datastore#in_native_mode

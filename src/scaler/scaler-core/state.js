@@ -1,5 +1,7 @@
-/* Copyright 2020 Google LLC
+/**
+ * Copyright 2023 Google LLC
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -9,7 +11,7 @@
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License
+ * limitations under the License.
  */
 
 /*
@@ -18,8 +20,8 @@
  * By default, this implementation uses a Firestore instance in the same
  * project as the Spanner instance. To use a different project, set the
  * `stateProjectId` parameter in the Cloud Scheduler configuration.
- * 
- * To use another database to save autoscaler state, set the 
+ *
+ * To use another database to save autoscaler state, set the
  * `stateDatabase.name` parameter in the Cloud Scheduler configuration.
  * The default database is Firestore.
  */
@@ -66,11 +68,11 @@ module.exports = State;
 
 /*
  * Manages the Autoscaler persistent state in spanner.
- * 
+ *
  * To manage the Autoscaler state in a spanner database,
  * set the `stateDatabase.name` parameter to 'spanner' in the Cloud Scheduler configuration.
  * The following is an example.
- * 
+ *
  * {
  *   "stateDatabase": {
  *       "name":       "spanner",
@@ -167,12 +169,12 @@ class StateSpanner {
 
 /*
  * Manages the Autoscaler persistent state in firestore.
- * 
+ *
  * The default database for state management is firestore.
- * It is also possible to manage with firestore 
+ * It is also possible to manage with firestore
  * by explicitly setting `stateDatabase.name` to 'firestore'.
  * The following is an example.
- * 
+ *
  * {
  *   "stateDatabase": {
  *       "name": "firestore"
