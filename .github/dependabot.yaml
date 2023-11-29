@@ -1,0 +1,49 @@
+---
+updates:
+  - directory: "/"
+    package-ecosystem: "github-actions"
+    schedule:
+      interval: "weekly"
+  - directory: "/"
+    package-ecosystem: "npm"
+    schedule:
+      interval: "weekly"
+  - directory: "/src"
+    package-ecosystem: "npm"
+    schedule:
+      interval: "weekly"
+  - directory: "/src/forwarder"
+    package-ecosystem: "npm"
+    schedule:
+      interval: "weekly"
+  - directory: "/src/poller"
+    package-ecosystem: "npm"
+    schedule:
+      interval: "weekly"
+  - directory: "/src/poller/poller-core"
+    package-ecosystem: "npm"
+    schedule:
+      interval: "weekly"
+  - directory: "/src/scaler"
+    package-ecosystem: "npm"
+    schedule:
+      interval: "weekly"
+  - directory: "/src/scaler/scaler-core"
+    package-ecosystem: "npm"
+    schedule:
+      interval: "weekly"
+
+  - directory: "/src/poller"
+    package-ecosystem: "docker"
+    schedule:
+      interval: "weekly"
+  - directory: "/src/scaler"
+    package-ecosystem: "docker"
+    schedule:
+      interval: "weekly"
+  - directory: "/src/forwarder"
+    package-ecosystem: "docker"
+    schedule:
+      interval: "weekly"
+version: 2
+...
