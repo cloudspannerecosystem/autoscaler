@@ -215,4 +215,20 @@ describe('#parseAndEnrichPayload', () => {
 
         unset();
     });
+
+    it('should add dataflow requirement if dataflow is present in the config', async () => {
+        const payload = '[{"projectId": "my-spanner-project", "instanceId": "spanner1", "scalerPubSubTopic": "spanner-scaling", "minNodes": 10, "metrics": [{"filter": "my super cool filter", "name": "bogus", "multi_regional_threshold":20}], "requirements": [{"service": "dataflow", "config": [{"projectId": "prj-foo","regions": ["us-central1", "us-west2"]}]}]}]';
+
+        let stub = sinon.stub().resolves({currentNode: 5, regional: true});
+        let unset = app.__set__('getSpannerMetadata', stub);
+
+        let stub2 = sinon.stub().resolves(7500);
+        let unset2 = app.__set__('getDataflowJobScalingRequirement', stub2);
+
+        let mergedConfig = await parseAndEnrichPayload(payload);
+        let requiredSize = mergedConfig[0].requirements[0].requiredSize;
+        requiredSize.should.equal(7500)
+        unset();
+        unset2();
+    });
 });

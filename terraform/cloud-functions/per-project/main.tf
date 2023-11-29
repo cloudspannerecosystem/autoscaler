@@ -119,6 +119,15 @@ module "scheduler" {
           "regional_threshold":75,
         }
       ],
+      "requirements": [
+        {
+          "service": "dataflow",
+          "config": [{
+            "projectId": var.dataflow_project,
+            "regions": var.dataflow_regions
+          }],
+        }
+      ]
     }
   ]))
 }

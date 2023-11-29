@@ -131,6 +131,19 @@ variable "scale_in_cooling_minutes" {
     description = "Minimum Number of minutes between scale in operations."
 }
 
+// TODO: support project list
+variable "dataflow_project" {
+  type = string
+  default = null
+  description = "Dataflow project for running jobs checks"
+}
+
+variable "dataflow_regions" {
+  type = list(string)
+  default = ["us-central1","us-east1","us-west1","us-east4"]
+  description = "Dataflow regions for running jobs checks"
+}
+
 locals {
   # By default, these config files produce a per-project deployment
   # If you want a centralized deployment instead, then specify

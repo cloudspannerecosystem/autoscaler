@@ -155,6 +155,34 @@ async function processScalingRequest(spanner, autoscalerState) {
   log(`----- ${spanner.projectId}/${spanner.instanceId}: Scaling request received`,
     { severity: 'INFO', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner});
 
+  if (spanner.requirements && spanner.requirements.length > 0) {
+    log(`----- ${spanner.projectId}/${spanner.instanceId}: Found ${spanner.requirements.length} scaling requirements`,
+        { severity: 'INFO', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner});
+
+    // just sum everything up
+    const totalRequiredSize = spanner.requirements
+      .map(r => r.requiredSize)
+      .reduce((sum, num) => sum + num, 0);
+    if (totalRequiredSize > spanner.currentSize) {
+      log(`----- ${spanner.projectId}/${spanner.instanceId} has ${spanner.currentSize} ${spanner.units} but ${totalRequiredSize} is required. Autoscaling...`,
+          { severity: 'INFO', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner});
+      try {
+        await autoscalerState.get();
+        await scaleSpannerInstance(spanner, totalRequiredSize);
+        await autoscalerState.set();
+      } catch (err) {
+        log(`----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt.`,
+         { severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
+        log(`----- ${spanner.projectId}/${spanner.instanceId}: Spanner payload:`,
+         { severity: 'WARNING', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner});
+      }
+      return;
+    } else if (totalRequiredSize > 0) {
+      // we must not scale below this value
+      spanner.minSize = max(totalRequiredSize, spanner.minSize);
+    }
+  }
+
   const suggestedSize = getSuggestedSize(spanner);
   if (suggestedSize == spanner.currentSize) {
     log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.currentSize} ${spanner.units}, no scaling needed at the moment`,
@@ -202,9 +230,7 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
 // For testing with: https://cloud.google.com/functions/docs/functions-framework
 exports.scaleSpannerInstanceHTTP = async (req, res) => {
   try {
-    const payload = fs.readFileSync('./test/samples/parameters.json');
-
-    var spanner = JSON.parse(payload);
+    var spanner = req.body;
     var state = new State(spanner);
 
     await processScalingRequest(spanner, state);

@@ -27,6 +27,16 @@
         "value":21.980773510634042
      }
   ],
+  "requirements": [
+    {
+      "service": "dataflow",
+      "config": [{
+        "projectId": "prj-foo",
+        "regions": ["us-central1", "us-west2"]
+      }],
+      "requiredSize": 100
+    }
+  ],
   "currentNodes":0,
   "currentSize":100,
   "regional":true

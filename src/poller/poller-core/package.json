@@ -8,6 +8,7 @@
         "@google-cloud/monitoring": "^4.0.0",
         "@google-cloud/pubsub": "^4.0.1",
         "@google-cloud/spanner": "^6.16.0",
+        "@google-cloud/dataflow": "^2.1.2",
         "axios": "^1.6.0"
     },
     "scripts": {
