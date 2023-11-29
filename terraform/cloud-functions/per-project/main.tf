@@ -29,10 +29,22 @@ provider "google" {
   zone    = var.zone
 }
 
+resource "google_service_account" "poller_sa" {
+  account_id   = "poller-sa"
+  display_name = "Autoscaler - Metrics Poller Service Account"
+}
+
+resource "google_service_account" "scaler_sa" {
+  account_id   = "scaler-sa"
+  display_name = "Autoscaler - Scaler Function Service Account"
+}
+
 module "autoscaler-base" {
   source = "../../modules/autoscaler-base"
 
-  project_id = var.project_id
+  project_id      = var.project_id
+  poller_sa_email = google_service_account.poller_sa.email
+  scaler_sa_email = google_service_account.scaler_sa.email
 }
 
 module "autoscaler-functions" {
@@ -40,16 +52,16 @@ module "autoscaler-functions" {
 
   region      = var.region
   project_id      = var.project_id
-  poller_sa_email = module.autoscaler-base.poller_sa_email
-  scaler_sa_email = module.autoscaler-base.scaler_sa_email
+  poller_sa_email = google_service_account.poller_sa.email
+  scaler_sa_email = google_service_account.scaler_sa.email
 }
 
 module "firestore" {
   source = "../../modules/firestore"
 
   project_id      = local.app_project_id
-  poller_sa_email = module.autoscaler-base.poller_sa_email
-  scaler_sa_email = module.autoscaler-base.scaler_sa_email
+  poller_sa_email = google_service_account.poller_sa.email
+  scaler_sa_email = google_service_account.scaler_sa.email
 }
 
 module "spanner" {
@@ -62,8 +74,8 @@ module "spanner" {
   spanner_state_name             = var.spanner_state_name
   spanner_test_processing_units  = var.spanner_test_processing_units
   spanner_state_processing_units = var.spanner_state_processing_units
-  poller_sa_email                = module.autoscaler-base.poller_sa_email
-  scaler_sa_email                = module.autoscaler-base.scaler_sa_email
+  poller_sa_email                = google_service_account.poller_sa.email
+  scaler_sa_email                = google_service_account.scaler_sa.email
 }
 
 module "scheduler" {

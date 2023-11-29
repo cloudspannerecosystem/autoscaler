@@ -9,11 +9,11 @@
     <br />
     <a href="../../../README.md">Home</a>
     ·
-    <a href="../../../scaler/README.md">Scaler component</a>
+    <a href="../../../src/scaler/README.md">Scaler component</a>
     ·
-    <a href="../../../poller/README.md">Poller component</a>
+    <a href="../../../src/poller/README.md">Poller component</a>
     ·
-    <a href="../../../forwarder/README.md">Forwarder component</a>
+    <a href="../../../src/forwarder/README.md">Forwarder component</a>
     ·
     Terraform configuration
     ·
@@ -55,7 +55,7 @@ infrastructure for your Autoscaler with a distributed deployment.
 
 In this deployment option all the components of the Autoscaler
 reside in a single project, with the exception of Cloud Scheduler (step 1) and
-the [Forwarder topic and function](../../../forwarder/README.md)
+the [Forwarder topic and function](../../../src/forwarder/README.md)
 
 This deployment is the best of both worlds between the per-project and the
 centralized deployments: *Teams who own the Spanner instances, called
@@ -74,7 +74,7 @@ interaction flow, please read the
 Cloud Scheduler can only publish messages to topics in the same project.
 Therefore in step 2, we transparently introduce an intermediate component to
 make this architecture possible. For more information, see the
-[Forwarder function](../../../forwarder/README.md).
+[Forwarder function](../../../src/forwarder/README.md).
 
 The distributed deployment has the following pros and cons:
 
@@ -411,5 +411,5 @@ its configuration issues independently.
 [cloud-console]: https://console.cloud.google.com
 [cloud-shell]: https://console.cloud.google.com/?cloudshell=true&_ga=2.43377068.820133692.1587377411-71235912.1585654570&_gac=1.118947195.1584696876.Cj0KCQjw09HzBRDrARIsAG60GP9u6OBk_qQ02rkzBXpwpMd6YZ30A2D4gSl2Wwte1CqPW_sY6mH_xbIaAmIgEALw_wcB
 [provider-issue]: https://github.com/hashicorp/terraform-provider-google/issues/6782
-[logs-viewer]: https://pantheon.corp.google.com/logs/query
+[logs-viewer]: https://console.cloud.google.com/logs/query
 [firestore-native]: https://cloud.google.com/datastore/docs/firestore-or-datastore#in_native_mode

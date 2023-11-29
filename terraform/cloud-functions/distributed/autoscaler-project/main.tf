@@ -29,18 +29,30 @@ provider "google" {
   zone    = var.zone
 }
 
+resource "google_service_account" "poller_sa" {
+  account_id   = "poller-sa"
+  display_name = "Autoscaler - Metrics Poller Service Account"
+}
+
+resource "google_service_account" "scaler_sa" {
+  account_id   = "scaler-sa"
+  display_name = "Autoscaler - Scaler Function Service Account"
+}
+
 module "autoscaler-base" {
   source = "../../../modules/autoscaler-base"
 
-  project_id          = var.project_id
+  project_id      = var.project_id
+  poller_sa_email = google_service_account.poller_sa.email
+  scaler_sa_email = google_service_account.scaler_sa.email
 }
 
 module "autoscaler-functions" {
   source = "../../../modules/autoscaler-functions"
 
   project_id          = var.project_id
-  poller_sa_email     = module.autoscaler-base.poller_sa_email
-  scaler_sa_email     = module.autoscaler-base.scaler_sa_email
+  poller_sa_email     = google_service_account.poller_sa.email
+  scaler_sa_email     = google_service_account.scaler_sa.email
   forwarder_sa_emails = var.forwarder_sa_emails
 }
 
@@ -48,16 +60,16 @@ module "firestore" {
   source = "../../../modules/firestore"
 
   project_id      = var.project_id
-  poller_sa_email = module.autoscaler-base.poller_sa_email
-  scaler_sa_email = module.autoscaler-base.scaler_sa_email
+  poller_sa_email = google_service_account.poller_sa.email
+  scaler_sa_email = google_service_account.scaler_sa.email
 }
 
 output "poller_sa_email" {
-  value = module.autoscaler-base.poller_sa_email
+  value = google_service_account.poller_sa.email
 }
 
 output "scaler_sa_email" {
-  value = module.autoscaler-base.scaler_sa_email
+  value = google_service_account.scaler_sa.email
 }
 
 output "poller_topic" {

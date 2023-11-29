@@ -47,7 +47,7 @@ resource "google_storage_bucket" "bucket_gcf_source" {
 
 data "archive_file" "local_forwarder_source" {
   type        = "zip"
-  source_dir  = abspath("${path.module}/../../../forwarder")
+  source_dir  = abspath("${path.module}/../../../src/forwarder")
   output_path = "${var.local_output_path}/forwarder.zip"
 }
 

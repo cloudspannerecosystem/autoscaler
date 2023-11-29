@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+terraform {
+  provider_meta "google" {
+    module_name = "cloud-solutions/spanner-autoscaler-deploy-cf-v1.0"
+  }
+}
+
 // PubSub
 
 resource "google_pubsub_topic" "poller_topic" {
@@ -66,7 +72,7 @@ resource "google_storage_bucket" "bucket_gcf_source" {
 
 data "archive_file" "local_poller_source" {
   type        = "zip"
-  source_dir  = abspath("${path.module}/../../../poller/poller-core")
+  source_dir  = abspath("${path.module}/../../../src/poller/poller-core")
   output_path = "${var.local_output_path}/poller.zip"
 }
 
@@ -78,7 +84,7 @@ resource "google_storage_bucket_object" "gcs_functions_poller_source" {
 
 data "archive_file" "local_scaler_source" {
   type        = "zip"
-  source_dir  = abspath("${path.module}/../../../scaler/scaler-core")
+  source_dir  = abspath("${path.module}/../../../src/scaler/scaler-core")
   output_path = "${var.local_output_path}/scaler.zip"
 }
 
@@ -95,7 +101,7 @@ resource "google_cloudfunctions_function" "poller_function" {
   ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
   available_memory_mb = "256"
   entry_point         = "checkSpannerScaleMetricsPubSub"
-  runtime             = "nodejs10"
+  runtime             = "nodejs${var.nodejs_version}"
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = google_pubsub_topic.poller_topic.id
@@ -116,7 +122,7 @@ resource "google_cloudfunctions_function" "scaler_function" {
   ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
   available_memory_mb = "256"
   entry_point         = "scaleSpannerInstancePubSub"
-  runtime             = "nodejs10"
+  runtime             = "nodejs${var.nodejs_version}"
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = google_pubsub_topic.scaler_topic.id

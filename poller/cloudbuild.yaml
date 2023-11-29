@@ -1,4 +1,0 @@
-steps:
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--tag=$LOCATION-docker.pkg.dev/$PROJECT_ID/spanner-autoscaler/poller', '.']
-images: ['$LOCATION-docker.pkg.dev/$PROJECT_ID/spanner-autoscaler/poller']
