@@ -28,35 +28,55 @@ const OVERLOAD_THRESHOLD = 90;
 const RelativeToRange = {
   BELOW: 'BELOW',
   WITHIN: 'WITHIN',
-  ABOVE: 'ABOVE'
-}
+  ABOVE: 'ABOVE',
+};
 
 // https://github.com/cloudspannerecosystem/autoscaler/issues/25
-// Autosclaing is triggered if the metric value is outside of threshold +- margin
+// Autosclaing is triggered if the metric value is outside of threshold +-
+// margin
 const DEFAULT_THRESHOLD_MARGIN = 5;
 
 const {log} = require('../utils.js');
 
+/**
+ * Get a string describing the scaling suggestion.
+ *
+ * @param {Object} spanner
+ * @param {number} suggestedSize
+ * @param {string} relativeToRange
+ * @return {string}
+ */
 function getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange) {
   if (relativeToRange == RelativeToRange.WITHIN) {
     return `no change suggested`;
-  } else if (suggestedSize <= spanner.maxSize && suggestedSize >= spanner.minSize) {
-    if (suggestedSize == spanner.currentSize)
-      return `the suggested size is equal to the current size: ${spanner.currentSize} ${spanner.units}`;
-    else 
-      return `suggesting to scale from ${spanner.currentSize} to ${suggestedSize} ${spanner.units}.`;
+  } else if (
+    suggestedSize <= spanner.maxSize && suggestedSize >= spanner.minSize) {
+    if (suggestedSize == spanner.currentSize) {
+      return `the suggested size is equal to the current size: ${
+        spanner.currentSize} ${spanner.units}`;
+    } else {
+      return `suggesting to scale from ${spanner.currentSize} to ${
+        suggestedSize} ${spanner.units}.`;
+    }
   } else if (suggestedSize > spanner.maxSize) {
-    return `however, cannot scale to ${suggestedSize} because it is higher than MAX ${spanner.maxSize} ${spanner.units}`
+    return `however, cannot scale to ${
+      suggestedSize} because it is higher than MAX ${spanner.maxSize} ${
+      spanner.units}`;
   } else if (suggestedSize < spanner.minSize) {
-    return `however, cannot scale to ${suggestedSize} because it is lower than MIN ${spanner.minSize} ${spanner.units}`
+    return `however, cannot scale to ${
+      suggestedSize} because it is lower than MIN ${spanner.minSize} ${
+      spanner.units}`;
   }
 }
 
+/**
+ * Build a ranger object from given threshold and margin.
+ * @param {number} threshold
+ * @param {number} margin
+ * @return {Object}
+ */
 function getRange(threshold, margin) {
-  var range = { 
-    min: threshold - margin, 
-    max: threshold + margin 
-  };
+  const range = {min: threshold - margin, max: threshold + margin};
 
   if (range.min < 0) range.min = 0;
   if (range.max > 100) range.max = 100;
@@ -64,43 +84,78 @@ function getRange(threshold, margin) {
   return range;
 }
 
+/**
+ * Test if given metric is within a range
+ * @param {Object} metric
+ * @return {boolean}
+ */
 function metricValueWithinRange(metric) {
-  if (compareMetricValueWithRange(metric) == RelativeToRange.WITHIN) return true;
-  else return false;
+  if (compareMetricValueWithRange(metric) == RelativeToRange.WITHIN) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
+/**
+ * Test to see where a metric fits within its range
+ *
+ * @param {Object} metric
+ * @return {string} RelativeToRange enum
+ */
 function compareMetricValueWithRange(metric) {
-  var range = getRange(metric.threshold, metric.margin);
+  const range = getRange(metric.threshold, metric.margin);
 
   if (metric.value < range.min) return RelativeToRange.BELOW;
   if (metric.value > range.max) return RelativeToRange.ABOVE;
   return RelativeToRange.WITHIN;
 }
 
+/**
+ * Log the suggested scaling.
+ * @param {Object} spanner
+ * @param {Object} metric
+ * @param {number} suggestedSize
+ */
 function logSuggestion(spanner, metric, suggestedSize) {
   const metricDetails = `\t${metric.name}=${metric.value}%,`;
   const relativeToRange = compareMetricValueWithRange(metric);
 
   const range = getRange(metric.threshold, metric.margin);
-  const rangeDetails = `${relativeToRange} the range [${range.min}%-${range.max}%]`;
+  const rangeDetails =
+      `${relativeToRange} the range [${range.min}%-${range.max}%]`;
 
   if (metric.name === OVERLOAD_METRIC && spanner.isOverloaded) {
-    log(`${metricDetails} ABOVE the ${OVERLOAD_THRESHOLD} overload threshold => ${getScaleSuggestionMessage(spanner, suggestedSize, RelativeToRange.ABOVE)}`,
-      {projectId: spanner.projectId, instanceId: spanner.instanceId});
-  } else  {
-    log(`${metricDetails} ${rangeDetails} => ${getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange)}`,
-      {projectId: spanner.projectId, instanceId: spanner.instanceId});
-  } 
-
+    log(`${metricDetails} ABOVE the ${
+      OVERLOAD_THRESHOLD} overload threshold => ${
+      getScaleSuggestionMessage(
+          spanner, suggestedSize, RelativeToRange.ABOVE)}`,
+    {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  } else {
+    log(`${metricDetails} ${rangeDetails} => ${
+      getScaleSuggestionMessage(
+          spanner, suggestedSize, relativeToRange)}`,
+    {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  }
 }
 
+/**
+ * Get the max suggested size for the given spanner instance based
+ * on its metrics
+ *
+ * @param {Object} spanner
+ * @param {Function} getSuggestedSize
+ * @return {number}
+ */
 function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
-  log(`---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} size suggestions----`,
-    {projectId: spanner.projectId, instanceId: spanner.instanceId});
-  log(`	Min=${spanner.minSize}, Current=${spanner.currentSize}, Max=${spanner.maxSize} ${spanner.units}`,
-    {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  log(`---- ${spanner.projectId}/${spanner.instanceId}: ${
+    spanner.scalingMethod} size suggestions----`,
+  {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  log(`\tMin=${spanner.minSize}, Current=${spanner.currentSize}, Max=${
+    spanner.maxSize} ${spanner.units}`,
+  {projectId: spanner.projectId, instanceId: spanner.instanceId});
 
-  var maxSuggestedSize = spanner.minSize;
+  let maxSuggestedSize = spanner.minSize;
   spanner.isOverloaded = false;
 
   for (const metric of spanner.metrics) {
@@ -119,8 +174,9 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   }
 
   maxSuggestedSize = Math.min(maxSuggestedSize, spanner.maxSize);
-  log(`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${spanner.units}`,
-    {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  log(`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${
+    spanner.units}`,
+  {projectId: spanner.projectId, instanceId: spanner.instanceId});
   return maxSuggestedSize;
 }
 
@@ -128,5 +184,5 @@ module.exports = {
   OVERLOAD_METRIC,
   OVERLOAD_THRESHOLD,
   loopThroughSpannerMetrics,
-  metricValueWithinRange
+  metricValueWithinRange,
 };

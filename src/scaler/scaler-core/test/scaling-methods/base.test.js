@@ -13,7 +13,14 @@
  * limitations under the License
  */
 
+/*
+ * ESLINT: Ignore max line length errors on lines starting with 'it('
+ * (test descriptions)
+ */
+/* eslint max-len: ["error", { "ignorePattern": "^\\s*it\\(" }] */
+
 const rewire = require('rewire');
+// eslint-disable-next-line no-unused-vars
 const should = require('should');
 const sinon = require('sinon');
 
@@ -21,158 +28,200 @@ const app = rewire('../../scaling-methods/base.js');
 
 const compareMetricValueWithRange = app.__get__('compareMetricValueWithRange');
 describe('#compareMetricValueWithRange', () => {
-    it('should return WITHIN when value is within range', () => {
-        compareMetricValueWithRange({value: 70, threshold:65, margin:5}).should.equal('WITHIN')
-    });
+  it('should return WITHIN when value is within range',
+      () => {
+        compareMetricValueWithRange({value: 70, threshold: 65, margin: 5})
+            .should.equal('WITHIN');
+      });
 
-    it('should return ABOVE when value is above range', () => {
-        compareMetricValueWithRange({value: 80, threshold:65, margin:5}).should.equal('ABOVE')
-    });
+  it('should return ABOVE when value is above range',
+      () => {
+        compareMetricValueWithRange({value: 80, threshold: 65, margin: 5})
+            .should.equal('ABOVE');
+      });
 
-    it('should return BELOW when value is below range', () => {
-        compareMetricValueWithRange({value: 20, threshold:65, margin:5}).should.equal('BELOW')
-    });
+  it('should return BELOW when value is below range',
+      () => {
+        compareMetricValueWithRange({value: 20, threshold: 65, margin: 5})
+            .should.equal('BELOW');
+      });
 });
 
 const metricValueWithinRange = app.__get__('metricValueWithinRange');
 describe('#metricValueWithinRange', () => {
-    it('should return true when metric falls within margins', () => {
-        metricValueWithinRange({value: 63, threshold:65, margin:5}).should.be.true();
-    });
+  it('should return true when metric falls within margins', () => {
+    metricValueWithinRange({value: 63, threshold: 65, margin: 5})
+        .should.be.true();
+  });
 
-    it('should return false when metric falls outside of the margins', () => {
-        metricValueWithinRange({value: 15, threshold:45, margin:10}).should.be.false();
-    });
+  it('should return false when metric falls outside of the margins', () => {
+    metricValueWithinRange({value: 15, threshold: 45, margin: 10})
+        .should.be.false();
+  });
 
-    it('should return true when metric falls right at the edge', () => {
-        metricValueWithinRange({value: 70, threshold:65, margin:5}).should.be.true();
-    });
+  it('should return true when metric falls right at the edge', () => {
+    metricValueWithinRange({value: 70, threshold: 65, margin: 5})
+        .should.be.true();
+  });
 });
 
 const getRange = app.__get__('getRange');
 describe('#getRange', () => {
-    it('should return a correct range: [th - margin, th + margin]', () => {
-        var range = getRange(65, 5);
-        range.should.have.property('min').which.is.a.Number().and.equal(60);
-        range.should.have.property('max').which.is.a.Number().and.equal(70);
-    });
+  it('should return a correct range: [th - margin, th + margin]', () => {
+    const range = getRange(65, 5);
+    range.should.have.property('min').which.is.a.Number().and.equal(60);
+    range.should.have.property('max').which.is.a.Number().and.equal(70);
+  });
 
-    it('should return a max value of 100: [th - margin, 100]', () => {
-        var range = getRange(80, 30);
-        range.should.have.property('min').which.is.a.Number().and.equal(50);
-        range.should.have.property('max').which.is.a.Number().and.equal(100);
-    });
+  it('should return a max value of 100: [th - margin, 100]', () => {
+    const range = getRange(80, 30);
+    range.should.have.property('min').which.is.a.Number().and.equal(50);
+    range.should.have.property('max').which.is.a.Number().and.equal(100);
+  });
 
-    it('should return a min value of 0: [0, th + margin]', () => {
-        var range = getRange(20, 30);
-        range.should.have.property('min').which.is.a.Number().and.equal(0);
-        range.should.have.property('max').which.is.a.Number().and.equal(50);
-    });
-
+  it('should return a min value of 0: [0, th + margin]', () => {
+    const range = getRange(20, 30);
+    range.should.have.property('min').which.is.a.Number().and.equal(0);
+    range.should.have.property('max').which.is.a.Number().and.equal(50);
+  });
 });
 
 const getScaleSuggestionMessage = app.__get__('getScaleSuggestionMessage');
 describe('#getScaleSuggestionMessage', () => {
-    it('should suggest no change when metric value within range', () => {
-        getScaleSuggestionMessage({}, 999, 'WITHIN').should.containEql('no change');
-    });
+  it('should suggest no change when metric value within range', () => {
+    getScaleSuggestionMessage({}, 999, 'WITHIN').should.containEql('no change');
+  });
 
-    // NODES -------------------------------------------------- 
-    it('should not suggest scaling when nodes suggestion is equal to current', () => {
-        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 3, '')
+  // NODES --------------------------------------------------
+  it('should not suggest scaling when nodes suggestion is equal to current',
+      () => {
+        const msg = getScaleSuggestionMessage(
+            {units: 'NODES', currentSize: 3, minSize: 2, maxSize: 8}, 3, '');
         msg.should.containEql('size is equal to the current size');
         msg.should.containEql('NODES');
         msg.should.not.containEql('PROCESSING_UNITS');
-    });
+      });
 
-    it('should suggest scaling when nodes suggestion is not equal to current', () => {
-        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 5, '');
+  it('should suggest scaling when nodes suggestion is not equal to current',
+      () => {
+        const msg = getScaleSuggestionMessage(
+            {units: 'NODES', currentSize: 3, minSize: 2, maxSize: 8}, 5, '');
         msg.should.containEql('suggesting to scale');
         msg.should.containEql('NODES');
         msg.should.not.containEql('PROCESSING_UNITS');
-    });
+      });
 
-    it('should indicate scaling is not possible if nodes suggestion is above max', () => {
-        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 9, '');
+  it('should indicate scaling is not possible if nodes suggestion is above max',
+      () => {
+        const msg = getScaleSuggestionMessage(
+            {units: 'NODES', currentSize: 3, minSize: 2, maxSize: 8}, 9, '');
         msg.should.containEql('higher than MAX');
         msg.should.containEql('NODES');
         msg.should.not.containEql('PROCESSING_UNITS');
-    });
+      });
 
-    it('should indicate scaling is not possible if nodes suggestion is below min', () => {
-        var msg = getScaleSuggestionMessage({units:'NODES', currentSize:3, minSize: 2, maxSize: 8}, 1, '');
+  it('should indicate scaling is not possible if nodes suggestion is below min',
+      () => {
+        const msg = getScaleSuggestionMessage(
+            {units: 'NODES', currentSize: 3, minSize: 2, maxSize: 8}, 1, '');
         msg.should.containEql('lower than MIN');
         msg.should.containEql('NODES');
         msg.should.not.containEql('PROCESSING_UNITS');
-    });
+      });
 
-    // PROCESSING_UNITS ---------------------------------------
-    it('should not suggest scaling when processing units suggestion is equal to current', () => {
-        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 300, '')
+  // PROCESSING_UNITS ---------------------------------------
+  it('should not suggest scaling when processing units suggestion is equal to current',
+      () => {
+        const msg = getScaleSuggestionMessage(
+            {
+              units: 'PROCESSING_UNITS',
+              currentSize: 300,
+              minSize: 200,
+              maxSize: 800,
+            },
+            300, '');
         msg.should.containEql('size is equal to the current size');
         msg.should.containEql('PROCESSING_UNITS');
         msg.should.not.containEql('NODES');
-    });
+      });
 
-    it('should suggest scaling when processing units suggestion is not equal to current', () => {
-        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 500, '');
+  it('should suggest scaling when processing units suggestion is not equal to current',
+      () => {
+        const msg = getScaleSuggestionMessage(
+            {
+              units: 'PROCESSING_UNITS',
+              currentSize: 300,
+              minSize: 200,
+              maxSize: 800,
+            },
+            500, '');
         msg.should.containEql('suggesting to scale');
         msg.should.containEql('PROCESSING_UNITS');
         msg.should.not.containEql('NODES');
-    });
+      });
 
-    it('should indicate scaling is not possible if processing units suggestion is above max', () => {
-        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 900, '');
+  it('should indicate scaling is not possible if processing units suggestion is above max',
+      () => {
+        const msg = getScaleSuggestionMessage(
+            {
+              units: 'PROCESSING_UNITS',
+              currentSize: 300,
+              minSize: 200,
+              maxSize: 800,
+            },
+            900, '');
         msg.should.containEql('higher than MAX');
         msg.should.containEql('PROCESSING_UNITS');
         msg.should.not.containEql('NODES');
-    });
+      });
 
-    it('should indicate scaling is not possible if processing units suggestion is below min', () => {
-        var msg = getScaleSuggestionMessage({units:'PROCESSING_UNITS', currentSize:300, minSize: 200, maxSize: 800}, 100, '');
+  it('should indicate scaling is not possible if processing units suggestion is below min',
+      () => {
+        const msg = getScaleSuggestionMessage(
+            {
+              units: 'PROCESSING_UNITS',
+              currentSize: 300,
+              minSize: 200,
+              maxSize: 800,
+            },
+            100, '');
         msg.should.containEql('lower than MIN');
         msg.should.containEql('PROCESSING_UNITS');
         msg.should.not.containEql('NODES');
-    });
+      });
+});
 
-}); 
-
+/**
+ * @return {Object} a test Spanner config
+ */
 function getSpannerJSON() {
-    spanner = {
-        units : 'NODES', 
-        minSize: 1, 
-        metrics: [{
-            name: 'high_priority_cpu',
-            threshold:65,
-            value:95
-        }, {
-            name: 'rolling_24_hr',
-            threshold:90,
-            value:80
-        }
-        ]
-    };
-    return spanner;
+  spanner = {
+    units: 'NODES',
+    minSize: 1,
+    metrics: [
+      {name: 'high_priority_cpu', threshold: 65, value: 95},
+      {name: 'rolling_24_hr', threshold: 90, value: 80},
+    ],
+  };
+  return spanner;
 }
 
 const loopThroughSpannerMetrics = app.__get__('loopThroughSpannerMetrics');
 describe('#loopThroughSpannerMetrics', () => {
+  it('should add a default margin to each metric', () => {
+    const spanner = getSpannerJSON();
 
-    it('should add a default margin to each metric', () => {
-        var spanner = getSpannerJSON();
+    loopThroughSpannerMetrics(spanner, sinon.stub().returns(1));
+    spanner.metrics[0].should.have.property('margin');
+    spanner.metrics[1].should.have.property('margin');
+  });
 
-        loopThroughSpannerMetrics(spanner, sinon.stub().returns(1));
-        spanner.metrics[0].should.have.property('margin');
-        spanner.metrics[1].should.have.property('margin');
-    });
+  it('should not overwrite an existing margin', () => {
+    const spanner = getSpannerJSON();
+    spanner.metrics[1].margin = 99;
 
-    it('should not overwrite an existing margin', () => {
-        var spanner = getSpannerJSON();
-        spanner.metrics[1].margin = 99;
-
-        loopThroughSpannerMetrics(spanner, sinon.stub().returns(1));
-        spanner.metrics[0].should.have.property('margin');
-        spanner.metrics[1].should.have.property('margin').and.equal(99);
-    });
-
+    loopThroughSpannerMetrics(spanner, sinon.stub().returns(1));
+    spanner.metrics[0].should.have.property('margin');
+    spanner.metrics[1].should.have.property('margin').and.equal(99);
+  });
 });

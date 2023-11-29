@@ -13,6 +13,8 @@
  * limitations under the License
  */
 const rewire = require('rewire');
+// eslint-disable-next-line no-unused-vars
+const should = require('should');
 const {createSpannerParameters} = require('../test-utils.js');
 
 const app = rewire('../../scaling-methods/direct.js');
@@ -24,7 +26,7 @@ describe('#direct.calculateSize', () => {
 
     calculateSize(spanner).should.equal(5000);
   });
- 
+
   it('should return the maximum nodes size', () => {
     const spanner = createSpannerParameters({units: 'NODES', maxSize: 8}, true);
 
@@ -32,9 +34,9 @@ describe('#direct.calculateSize', () => {
   });
 
   it('should ignore deprecated parameter maxNodes', () => {
-    const spanner = createSpannerParameters({units: 'NODES', maxSize: 8, maxNodes: 9}, true);
+    const spanner = createSpannerParameters(
+        {units: 'NODES', maxSize: 8, maxNodes: 9}, true);
 
     calculateSize(spanner).should.equal(8);
   });
-
 });

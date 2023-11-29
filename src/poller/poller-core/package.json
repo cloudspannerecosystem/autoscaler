@@ -6,9 +6,9 @@
     "dependencies": {
         "@google-cloud/functions-framework": "^3.3.0",
         "@google-cloud/monitoring": "^4.0.0",
-        "@google-cloud/pubsub": "^4.0.1",
+        "@google-cloud/pubsub": "^4.0.7",
         "@google-cloud/spanner": "^6.16.0",
-        "axios": "^1.6.0"
+        "axios": "^1.6.2"
     },
     "scripts": {
         "start": "functions-framework --target=checkSpannerScaleMetricsHTTP",
@@ -17,12 +17,12 @@
         "mdlint": "cd .. && markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"
     },
     "devDependencies": {
-        "markdownlint": "^0.30.0",
+        "markdownlint": "^0.32.1",
         "mocha": "^10.2.0",
-        "mocha-suppress-logs": "^0.3.1",
+        "mocha-suppress-logs": "^0.4.1",
         "nyc": "^15.1.0",
         "rewire": "^7.0.0",
         "should": "^13.2.3",
-        "sinon": "^15.2.0"
+        "sinon": "^17.0.1"
     }
 }

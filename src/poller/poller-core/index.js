@@ -20,11 +20,11 @@
  * * Sends metrics to Scaler to determine if an instance needs to be autoscaled
  */
 
-const axios      = require('axios');
+const axios = require('axios');
 const monitoring = require('@google-cloud/monitoring');
-const {PubSub}   = require('@google-cloud/pubsub');
-const {Spanner}  = require('@google-cloud/spanner');
-const {log}      = require('./utils.js');
+const {PubSub} = require('@google-cloud/pubsub');
+const {Spanner} = require('@google-cloud/spanner');
+const {log} = require('./utils.js');
 
 // GCP service clients
 const metricsClient = new monitoring.MetricServiceClient();
@@ -33,7 +33,7 @@ const baseDefaults = {
   units: 'NODES',
   scaleOutCoolingMinutes: 5,
   scaleInCoolingMinutes: 30,
-  scalingMethod: 'STEPWISE'
+  scalingMethod: 'STEPWISE',
 };
 const nodesDefaults = {
   units: 'NODES',
@@ -47,15 +47,22 @@ const processingUnitsDefaults = {
   minSize: 100,
   maxSize: 2000,
   stepSize: 200,
-  overloadStepSize: 500
+  overloadStepSize: 500,
 };
 const metricDefaults = {
   period: 60,
   aligner: 'ALIGN_MAX',
-  reducer: 'REDUCE_SUM'
+  reducer: 'REDUCE_SUM',
 };
 const DEFAULT_THRESHOLD_MARGIN = 5;
 
+/**
+ * Build the list of metrics to request
+ *
+ * @param {string} projectId
+ * @param {string} instanceId
+ * @return {*} metrics to request
+ */
 function buildMetrics(projectId, instanceId) {
   // Recommended alerting policies
   // https://cloud.google.com/spanner/docs/monitoring-stackdriver#create-alert
@@ -63,23 +70,25 @@ function buildMetrics(projectId, instanceId) {
     {
       name: 'high_priority_cpu',
       filter: createBaseFilter(projectId, instanceId) +
-          'metric.type="spanner.googleapis.com/instance/cpu/utilization_by_priority" AND ' +
-          'metric.label.priority="high"',
+          'metric.type=' +
+          '"spanner.googleapis.com/instance/cpu/utilization_by_priority" ' +
+          'AND metric.label.priority="high"',
       reducer: 'REDUCE_SUM',
       aligner: 'ALIGN_MAX',
       period: 60,
       regional_threshold: 65,
-      multi_regional_threshold: 45
+      multi_regional_threshold: 45,
     },
     {
       name: 'rolling_24_hr',
       filter: createBaseFilter(projectId, instanceId) +
-          'metric.type="spanner.googleapis.com/instance/cpu/smoothed_utilization"',
+          'metric.type='+
+          '"spanner.googleapis.com/instance/cpu/smoothed_utilization"',
       reducer: 'REDUCE_SUM',
       aligner: 'ALIGN_MAX',
       period: 60,
       regional_threshold: 90,
-      multi_regional_threshold: 90
+      multi_regional_threshold: 90,
     },
     {
       name: 'storage',
@@ -89,45 +98,69 @@ function buildMetrics(projectId, instanceId) {
       aligner: 'ALIGN_MAX',
       period: 60,
       regional_threshold: 75,
-      multi_regional_threshold: 75
-    }
+      multi_regional_threshold: 75,
+    },
   ];
 
   return metrics;
 }
 
-// creates the base filter that should be prepended to all metric filters
+/**
+ * Creates the base filter that should be prepended to all metric filters
+ * @param {string} projectId
+ * @param {string} instanceId
+ * @return {string} filter
+ */
 function createBaseFilter(projectId, instanceId) {
   return 'resource.labels.instance_id="' + instanceId + '" AND ' +
-  'resource.type="spanner_instance" AND ' +
-  'project="' + projectId + '" AND '
+      'resource.type="spanner_instance" AND ' +
+      'project="' + projectId + '" AND ';
 }
 
-// checks to make sure required fields are present and populated
+/**
+ * Checks to make sure required fields are present and populated
+ *
+ * @param {!Object} metric
+ * @param {string} projectId
+ * @param {string} instanceId
+ * @return {boolean}
+ */
 function validateCustomMetric(metric, projectId, instanceId) {
-  if(!metric.name) {
-    log('Missing name parameter for custom metric.', {severity: 'INFO', projectId: projectId, instanceId: instanceId});
+  if (!metric.name) {
+    log('Missing name parameter for custom metric.',
+        {severity: 'INFO', projectId: projectId, instanceId: instanceId});
     return false;
   }
 
-  if(!metric.filter) {
-    log('Missing filter parameter for custom metric.', {severity: 'INFO', projectId: projectId, instanceId: instanceId});
+  if (!metric.filter) {
+    log('Missing filter parameter for custom metric.',
+        {severity: 'INFO', projectId: projectId, instanceId: instanceId});
     return false;
   }
 
-  if(!(metric.regional_threshold > 0 || metric.multi_regional_threshold > 0)) {
+  if (!(metric.regional_threshold > 0 || metric.multi_regional_threshold > 0)) {
     log('Missing regional_threshold or multi_multi_regional_threshold ' +
-        'parameter for custom metric.', {severity: 'INFO', projectId: projectId, instanceId: instanceId});
+            'parameter for custom metric.',
+    {severity: 'INFO', projectId: projectId, instanceId: instanceId});
     return false;
   }
 
   return true;
 }
 
+/**
+ * Get max value of metric over a window
+ *
+ * @param {string} projectId
+ * @param {string} spannerInstanceId
+ * @param {Object} metric
+ * @return {Promise}
+ */
 function getMaxMetricValue(projectId, spannerInstanceId, metric) {
   const metricWindow = 5;
-  log(`Get max ${metric.name} from ${projectId}/${spannerInstanceId} over ${metricWindow} minutes.`,
-    {projectId: projectId, instanceId: spannerInstanceId});
+  log(`Get max ${metric.name} from ${projectId}/${spannerInstanceId} over ${
+    metricWindow} minutes.`,
+  {projectId: projectId, instanceId: spannerInstanceId});
 
   const request = {
     name: 'projects/' + projectId,
@@ -138,7 +171,7 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
       },
       endTime: {
         seconds: Date.now() / 1000,
-      }
+      },
     },
     aggregation: {
       alignmentPeriod: {
@@ -148,20 +181,20 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
       perSeriesAligner: metric.aligner,
       groupByFields: ['resource.location'],
     },
-    view: 'FULL'
+    view: 'FULL',
   };
 
-  return metricsClient.listTimeSeries(request).then(metricResponses => {
+  return metricsClient.listTimeSeries(request).then((metricResponses) => {
     const resources = metricResponses[0];
-    var maxValue = 0.0;
-    var maxLocation = 'global';
+    let maxValue = 0.0;
+    let maxLocation = 'global';
 
     for (const resource of resources) {
       for (const point of resource.points) {
         value = parseFloat(point.value.doubleValue) * 100;
         if (value > maxValue) {
           maxValue = value;
-          if(resource.resource.labels.location) {
+          if (resource.resource.labels.location) {
             maxLocation = resource.resource.labels.location;
           }
         }
@@ -172,25 +205,38 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
   });
 }
 
+/**
+ * Get metadata for spanner instance
+ *
+ * @param {string} projectId
+ * @param {string} spannerInstanceId
+ * @param {string} units NODES or PU
+ * @return {Promise}
+ */
 function getSpannerMetadata(projectId, spannerInstanceId, units) {
   log(`----- ${projectId}/${spannerInstanceId}: Getting Metadata -----`,
-    {severity: 'INFO', projectId: projectId, instanceId: spannerInstanceId});
+      {severity: 'INFO', projectId: projectId, instanceId: spannerInstanceId});
 
   const spanner = new Spanner({
     projectId: projectId,
-    userAgent: "cloud-solutions/spanner-autoscaler-poller-usage-v1.0"
+    userAgent: 'cloud-solutions/spanner-autoscaler-poller-usage-v1.0',
   });
   const spannerInstance = spanner.instance(spannerInstanceId);
 
-  return spannerInstance.getMetadata().then(data => {
+  return spannerInstance.getMetadata().then((data) => {
     const metadata = data[0];
-    log(`DisplayName:     ${metadata['displayName']}`, {projectId: projectId, instanceId: spannerInstanceId});
-    log(`NodeCount:       ${metadata['nodeCount']}`, {projectId: projectId, instanceId: spannerInstanceId});
-    log(`ProcessingUnits: ${metadata['processingUnits']}`, {projectId: projectId, instanceId: spannerInstanceId});
-    log(`Config:          ${metadata['config'].split('/').pop()}`, {projectId: projectId, instanceId: spannerInstanceId});
+    log(`DisplayName:     ${metadata['displayName']}`,
+        {projectId: projectId, instanceId: spannerInstanceId});
+    log(`NodeCount:       ${metadata['nodeCount']}`,
+        {projectId: projectId, instanceId: spannerInstanceId});
+    log(`ProcessingUnits: ${metadata['processingUnits']}`,
+        {projectId: projectId, instanceId: spannerInstanceId});
+    log(`Config:          ${metadata['config'].split('/').pop()}`,
+        {projectId: projectId, instanceId: spannerInstanceId});
 
     const spannerMetadata = {
-      currentSize: (units == 'NODES') ? metadata['nodeCount'] : metadata['processingUnits'],
+      currentSize: (units == 'NODES') ? metadata['nodeCount'] :
+                                        metadata['processingUnits'],
       regional: metadata['config'].split('/').pop().startsWith('regional'),
       // DEPRECATED
       currentNodes: metadata['nodeCount'],
@@ -201,6 +247,13 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
   });
 }
 
+/**
+ * Post a message to PubSub with the spanner instance and metrics.
+ *
+ * @param {Object} spanner
+ * @param {Object} metrics
+ * @return {Promise}
+ */
 async function postPubSubMessage(spanner, metrics) {
   const topic = pubSub.topic(spanner.scalerPubSubTopic);
 
@@ -208,15 +261,32 @@ async function postPubSubMessage(spanner, metrics) {
   const messageBuffer = Buffer.from(JSON.stringify(spanner), 'utf8');
 
   return topic.publish(messageBuffer)
-      .then(
-        log(`----- Published message to topic: ${spanner.scalerPubSubTopic}`,
-          {severity: 'INFO', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner}))
-      .catch(err => {
-        log(`An error occurred when publishing the message to ${spanner.scalerPubSubTopic}`,
-          {severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
+      .then(log(
+          `----- Published message to topic: ${spanner.scalerPubSubTopic}`, {
+            severity: 'INFO',
+            projectId: spanner.projectId,
+            instanceId: spanner.instanceId,
+            payload: spanner,
+          }))
+      .catch((err) => {
+        log(`An error occurred when publishing the message to ${
+          spanner.scalerPubSubTopic}`,
+        {
+          severity: 'ERROR',
+          projectId: spanner.projectId,
+          instanceId: spanner.instanceId,
+          payload: err,
+        });
       });
 }
 
+/**
+ * Calls the Scaler cloud function by HTTP POST.
+ *
+ * @param {Object} spanner
+ * @param {Object} metrics
+ * @return {Promise}
+ */
 async function callScalerHTTP(spanner, metrics) {
   spanner.scalerURL ||= 'http://scaler';
   const url = new URL('/metrics', spanner.scalerURL);
@@ -224,21 +294,38 @@ async function callScalerHTTP(spanner, metrics) {
   spanner.metrics = metrics;
 
   return axios.post(url.toString(), spanner)
-    .then(response => {
-      log(`----- Published message to scaler, response ${response.statusText}`,
-        {severity: 'INFO', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: spanner})
-    })
-    .catch(err => {
-      log(`An error occurred when calling the scaler`,
-        {severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
-    });
+      .then(
+          (response) => {
+            log(`----- Published message to scaler, response ${
+              response.statusText}`,
+            {
+              severity: 'INFO',
+              projectId: spanner.projectId,
+              instanceId: spanner.instanceId,
+              payload: spanner,
+            });
+          })
+      .catch((err) => {
+        log(`An error occurred when calling the scaler`, {
+          severity: 'ERROR',
+          projectId: spanner.projectId,
+          instanceId: spanner.instanceId,
+          payload: err,
+        });
+      });
 }
 
+/**
+ * Enrich the paylod by adding information from the config.
+ *
+ * @param {string} payload
+ * @return {Object} enriched payload
+ */
 async function parseAndEnrichPayload(payload) {
-  var spanners = JSON.parse(payload);
-  var spannersFound = [];
+  const spanners = JSON.parse(payload);
+  const spannersFound = [];
 
-  for (var sIdx = 0; sIdx < spanners.length; sIdx++) {
+  for (let sIdx = 0; sIdx < spanners.length; sIdx++) {
     const metricOverrides = spanners[sIdx].metrics;
 
     // assemble the config
@@ -246,58 +333,95 @@ async function parseAndEnrichPayload(payload) {
     spanners[sIdx] = {...baseDefaults, ...spanners[sIdx]};
 
     // handle processing units and deprecation of minNodes/maxNodes
-    if(spanners[sIdx].units.toUpperCase() == 'PROCESSING_UNITS') {
+    if (spanners[sIdx].units.toUpperCase() == 'PROCESSING_UNITS') {
       spanners[sIdx].units = spanners[sIdx].units.toUpperCase();
       // merge in the processing units defaults
       spanners[sIdx] = {...processingUnitsDefaults, ...spanners[sIdx]};
 
       // minNodes and maxNodes should not be used with processing units. If
       // they are set the config is invalid.
-      if(spanners[sIdx].minNodes || spanners[sIdx].maxNodes ) {
-        throw new Error('INVALID CONFIG: units is set to PROCESSING_UNITS, however, minNodes or maxNodes is set, remove minNodes and maxNodes from your configuration.');
+      if (spanners[sIdx].minNodes || spanners[sIdx].maxNodes) {
+        throw new Error(
+            'INVALID CONFIG: units is set to PROCESSING_UNITS, ' +
+            'however, minNodes or maxNodes is set, ' +
+            'remove minNodes and maxNodes from your configuration.');
       }
-    }
-    else if(spanners[sIdx].units.toUpperCase() == 'NODES') {
+    } else if (spanners[sIdx].units.toUpperCase() == 'NODES') {
       spanners[sIdx].units = spanners[sIdx].units.toUpperCase();
 
-      // if minNodes or minSize are provided set the other, and if both are set and not match throw an error
-      if(spanners[sIdx].minNodes && !spanners[sIdx].minSize) {
-        log(`DEPRECATION: minNodes is deprecated, remove minNodes from your config and instead use: units = 'NODES' and minSize = ${spanners[sIdx].minNodes}`,
-          {severity: 'WARNING', projectId: spanners[sIdx].projectId, instanceId: spanners[sIdx].instanceId});
+      // if minNodes or minSize are provided set the other, and if both are set
+      // and not match throw an error
+      if (spanners[sIdx].minNodes && !spanners[sIdx].minSize) {
+        log(`DEPRECATION: minNodes is deprecated, ' + 
+        'remove minNodes from your config and instead use: ' + 
+        'units = 'NODES' and minSize = ${
+  spanners[sIdx].minNodes}`,
+        {
+          severity: 'WARNING',
+          projectId: spanners[sIdx].projectId,
+          instanceId: spanners[sIdx].instanceId,
+        });
         spanners[sIdx].minSize = spanners[sIdx].minNodes;
-      } else if(spanners[sIdx].minSize && spanners[sIdx].minNodes && spanners[sIdx].minSize != spanners[sIdx].minNodes) {
-        throw new Error('INVALID CONFIG: minSize and minNodes are both set but do not match, make them match or only set minSize');
+      } else if (
+        spanners[sIdx].minSize && spanners[sIdx].minNodes &&
+          spanners[sIdx].minSize != spanners[sIdx].minNodes) {
+        throw new Error(
+            'INVALID CONFIG: minSize and minNodes are both set ' +
+            'but do not match, make them match or only set minSize');
       }
 
-      // if maxNodes or maxSize are provided set the other, and if both are set and not match throw an error
-      if(spanners[sIdx].maxNodes && !spanners[sIdx].maxSize) {
-        log(`DEPRECATION: maxNodes is deprecated, remove maxSize from your config and instead use: units = 'NODES' and maxSize = ${spanners[sIdx].maxNodes}`,
-          {severity: 'WARNING', projectId: spanners[sIdx].projectId, instanceId: spanners[sIdx].instanceId});
+      // if maxNodes or maxSize are provided set the other, and if both are set
+      // and not match throw an error
+      if (spanners[sIdx].maxNodes && !spanners[sIdx].maxSize) {
+        log(`DEPRECATION: maxNodes is deprecated, remove maxSize ' + 
+        'from your config and instead use: ' + 
+        'units = 'NODES' and maxSize = ${
+  spanners[sIdx].maxNodes}`,
+        {
+          severity: 'WARNING',
+          projectId: spanners[sIdx].projectId,
+          instanceId: spanners[sIdx].instanceId,
+        });
         spanners[sIdx].maxSize = spanners[sIdx].maxNodes;
-      } else if(spanners[sIdx].maxSize && spanners[sIdx].maxNodes && spanners[sIdx].maxSize != spanners[sIdx].maxNodes) {
-        throw new Error('INVALID CONFIG: maxSize and maxNodes are both set but do not match, make them match or only set maxSize');
+      } else if (
+        spanners[sIdx].maxSize && spanners[sIdx].maxNodes &&
+          spanners[sIdx].maxSize != spanners[sIdx].maxNodes) {
+        throw new Error(
+            'INVALID CONFIG: maxSize and maxNodes are both set ' +
+            'but do not match, make them match or only set maxSize');
       }
 
-      // at this point both minNodes/minSize and maxNodes/maxSize are matching or are both not set so we can merge in defaults
+      // at this point both minNodes/minSize and maxNodes/maxSize are matching
+      // or are both not set so we can merge in defaults
       spanners[sIdx] = {...nodesDefaults, ...spanners[sIdx]};
+    } else {
+      throw new Error(`INVALID CONFIG: ${
+        spanners[sIdx]
+            .units} is invalid. Valid values are NODES or PROCESSING_UNITS`);
     }
-    else
-      throw new Error(`INVALID CONFIG: ${spanners[sIdx].units} is invalid. Valid values are NODES or PROCESSING_UNITS`);
 
     // assemble the metrics
     spanners[sIdx].metrics =
-      buildMetrics(spanners[sIdx].projectId, spanners[sIdx].instanceId);
+        buildMetrics(spanners[sIdx].projectId, spanners[sIdx].instanceId);
     // merge in custom thresholds
-    if(metricOverrides != null) {
-      for (var oIdx = 0; oIdx < metricOverrides.length; oIdx++) {
-        mIdx = spanners[sIdx].metrics.findIndex(x => x.name === metricOverrides[oIdx].name);
-        if(mIdx != -1) {
-          spanners[sIdx].metrics[mIdx] = {...spanners[sIdx].metrics[mIdx], ...metricOverrides[oIdx]};
-        }
-        else {
-          var metric = {...metricDefaults, ...metricOverrides[oIdx]};
-          if(validateCustomMetric(metric, spanners[sIdx].projectId, spanners[sIdx].instanceId)) {
-            metric.filter = createBaseFilter(spanners[sIdx].projectId, spanners[sIdx].instanceId) + metric.filter;
+    if (metricOverrides != null) {
+      for (let oIdx = 0; oIdx < metricOverrides.length; oIdx++) {
+        mIdx = spanners[sIdx].metrics.findIndex(
+            (x) => x.name === metricOverrides[oIdx].name);
+        if (mIdx != -1) {
+          spanners[sIdx].metrics[mIdx] = {
+            ...spanners[sIdx].metrics[mIdx],
+            ...metricOverrides[oIdx],
+          };
+        } else {
+          const metric = {...metricDefaults, ...metricOverrides[oIdx]};
+          if (validateCustomMetric(
+              metric, spanners[sIdx].projectId,
+              spanners[sIdx].instanceId)) {
+            metric.filter =
+                createBaseFilter(
+                    spanners[sIdx].projectId, spanners[sIdx].instanceId) +
+                metric.filter;
             spanners[sIdx].metrics.push(metric);
           }
         }
@@ -308,127 +432,208 @@ async function parseAndEnrichPayload(payload) {
     try {
       spanners[sIdx] = {
         ...spanners[sIdx],
-        ...await getSpannerMetadata(spanners[sIdx].projectId, spanners[sIdx].instanceId, spanners[sIdx].units.toUpperCase())
+        ...await getSpannerMetadata(
+            spanners[sIdx].projectId, spanners[sIdx].instanceId,
+            spanners[sIdx].units.toUpperCase()),
       };
       spannersFound.push(spanners[sIdx]);
     } catch (err) {
-      log(`Unable to retrieve Spanner metadata for ${spanners[sIdx].projectId}/${spanners[sIdx].instanceId}`,
-        {severity: 'ERROR', projectId: spanners[sIdx].projectId, instanceId: spanners[sIdx].instanceId, payload: err});
+      log(`Unable to retrieve Spanner metadata for ${
+        spanners[sIdx].projectId}/${spanners[sIdx].instanceId}`,
+      {
+        severity: 'ERROR',
+        projectId: spanners[sIdx].projectId,
+        instanceId: spanners[sIdx].instanceId,
+        payload: err,
+      });
     }
   }
 
   return spannersFound;
 }
 
+/**
+ * Retrive the metrics for a spanner instance
+ *
+ * @param {Object} spanner
+ * @return {Promise<Object>} metrics
+ */
 async function getMetrics(spanner) {
   log(`----- ${spanner.projectId}/${spanner.instanceId}: Getting Metrics -----`,
-    {severity: 'INFO', projectId: spanner.projectId, instanceId: spanner.instanceId});
-  var metrics = [];
+      {
+        severity: 'INFO',
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+      });
+  const metrics = [];
   for (const metric of spanner.metrics) {
-    var [maxMetricValue, maxLocation] =
+    const [maxMetricValue, maxLocation] =
         await getMaxMetricValue(spanner.projectId, spanner.instanceId, metric);
 
-    var threshold;
-    var margin;
+    let threshold;
+    let margin;
     if (spanner.regional) {
       threshold = metric.regional_threshold;
-      if (!metric.hasOwnProperty('regional_margin'))
+      if (!metric.hasOwnProperty('regional_margin')) {
         metric.regional_margin = DEFAULT_THRESHOLD_MARGIN;
+      }
       margin = metric.regional_margin;
     } else {
       threshold = metric.multi_regional_threshold;
-      if (!metric.hasOwnProperty('multi_regional_margin'))
+      if (!metric.hasOwnProperty('multi_regional_margin')) {
         metric.multi_regional_margin = DEFAULT_THRESHOLD_MARGIN;
+      }
       margin = metric.multi_regional_margin;
     }
 
-    log(`  ${metric.name} = ${maxMetricValue}, threshold = ${threshold}, margin = ${margin}, location = ${maxLocation}`,
-      {projectId: spanner.projectId, instanceId: spanner.instanceId});
+    log(`  ${metric.name} = ${maxMetricValue}, threshold = ${
+      threshold}, margin = ${margin}, location = ${maxLocation}`,
+    {projectId: spanner.projectId, instanceId: spanner.instanceId});
 
     const metricsObject = {
       name: metric.name,
       threshold: threshold,
       margin: margin,
-      value: maxMetricValue
+      value: maxMetricValue,
     };
     metrics.push(metricsObject);
   }
   return metrics;
 }
 
+/**
+ * Forwards the metrics
+ * @param {Function} forwarderFunction
+ * @param {List} spanners config objects
+ * @return {Promise}
+ */
 forwardMetrics = async (forwarderFunction, spanners) => {
   for (const spanner of spanners) {
     try {
-      var metrics = await getMetrics(spanner);
+      const metrics = await getMetrics(spanner);
       await forwarderFunction(spanner, metrics); // Handles exceptions
     } catch (err) {
-      log(`Unable to retrieve metrics for ${spanner.projectId}/${spanner.instanceId}`,
-        {severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
+      log(`Unable to retrieve metrics for ${spanner.projectId}/${
+        spanner.instanceId}`,
+      {
+        severity: 'ERROR',
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+        payload: err,
+      });
     }
   }
 };
 
+/**
+ * Aggregate metrics for a List of spanner config
+ *
+ * @param {List} spanners
+ * @return {Promise} aggregatedMetrics
+ */
 aggregateMetrics = async (spanners) => {
-  var aggregatedMetrics = [];
+  const aggregatedMetrics = [];
   for (const spanner of spanners) {
     try {
       spanner.metrics = await getMetrics(spanner);
       aggregatedMetrics.push(spanner);
     } catch (err) {
-      log(`Unable to retrieve metrics for ${spanner.projectId}/${spanner.instanceId}`,
-        {severity: 'ERROR', projectId: spanner.projectId, instanceId: spanner.instanceId, payload: err});
+      log(`Unable to retrieve metrics for ${spanner.projectId}/${
+        spanner.instanceId}`,
+      {
+        severity: 'ERROR',
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+        payload: err,
+      });
     }
   }
   return aggregatedMetrics;
 };
 
 
+/**
+ * Handle a PubSub message and check if scaling is required
+ *
+ * @param {Object} pubSubEvent
+ * @param {*} context
+ */
 exports.checkSpannerScaleMetricsPubSub = async (pubSubEvent, context) => {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
     const spanners = await parseAndEnrichPayload(payload);
-    log('Autoscaler poller started (PubSub).', {severity: 'DEBUG', payload: spanners});
+    log('Autoscaler poller started (PubSub).',
+        {severity: 'DEBUG', payload: spanners});
     await forwardMetrics(postPubSubMessage, spanners);
   } catch (err) {
-    log(`An error occurred in the Autoscaler poller function (PubSub)`, {severity: 'ERROR', payload: err});
-    log(`JSON payload`, {severity: 'ERROR', payload: payload });
+    log(`An error occurred in the Autoscaler poller function (PubSub)`,
+        {severity: 'ERROR', payload: err});
+    log(`JSON payload`, {severity: 'ERROR', payload: payload});
   }
 };
 
-// For testing with: https://cloud.google.com/functions/docs/functions-framework
+/**
+ * For testing with: https://cloud.google.com/functions/docs/functions-framework
+ * @param {Request} req
+ * @param {Response} res
+ */
 exports.checkSpannerScaleMetricsHTTP = async (req, res) => {
   try {
     const payload =
-        '[{"projectId": "spanner-scaler", "instanceId": "autoscale-test", "scalerPubSubTopic": "projects/spanner-scaler/topics/test-scaling", "minNodes": 1, "maxNodes": 3, "stateProjectId" : "spanner-scaler"}]';
+        '[{ '+
+        '  "projectId": "spanner-scaler", '+
+        '  "instanceId": "autoscale-test", '+
+        '  "scalerPubSubTopic": '+
+        '     "projects/spanner-scaler/topics/test-scaling", '+
+        '  "minNodes": 1, '+
+        '  "maxNodes": 3, '+
+        '  "stateProjectId" : "spanner-scaler"'+
+        '}]';
     const spanners = await parseAndEnrichPayload(payload);
     await forwardMetrics(postPubSubMessage, spanners);
     res.status(200).end();
   } catch (err) {
-    log(`An error occurred in the Autoscaler poller function (HTTP)`, {severity: 'ERROR', payload: err});
-    log(`JSON payload`, {severity: 'ERROR', payload: payload });
+    log(`An error occurred in the Autoscaler poller function (HTTP)`,
+        {severity: 'ERROR', payload: err});
+    log(`JSON payload`, {severity: 'ERROR', payload: payload});
     res.status(500).end(err.toString());
   }
 };
 
+/**
+ * HTTP test
+ *
+ * @param {string} payload
+ */
 exports.checkSpannerScaleMetricsJSON = async (payload) => {
   try {
     const spanners = await parseAndEnrichPayload(payload);
-    log('Autoscaler poller started (JSON/HTTP).', {severity: 'DEBUG', payload: spanners});
+    log('Autoscaler poller started (JSON/HTTP).',
+        {severity: 'DEBUG', payload: spanners});
     await forwardMetrics(callScalerHTTP, spanners);
   } catch (err) {
-    log(`An error occurred in the Autoscaler poller function (JSON/HTTP)`, {severity: 'ERROR', payload: err});
-    log(`JSON payload`, {severity: 'ERROR', payload: payload });
+    log(`An error occurred in the Autoscaler poller function (JSON/HTTP)`,
+        {severity: 'ERROR', payload: err});
+    log(`JSON payload`, {severity: 'ERROR', payload: payload});
   }
 };
 
+/**
+ * Local test
+ *
+ * @param {string} payload
+ * @return {metrics}
+ */
 exports.checkSpannerScaleMetricsLocal = async (payload) => {
   try {
     const spanners = await parseAndEnrichPayload(payload);
-    log('Autoscaler poller started (JSON/local).', {severity: 'DEBUG', payload: spanners});
+    log('Autoscaler poller started (JSON/local).',
+        {severity: 'DEBUG', payload: spanners});
     return await aggregateMetrics(spanners);
   } catch (err) {
-    log(`An error occurred in the Autoscaler poller function (JSON/local)`, {severity: 'ERROR', payload: err});
-    log(`JSON payload`, {severity: 'ERROR', payload: payload });
+    log(`An error occurred in the Autoscaler poller function (JSON/local)`,
+        {severity: 'ERROR', payload: err});
+    log(`JSON payload`, {severity: 'ERROR', payload: payload});
   }
 };
 

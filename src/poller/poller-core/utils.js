@@ -18,17 +18,21 @@
  *
  */
 
-function log(message, {severity = 'DEBUG', projectId, instanceId, payload} = {} ) {
-  // Structured logging
-  // https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
-
+/**
+   * Structured logging
+   * https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
+   * @param {string} message
+   * @param {Object} params
+   */
+function log(
+    message, {severity = 'DEBUG', projectId, instanceId, payload} = {}) {
   if (!!payload) {
     // If payload is an Error, get the stack trace.
     if (payload instanceof Error && !!payload.stack) {
-      if (!!message ) {
-         message = message + '\n' + payload.stack;
+      if (!!message) {
+        message = message + '\n' + payload.stack;
       } else {
-         message = payload.stack;
+        message = payload.stack;
       }
     }
   }
@@ -38,11 +42,9 @@ function log(message, {severity = 'DEBUG', projectId, instanceId, payload} = {} 
     severity: severity,
     projectId: projectId,
     instanceId: instanceId,
-    payload: payload
+    payload: payload,
   };
   console.log(JSON.stringify(logEntry));
 }
 
-module.exports = {
-  log
-};
+module.exports = {log};

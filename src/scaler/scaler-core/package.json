@@ -4,10 +4,11 @@
   "license": "Apache-2.0",
   "author": "Google Inc.",
   "dependencies": {
-    "@google-cloud/firestore": "^6.7.0",
+    "@google-cloud/firestore": "^6.8.0",
     "@google-cloud/functions-framework": "^3.3.0",
-    "@google-cloud/pubsub": "^3.3.0",
-    "@google-cloud/spanner": "^6.16.0"
+    "@google-cloud/pubsub": "^4.0.7",
+    "@google-cloud/spanner": "^6.16.0",
+    "sanitize-filename": "^1.6.3"
   },
   "scripts": {
     "start": "functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
@@ -18,12 +19,12 @@
   },
   "devDependencies": {
     "@sinonjs/referee": "^10.0.1",
-    "markdownlint": "^0.30.0",
+    "markdownlint": "^0.32.1",
     "mocha": "^10.2.0",
-    "mocha-suppress-logs": "^0.3.1",
+    "mocha-suppress-logs": "^0.4.1",
     "nyc": "^15.1.0",
     "rewire": "^7.0.0",
     "should": "^13.2.3",
-    "sinon": "^15.2.0"
+    "sinon": "^17.0.1"
   }
 }

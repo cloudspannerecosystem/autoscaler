@@ -29,7 +29,13 @@
 const {Firestore} = require('@google-cloud/firestore');
 const {Spanner} = require('@google-cloud/spanner');
 
+/**
+ * Used to store state of a Spanner instance
+ */
 class State {
+  /**
+   * @param {Object} spanner
+   */
   constructor(spanner) {
     switch (spanner.stateDatabase && spanner.stateDatabase.name) {
       case 'firestore':
@@ -44,34 +50,49 @@ class State {
     }
   }
 
+  /**
+   * proxy init to underlying state implementation
+   */
   async init() {
     return await this.state.init();
   }
 
+  /**
+   * proxy get to underlying state implementation
+   */
   async get() {
     return await this.state.get();
   }
 
+  /**
+   * proxy set to underlying state implementation
+   */
   async set() {
     await this.state.set();
   }
 
+  /**
+   * proxy close to underlying state implementation
+   */
   async close() {
     await this.state.close();
   }
 
+  /**
+   * proxy now() to underlying state implementation
+   */
   get now() {
     return this.state.now;
   }
 }
 module.exports = State;
 
-/*
+/**
  * Manages the Autoscaler persistent state in spanner.
  *
  * To manage the Autoscaler state in a spanner database,
- * set the `stateDatabase.name` parameter to 'spanner' in the Cloud Scheduler configuration.
- * The following is an example.
+ * set the `stateDatabase.name` parameter to 'spanner' in the Cloud Scheduler
+ * configuration. The following is an example.
  *
  * {
  *   "stateDatabase": {
@@ -82,19 +103,28 @@ module.exports = State;
  * }
  */
 class StateSpanner {
+  /**
+   * @param {Object} spanner
+   */
   constructor(spanner) {
-    this.stateProjectId = (spanner.stateProjectId != null) ? spanner.stateProjectId :
-                                                        spanner.projectId;
+    this.stateProjectId = (spanner.stateProjectId != null) ?
+        spanner.stateProjectId :
+        spanner.projectId;
     this.projectId = spanner.projectId;
     this.instanceId = spanner.instanceId;
 
     this.client = new Spanner({projectId: this.stateProjectId});
-    this.db = this.client.instance(spanner.stateDatabase.instanceId).database(spanner.stateDatabase.databaseId)
+    this.db = this.client.instance(spanner.stateDatabase.instanceId)
+        .database(spanner.stateDatabase.databaseId);
     this.table = this.db.table('spannerAutoscaler');
   }
 
+  /**
+   * Initialize state
+   * @return {Promise<Object>}
+   */
   async init() {
-    var initData = {
+    const initData = {
       lastScalingTimestamp: Spanner.timestamp(new Date(0)),
       createdOn: Spanner.timestamp(Date.now()),
     };
@@ -102,14 +132,15 @@ class StateSpanner {
     return initData;
   }
 
+  /**
+   * @return {Promise<Object>} scaling information from storage
+   */
   async get() {
     const query = {
       columns: ['lastScalingTimestamp', 'createdOn'],
-      keySet: {
-        keys: [{values: [{stringValue: this.rowId()}]}]
-      }
-    }
-    const [rows] = await this.table.read(query)
+      keySet: {keys: [{values: [{stringValue: this.rowId()}]}]},
+    };
+    const [rows] = await this.table.read(query);
     if (rows.length == 0) {
       this.data = await this.init();
     } else {
@@ -118,16 +149,20 @@ class StateSpanner {
     return this.toMillis(this.data);
   }
 
+  /**
+   * Update scaling timestamp in storage
+   */
   async set() {
-    await this.get();  // make sure doc exists
+    await this.get(); // make sure doc exists
 
-    var newData = {
-      updatedOn: Spanner.timestamp(Date.now())
-    };
+    const newData = {updatedOn: Spanner.timestamp(Date.now())};
     newData.lastScalingTimestamp = Spanner.timestamp(Date.now());
     await this.updateState(newData);
   }
 
+  /**
+   * Close DB connection
+   */
   async close() {
     await this.db.close();
   }
@@ -135,30 +170,42 @@ class StateSpanner {
   /**
    * Converts row data from Spanner.timestamp (implementation detail)
    * to standard JS timestamps, which are number of milliseconds since Epoch
+   * @param {Object} rowData spanner data
+   * @return {Object} converted rowData
    */
   toMillis(rowData) {
-    Object.keys(rowData).forEach(key => {
+    Object.keys(rowData).forEach((key) => {
       if (rowData[key] instanceof Date) {
-          rowData[key] = rowData[key].getTime();
+        rowData[key] = rowData[key].getTime();
       }
-    })
+    });
     return rowData;
   }
 
+  /**
+   * @return {number} current timestamp
+   */
   get now() {
     return Date.now();
   }
 
+  /**
+   * @return {string} row ID for this instance
+   */
   rowId() {
     return `projects/${this.projectId}/instances/${this.instanceId}`;
   }
 
+  /**
+   * Write state data to database.
+   * @param {Object} rowData
+   */
   async updateState(rowData) {
     const row = JSON.parse(JSON.stringify(rowData));
     // for Centralized or Distributed projects, rows have a unique key.
     row.id = this.rowId();
     // converts TIMESTAMP type columns to ISO format string for registration
-    Object.keys(row).forEach(key => {
+    Object.keys(row).forEach((key) => {
       if (row[key] instanceof Date) {
         row[key] = row[key].toISOString();
       }
@@ -167,7 +214,7 @@ class StateSpanner {
   }
 }
 
-/*
+/**
  * Manages the Autoscaler persistent state in firestore.
  *
  * The default database for state management is firestore.
@@ -182,13 +229,20 @@ class StateSpanner {
  * }
  */
 class StateFirestore {
+  /**
+   * @param {Object} spanner
+   */
   constructor(spanner) {
     this.projectId = (spanner.stateProjectId != null) ? spanner.stateProjectId :
                                                         spanner.projectId;
     this.instanceId = spanner.instanceId;
-    this.firestore = new Firestore({projectId: this.projectId})
+    this.firestore = new Firestore({projectId: this.projectId});
   }
 
+  /**
+   * build or return the document reference
+   * @return {string}
+   */
   get docRef() {
     if (this._docRef == null) {
       this.firestore = new Firestore({projectId: this.projectId});
@@ -202,9 +256,11 @@ class StateFirestore {
    * Converts document data from Firestore.Timestamp (implementation detail)
    * to standard JS timestamps, which are number of milliseconds since Epoch
    * https://googleapis.dev/nodejs/firestore/latest/Timestamp.html
+   * @param {Object} docData
+   * @return {Object} converted docData
    */
   toMillis(docData) {
-    Object.keys(docData).forEach(key => {
+    Object.keys(docData).forEach((key) => {
       if (docData[key] instanceof Firestore.Timestamp) {
         docData[key] = docData[key].toMillis();
       }
@@ -212,18 +268,25 @@ class StateFirestore {
     return docData;
   }
 
+  /**
+   * Initialize state
+   * @return {Promise<Object>}
+   */
   async init() {
-    var initData = {
+    const initData = {
       lastScalingTimestamp: 0,
-      createdOn: Firestore.FieldValue.serverTimestamp()
+      createdOn: Firestore.FieldValue.serverTimestamp(),
     };
 
     await this.docRef.set(initData);
     return initData;
   }
 
+  /**
+   * @return {Promise<Object>} scaling information from storage
+   */
   async get() {
-    var snapshot = await this.docRef.get();  // returns QueryDocumentSnapshot
+    const snapshot = await this.docRef.get(); // returns QueryDocumentSnapshot
 
     if (!snapshot.exists) {
       this.data = await this.init();
@@ -234,19 +297,26 @@ class StateFirestore {
     return this.toMillis(this.data);
   }
 
+  /**
+   * Update scaling timestamp in storage
+   */
   async set() {
-    await this.get();  // make sure doc exists
+    await this.get(); // make sure doc exists
 
-    var newData = {updatedOn: Firestore.FieldValue.serverTimestamp()};
+    const newData = {updatedOn: Firestore.FieldValue.serverTimestamp()};
     newData.lastScalingTimestamp = Firestore.FieldValue.serverTimestamp();
 
     await this.docRef.update(newData);
   }
 
-  async close() {
+  /**
+   * Close DB connection
+   */
+  async close() {}
 
-  }
-
+  /**
+   * @return {number} current timestamp
+   */
   get now() {
     return Firestore.Timestamp.now().toMillis();
   }

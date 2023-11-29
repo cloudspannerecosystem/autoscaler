@@ -18,13 +18,17 @@ const scalerCore = require('./scaler/scaler-core');
 const yaml = require('js-yaml');
 const fs = require('fs/promises');
 
+/**
+ * Startup function.
+ */
 async function main() {
+  const DEFAULT_CONFIG_LOCATION =
+      '/etc/autoscaler-config/autoscaler-config.yaml';
 
-  const DEFAULT_CONFIG_LOCATION = '/etc/autoscaler-config/autoscaler-config.yaml';
+  scalerCore.log(
+      `Autoscaler unified poller+scaler job started`, {severity: 'INFO'});
 
-  scalerCore.log(`Autoscaler unified poller+scaler job started`, { severity: 'INFO' });
-
-  var configLocation = DEFAULT_CONFIG_LOCATION;
+  let configLocation = DEFAULT_CONFIG_LOCATION;
 
   /*
    * If set, the AUTOSCALER_CONFIG environment variable is used to
@@ -41,13 +45,16 @@ async function main() {
   }
 
   try {
-    config = await fs.readFile(configLocation, { encoding: 'utf8' });
-    spanners = await pollerCore.checkSpannerScaleMetricsLocal(JSON.stringify(yaml.load(config)));
+    config = await fs.readFile(configLocation, {encoding: 'utf8'});
+    spanners = await pollerCore.checkSpannerScaleMetricsLocal(
+        JSON.stringify(yaml.load(config)));
     for (spanner of spanners) {
       await scalerCore.scaleSpannerInstanceLocal(spanner);
     }
   } catch (err) {
-    scalerCore.log('Error in unified poller/scaler wrapper:', { severity: 'ERROR', payload: err });
+    scalerCore.log(
+        'Error in unified poller/scaler wrapper:',
+        {severity: 'ERROR', payload: err});
   }
 }
 

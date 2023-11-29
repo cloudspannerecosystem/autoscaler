@@ -22,12 +22,18 @@ const {PubSub} = require('@google-cloud/pubsub');
 const pubsub = new PubSub();
 const protobuf = require('protobufjs');
 
+/**
+ * Format duration as human-readable text
+ *
+ * @param {number} millisec
+ * @return {string}
+ */
 function convertMillisecToHumanReadable(millisec) {
   // By Nofi @ https://stackoverflow.com/a/32180863
-  var seconds = (millisec / 1000).toFixed(1);
-  var minutes = (millisec / (1000 * 60)).toFixed(1);
-  var hours = (millisec / (1000 * 60 * 60)).toFixed(1);
-  var days = (millisec / (1000 * 60 * 60 * 24)).toFixed(1);
+  const seconds = (millisec / 1000).toFixed(1);
+  const minutes = (millisec / (1000 * 60)).toFixed(1);
+  const hours = (millisec / (1000 * 60 * 60)).toFixed(1);
+  const days = (millisec / (1000 * 60 * 60 * 24)).toFixed(1);
 
   if (seconds < 60) {
     return seconds + ' Sec';
@@ -40,30 +46,46 @@ function convertMillisecToHumanReadable(millisec) {
   }
 }
 
-function maybeRound(suggestedSize, units, label='', projectId, instanceId) {
-  if (units == 'NODES')
+/**
+ * Round Processing units size to next interval.
+ *
+ * @param {number} suggestedSize
+ * @param {string} units
+ * @param {string} label
+ * @param {string} projectId
+ * @param {string} instanceId
+ * @return {number} rounded number
+ */
+function maybeRound(suggestedSize, units, label = '', projectId, instanceId) {
+  if (units == 'NODES') {
     return suggestedSize;
-  else {
+  } else {
     const roundTo = (suggestedSize < 1000) ? 100 : 1000;
-    const roundedSize = Math.ceil(suggestedSize/roundTo)*roundTo;
-    if (roundedSize != suggestedSize)
-      log(`\t${label}: Suggested ${suggestedSize}, rounded to ${roundedSize} ${units}`,
-        {projectId: projectId, instanceId: instanceId});
+    const roundedSize = Math.ceil(suggestedSize / roundTo) * roundTo;
+    if (roundedSize != suggestedSize) {
+      log(`\t${label}: Suggested ${suggestedSize}, rounded to ${roundedSize} ${
+        units}`,
+      {projectId: projectId, instanceId: instanceId});
+    }
     return roundedSize;
   }
 }
 
-function log(message, {severity = 'DEBUG', projectId, instanceId, payload} = {} ) {
-  // Structured logging
-  // https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
-
+/**
+ * Structured logging
+ * https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
+ * @param {string} message
+ * @param {Object} params
+ */
+function log(
+    message, {severity = 'DEBUG', projectId, instanceId, payload} = {}) {
   if (!!payload) {
     // If payload is an Error, get the stack trace.
     if (payload instanceof Error && !!payload.stack) {
-      if (!!message ) {
-         message = message + '\n' + payload.stack;
+      if (!!message) {
+        message = message + '\n' + payload.stack;
       } else {
-         message = payload.stack;
+        message = payload.stack;
       }
     }
   }
@@ -73,45 +95,57 @@ function log(message, {severity = 'DEBUG', projectId, instanceId, payload} = {} 
     severity: severity,
     projectId: projectId,
     instanceId: instanceId,
-    payload: payload
+    payload: payload,
   };
   console.log(JSON.stringify(logEntry));
 }
 
-// Publish Pub/Sub messages with Protobuf schema
+/**
+ * Create Pub/Sub messages with Protobuf schema
+ * @param {Object} jsonData
+ * @return {Object}
+ */
 async function createProtobufMessage(jsonData) {
   const root = await protobuf.load('downstream.schema.proto');
   const DownstreamEvent = root.lookupType('DownstreamEvent');
   return message = DownstreamEvent.create(jsonData);
 }
 
+/**
+ * Publish pub/sub message
+ *
+ * @param {string} eventName
+ * @param {Object} jsonData
+ * @param {string} topicId
+ * @return {Promise}
+ */
 async function publishProtoMsgDownstream(eventName, jsonData, topicId) {
   if (!topicId) {
     log(`If you want ${eventName} messages published downstream then specify ` +
-        'downstreamPubSubTopic in your config.', 'DEBUG');
+            'downstreamPubSubTopic in your config.',
+    'DEBUG');
     return Promise.resolve();
   }
 
   const topic = pubsub.topic(topicId);
   const message = await createProtobufMessage(jsonData);
-  const data = Buffer.from(JSON.stringify(message.toJSON()))
-  const attributes = {
-    event: eventName
-  };
-  
+  const data = Buffer.from(JSON.stringify(message.toJSON()));
+  const attributes = {event: eventName};
+
   return topic.publishMessage({data: data, attributes: attributes})
-    .then(
-      log(`Published ${eventName} message downstream to topic: ${topicId}`,
-      'INFO'))
-    .catch(err => {
-      log(`An error occurred publishing ${eventName} message downstream to topic: ${topicId}`,
-          'ERROR', err);
-    });
+      .then(
+          log(`Published ${eventName} message downstream to topic: ${topicId}`,
+              'INFO'))
+      .catch((err) => {
+        log(`An error occurred publishing ${
+          eventName} message downstream to topic: ${topicId}`,
+        'ERROR', err);
+      });
 }
 
 module.exports = {
   convertMillisecToHumanReadable,
   maybeRound,
   log,
-  publishProtoMsgDownstream
+  publishProtoMsgDownstream,
 };
