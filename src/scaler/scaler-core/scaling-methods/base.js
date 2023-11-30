@@ -32,7 +32,7 @@ const RelativeToRange = {
 };
 
 // https://github.com/cloudspannerecosystem/autoscaler/issues/25
-// Autosclaing is triggered if the metric value is outside of threshold +-
+// Autoscaling is triggered if the metric value is outside of threshold +-
 // margin
 const DEFAULT_THRESHOLD_MARGIN = 5;
 

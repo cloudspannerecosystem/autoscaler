@@ -50,7 +50,7 @@ function log(message, severity = 'DEBUG', payload) {
 }
 
 /**
- * Handle the forwarer request from HTTP
+ * Handle the forwarder request from HTTP
  *
  * For testing purposes - uses a fixed message.
  *
