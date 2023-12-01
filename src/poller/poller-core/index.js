@@ -354,8 +354,7 @@ async function parseAndEnrichPayload(payload) {
       if (spanners[sIdx].minNodes && !spanners[sIdx].minSize) {
         log(`DEPRECATION: minNodes is deprecated, ' + 
         'remove minNodes from your config and instead use: ' + 
-        'units = 'NODES' and minSize = ${
-  spanners[sIdx].minNodes}`,
+        'units = 'NODES' and minSize = ${spanners[sIdx].minNodes}`,
         {
           severity: 'WARNING',
           projectId: spanners[sIdx].projectId,
@@ -375,8 +374,7 @@ async function parseAndEnrichPayload(payload) {
       if (spanners[sIdx].maxNodes && !spanners[sIdx].maxSize) {
         log(`DEPRECATION: maxNodes is deprecated, remove maxSize ' + 
         'from your config and instead use: ' + 
-        'units = 'NODES' and maxSize = ${
-  spanners[sIdx].maxNodes}`,
+        'units = 'NODES' and maxSize = ${spanners[sIdx].maxNodes}`,
         {
           severity: 'WARNING',
           projectId: spanners[sIdx].projectId,
