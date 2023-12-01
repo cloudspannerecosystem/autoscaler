@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "eslint": "eslint .",
+    "eslint-fix": "eslint --fix ."
+  },
+  "devDependencies": {
+    "eslint": "^8.54.0",
+    "eslint-config-google": "^0.14.0"
+  }
+}

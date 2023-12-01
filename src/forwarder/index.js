@@ -24,6 +24,13 @@ const {PubSub} = require('@google-cloud/pubsub');
 // GCP service clients
 const pubSub = new PubSub();
 
+/**
+ * Output a structured log message to stdout
+ *
+ * @param {!string} message
+ * @param {?string} severity
+ * @param {?*} payload
+ */
 function log(message, severity = 'DEBUG', payload) {
   // Structured logging
   // https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
@@ -31,29 +38,40 @@ function log(message, severity = 'DEBUG', payload) {
   if (!!payload) {
     // If payload is an Error, get the stack trace.
     if (payload instanceof Error && !!payload.stack) {
-      if (!!message ) {
-         message = message + '\n' + payload.stack;
+      if (!!message) {
+        message = message + '\n' + payload.stack;
       } else {
-         message = payload.stack;
+        message = payload.stack;
       }
     }
   }
-  const logEntry = {
-    message: message,
-    severity: severity,
-    payload : payload
-  };
+  const logEntry = {message: message, severity: severity, payload: payload};
   console.log(JSON.stringify(logEntry));
 }
 
+/**
+ * Handle the forwarder request from HTTP
+ *
+ * For testing purposes - uses a fixed message.
+ *
+ * @param {Request} req
+ * @param {Response} res
+ */
 exports.forwardFromHTTP = async (req, res) => {
   try {
     const payloadString =
-        '[{"projectId": "spanner-scaler" "instanceId": "my-spanner", "scalerPubSubTopic": "projects/spanner-scaler/topics/my-scaling", "minNodes": 1, "maxNodes": 3, "stateProjectId" : "spanner-scaler"}]';
+        '[{ '+
+        '  "projectId": "spanner-scaler", '+
+        '  "instanceId": "my-spanner", '+
+        '  "scalerPubSubTopic": "projects/spanner-scaler/topics/my-scaling", '+
+        '  "minNodes": 1, '+
+        '  "maxNodes": 3, '+
+        '  "stateProjectId" : "spanner-scaler" '+
+        '}]';
     const payload = Buffer.from(payloadString, 'utf8');
 
-    JSON.parse(payload.toString());  // Log exception in App project if payload
-                                     // cannot be parsed
+    JSON.parse(payload.toString()); // Log exception in App project if payload
+    // cannot be parsed
     const pollerTopic = pubSub.topic(process.env.POLLER_TOPIC);
     pollerTopic.publish(payload);
 
@@ -64,11 +82,17 @@ exports.forwardFromHTTP = async (req, res) => {
   }
 };
 
+/**
+ * Handle the Forwarder request from PubSub
+ *
+ * @param {Object} pubSubEvent
+ * @param {*} context
+ */
 exports.forwardFromPubSub = async (pubSubEvent, context) => {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64');
-    JSON.parse(payload.toString());  // Log exception in App project if payload
-                                     // cannot be parsed
+    JSON.parse(payload.toString()); // Log exception in App project if payload
+    // cannot be parsed
 
     const pollerTopic = pubSub.topic(process.env.POLLER_TOPIC);
     pollerTopic.publish(payload);

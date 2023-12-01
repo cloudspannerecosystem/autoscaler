@@ -13,14 +13,16 @@
  * limitations under the License
  */
 
-const express    = require('express')
+const express = require('express');
 const scalerCore = require('scaler-core');
 
+/**
+ * Setup autoscaler.
+ */
 function main() {
-
   scalerCore.log(`Autoscaler Scaler started`, {severity: 'INFO'});
 
-  const app  = express();
+  const app = express();
   const port = process.env.PORT || 3000;
 
   app.use(express.json());
@@ -36,7 +38,8 @@ function main() {
 
     app.listen(port);
   } catch (err) {
-    scalerCore.log('Error in Scaler wrapper:', {severity: 'ERROR', payload: err});
+    scalerCore.log(
+        'Error in Scaler wrapper:', {severity: 'ERROR', payload: err});
   }
 }
 

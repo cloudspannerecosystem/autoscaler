@@ -1,0 +1,59 @@
+name: "ESLint and NPM audit"
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  analyze:
+    name: "Eslint-analyze"
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Use Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 21
+        check-latest: true
+
+    - name: Install eslint
+      working-directory: .
+      run: npm install
+
+    - name: ESlint all subdirs
+      working-directory: .
+      run: npm run eslint
+
+    - name: NPM Audit src
+      working-directory: src
+      run: npm audit
+
+    - name: NPM Audit src/forwarder
+      working-directory: src/forwarder
+      run: npm audit
+
+    - name: NPM Audit src/poller
+      working-directory: src/poller
+      run: npm audit
+
+    - name: NPM Audit src/poller/poller-core
+      working-directory: src/poller/poller-core
+      run: npm audit
+
+    - name: NPM Audit src/scaler
+      working-directory: src/scaler
+      run: npm audit
+
+    - name: NPM Audit src/scaler/scaler-core
+      working-directory: src/scaler/scaler-core
+      run: npm audit
+
+    - name: NPM Audit root
+      working-directory: .
+      run: npm audit

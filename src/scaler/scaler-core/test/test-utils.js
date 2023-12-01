@@ -16,18 +16,33 @@ const sinon = require('sinon');
 const fs = require('fs');
 const State = require('../state.js');
 
+/**
+ * Read Spanner params from file
+ *
+ * @param {Object} overrideParams
+ * @return {Object}
+ */
 function createSpannerParameters(overrideParams) {
-   return {...JSON.parse(fs.readFileSync('./test/samples/parameters.json')), ...overrideParams};
+  return {
+    ...JSON.parse(fs.readFileSync('./test/samples/parameters.json')),
+    ...overrideParams,
+  };
 }
 
+/**
+ * @return {Object} state class stub
+ */
 function createStubState() {
-  var stubState = new State(spanner);
-  sinon.stub(stubState, "get").resolves(0);
-  sinon.stub(stubState, "set").resolves(0);
-  sinon.stub(stubState, "now").value(Date.now());
+  const stubState = new State(spanner);
+  sinon.stub(stubState, 'get').resolves(0);
+  sinon.stub(stubState, 'set').resolves(0);
+  sinon.stub(stubState, 'now').value(Date.now());
   return stubState;
 }
 
+/**
+ * @return {string} downstream message
+ */
 function createDownstreamMsg() {
   return JSON.parse(fs.readFileSync('./test/samples/downstream-msg.json'));
 }
@@ -35,5 +50,5 @@ function createDownstreamMsg() {
 module.exports = {
   createSpannerParameters,
   createStubState,
-  createDownstreamMsg
+  createDownstreamMsg,
 };

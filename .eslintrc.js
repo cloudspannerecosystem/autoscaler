@@ -15,8 +15,29 @@
  */
 
 module.exports = {
-  "parserOptions": {
-    "ecmaVersion": 8
+  'env': {
+    'browser': true,
+    'commonjs': true,
+    'es2021': true,
   },
-  "extends": ["eslint:recommended", "google"]
+  'extends': 'google',
+  'overrides': [
+    {
+      'env': {
+        'node': true,
+      },
+      'files': [
+        '.eslintrc.{js,cjs}',
+      ],
+      'parserOptions': {
+        'sourceType': 'script',
+      },
+    },
+  ],
+  'parserOptions': {
+    'ecmaVersion': 'latest',
+  },
+  'rules': {
+  },
 };
+
