@@ -33,6 +33,10 @@ updates:
     schedule:
       interval: "weekly"
 
+  - directory: "/src"
+    package-ecosystem: "docker"
+    schedule:
+      interval: "weekly"
   - directory: "/src/poller"
     package-ecosystem: "docker"
     schedule:
