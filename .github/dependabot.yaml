@@ -4,30 +4,49 @@ updates:
     package-ecosystem: "github-actions"
     schedule:
       interval: "weekly"
+
   - directory: "/"
     package-ecosystem: "npm"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - directory: "/src"
     package-ecosystem: "npm"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - directory: "/src/forwarder"
     package-ecosystem: "npm"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - directory: "/src/poller"
     package-ecosystem: "npm"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - directory: "/src/poller/poller-core"
     package-ecosystem: "npm"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - directory: "/src/scaler"
     package-ecosystem: "npm"
     schedule:
       interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - directory: "/src/scaler/scaler-core"
     package-ecosystem: "npm"
     schedule:
