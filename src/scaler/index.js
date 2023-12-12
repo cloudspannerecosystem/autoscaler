@@ -15,12 +15,13 @@
 
 const express = require('express');
 const scalerCore = require('scaler-core');
+const {logger} = require('../autoscaler-common/logger');
 
 /**
  * Setup autoscaler.
  */
 function main() {
-  scalerCore.log(`Autoscaler Scaler started`, {severity: 'INFO'});
+  logger.info(`Autoscaler Scaler started`);
 
   const app = express();
   const port = process.env.PORT || 3000;
@@ -38,9 +39,12 @@ function main() {
 
     app.listen(port);
   } catch (err) {
-    scalerCore.log(
-        'Error in Scaler wrapper:', {severity: 'ERROR', payload: err});
+    logger.error({
+      message: 'Error in Scaler wrapper:',
+      err: err});
   }
 }
 
-main();
+module.exports = {
+  main,
+};

@@ -23,6 +23,14 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
+  - directory: "/src/autoscaler-common"
+    package-ecosystem: "npm"
+    schedule:
+      interval: "weekly"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
   - directory: "/src/forwarder"
     package-ecosystem: "npm"
     schedule:

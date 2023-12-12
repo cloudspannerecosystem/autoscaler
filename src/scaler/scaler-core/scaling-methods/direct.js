@@ -20,7 +20,7 @@
  * maxSize. Useful to scale an instance in preparation for a batch job, and to
  * scale it back after the job is finished.
  */
-const {log} = require('../utils.js');
+const {logger} = require('../../../autoscaler-common/logger');
 
 /**
  * Size calculation for Direct scaling method
@@ -28,11 +28,14 @@ const {log} = require('../utils.js');
  * @return {number}
  */
 function calculateSize(spanner) {
-  log(`---- DIRECT size suggestions for ${spanner.projectId}/${
-    spanner.instanceId}----`,
-  {projectId: spanner.projectId, instanceId: spanner.instanceId});
-  log(`\tFinal DIRECT suggestion: ${spanner.maxSize} + ${spanner.units}}`,
-      {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  logger.debug({
+    message: `---- DIRECT size suggestions for ${spanner.projectId}/${
+      spanner.instanceId}----`,
+    projectId: spanner.projectId, instanceId: spanner.instanceId});
+  logger.debug({
+    message:
+      `\tFinal DIRECT suggestion: ${spanner.maxSize} + ${spanner.units}}`,
+    projectId: spanner.projectId, instanceId: spanner.instanceId});
   return spanner.maxSize;
 }
 

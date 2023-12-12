@@ -12,17 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG NODE_VERSION=18
-FROM node:${NODE_VERSION}-alpine AS build-env
-
-WORKDIR /usr/src/app
-COPY . .
-
-RUN npm config set update-notifier false
-RUN npm install
-
-FROM gcr.io/distroless/nodejs${NODE_VERSION}:latest
-COPY --from=build-env /usr/src/app /usr/src/app
-WORKDIR /usr/src/app/scaler-core
-
-CMD ["../index.js"]
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '--tag=$LOCATION-docker.pkg.dev/$PROJECT_ID/spanner-autoscaler/scaler', '-f', 'Dockerfile-scaler', '.']
+images: ['$LOCATION-docker.pkg.dev/$PROJECT_ID/spanner-autoscaler/scaler']

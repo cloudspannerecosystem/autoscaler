@@ -22,7 +22,8 @@
  * under 1000, or to nearest 1000 otherwise.
  */
 const baseModule = require('./base');
-const {log, maybeRound} = require('../utils.js');
+const {maybeRound} = require('../utils.js');
+const {logger} = require('../../../autoscaler-common/logger');
 
 /**
  * Is suggested size less than current size
@@ -52,11 +53,10 @@ function calculateSize(spanner) {
           spanner.scaleInLimit) {
         const limit = spanner.currentSize * (spanner.scaleInLimit / 100);
 
-        log(`\tscaleInLimit = ${spanner.scaleInLimit}%, ` +
+        logger.debug({
+          message: `\tscaleInLimit = ${spanner.scaleInLimit}%, ` +
         `so the maximum scale-in allowed for current size of ${
           spanner.currentSize} is ${limit} ${spanner.units}.`,
-        {
-          severity: 'DEBUG',
           projectId: spanner.projectId,
           instanceId: spanner.instanceId,
         });
@@ -66,12 +66,11 @@ function calculateSize(spanner) {
             Math.max(suggestedSize, Math.ceil(spanner.currentSize - limit));
 
         if (suggestedSize != originalSuggestedSize) {
-          log(`\tscaleInLimit exceeded. Original suggested size was ${
-            originalSuggestedSize} ${
-            spanner.units}, new suggested size is ${suggestedSize} ${
-            spanner.units}.`,
-          {
-            severity: 'DEBUG',
+          logger.debug({
+            message: `\tscaleInLimit exceeded. Original suggested size was ${
+              originalSuggestedSize} ${
+              spanner.units}, new suggested size is ${suggestedSize} ${
+              spanner.units}.`,
             projectId: spanner.projectId,
             instanceId: spanner.instanceId,
           });

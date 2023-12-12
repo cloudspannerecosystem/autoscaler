@@ -16,6 +16,7 @@
 const pollerCore = require('poller-core');
 const yaml = require('js-yaml');
 const fs = require('fs/promises');
+const {logger} = require('../autoscaler-common/logger');
 
 /**
  * Startup function
@@ -24,7 +25,7 @@ async function main() {
   const DEFAULT_CONFIG_LOCATION =
       '/etc/autoscaler-config/autoscaler-config.yaml';
 
-  pollerCore.log(`Autoscaler Poller job started`, {severity: 'INFO'});
+  logger.info(`Autoscaler Poller job started`);
 
   let configLocation = DEFAULT_CONFIG_LOCATION;
 
@@ -37,9 +38,9 @@ async function main() {
 
   if (process.env.AUTOSCALER_CONFIG) {
     configLocation = process.env.AUTOSCALER_CONFIG;
-    pollerCore.log(`Using custom config location ${configLocation}`);
+    logger.debug(`Using custom config location ${configLocation}`);
   } else {
-    pollerCore.log(`Using default config location ${configLocation}`);
+    logger.debug(`Using default config location ${configLocation}`);
   }
 
   try {
@@ -47,9 +48,12 @@ async function main() {
     await pollerCore.checkSpannerScaleMetricsJSON(
         JSON.stringify(yaml.load(config)));
   } catch (err) {
-    pollerCore.log(
-        'Error in Poller wrapper:', {severity: 'ERROR', payload: err});
+    logger.error({
+      message: 'Error in Poller wrapper:',
+      err: err});
   }
 }
 
-main();
+module.exports = {
+  main,
+};

@@ -21,6 +21,7 @@
 const {PubSub} = require('@google-cloud/pubsub');
 const pubsub = new PubSub();
 const protobuf = require('protobufjs');
+const {logger} = require('../../autoscaler-common/logger');
 
 /**
  * Format duration as human-readable text
@@ -63,41 +64,14 @@ function maybeRound(suggestedSize, units, label = '', projectId, instanceId) {
     const roundTo = (suggestedSize < 1000) ? 100 : 1000;
     const roundedSize = Math.ceil(suggestedSize / roundTo) * roundTo;
     if (roundedSize != suggestedSize) {
-      log(`\t${label}: Suggested ${suggestedSize}, rounded to ${roundedSize} ${
-        units}`,
-      {projectId: projectId, instanceId: instanceId});
+      logger.debug({
+        message: `\t${label}: Suggested ${suggestedSize}, rounded to ${
+          roundedSize} ${units}`,
+        projectId: projectId,
+        instanceId: instanceId});
     }
     return roundedSize;
   }
-}
-
-/**
- * Structured logging
- * https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
- * @param {string} message
- * @param {Object} params
- */
-function log(
-    message, {severity = 'DEBUG', projectId, instanceId, payload} = {}) {
-  if (!!payload) {
-    // If payload is an Error, get the stack trace.
-    if (payload instanceof Error && !!payload.stack) {
-      if (!!message) {
-        message = message + '\n' + payload.stack;
-      } else {
-        message = payload.stack;
-      }
-    }
-  }
-
-  const logEntry = {
-    message: message,
-    severity: severity,
-    projectId: projectId,
-    instanceId: instanceId,
-    payload: payload,
-  };
-  console.log(JSON.stringify(logEntry));
 }
 
 /**
@@ -121,9 +95,9 @@ async function createProtobufMessage(jsonData) {
  */
 async function publishProtoMsgDownstream(eventName, jsonData, topicId) {
   if (!topicId) {
-    log(`If you want ${eventName} messages published downstream then specify ` +
-            'downstreamPubSubTopic in your config.',
-    'DEBUG');
+    logger.debug(
+        `If you want ${eventName} messages published downstream then specify ` +
+        'downstreamPubSubTopic in your config.');
     return Promise.resolve();
   }
 
@@ -134,18 +108,18 @@ async function publishProtoMsgDownstream(eventName, jsonData, topicId) {
 
   return topic.publishMessage({data: data, attributes: attributes})
       .then(
-          log(`Published ${eventName} message downstream to topic: ${topicId}`,
-              'INFO'))
+          logger.info(
+              `Published ${eventName} message downstream to topic: ${topicId}`))
       .catch((err) => {
-        log(`An error occurred publishing ${
-          eventName} message downstream to topic: ${topicId}`,
-        'ERROR', err);
+        logger.error({
+          message: `An error occurred publishing ${
+            eventName} message downstream to topic: ${topicId}`,
+          err: err});
       });
 }
 
 module.exports = {
   convertMillisecToHumanReadable,
   maybeRound,
-  log,
   publishProtoMsgDownstream,
 };

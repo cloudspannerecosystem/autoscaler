@@ -8,12 +8,14 @@
         "@google-cloud/monitoring": "^4.0.0",
         "@google-cloud/pubsub": "^4.0.7",
         "@google-cloud/spanner": "^6.16.0",
-        "axios": "^1.6.2"
+        "axios": "^1.6.2",
+        "autoscaler-common": "file:../../autoscaler-common"
     },
     "scripts": {
         "start": "functions-framework --target=checkSpannerScaleMetricsHTTP",
         "debug": "node --inspect node_modules/.bin/functions-framework --target=checkSpannerScaleMetricsHTTP",
         "test": "nyc --reporter=text mocha --recursive --require mocha-suppress-logs",
+        "test2": "nyc --reporter=text mocha --recursive",
         "mdlint": "cd .. && markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"
     },
     "devDependencies": {

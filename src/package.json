@@ -10,6 +10,6 @@
     "run": "^1.4.0"
   },
   "scripts": {
-    "start": "node index.js"
+    "start": "node -e \"require('./index').autoscalerMain()\""
   }
 }

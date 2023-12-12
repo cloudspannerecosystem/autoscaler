@@ -6,9 +6,10 @@
     "dependencies": {
         "cors": "^2.8.5",
         "express": "^4.18.2",
-        "scaler-core": "file:scaler-core"
+        "scaler-core": "file:scaler-core",
+        "autoscaler-common": "file:../autoscaler-common"
     },
     "scripts": {
-        "start": "node index.js"
+        "start": "node -e \"require('./index').main()\""
     }
 }

@@ -23,7 +23,8 @@
  * under 1000, or to nearest 1000 otherwise.
  */
 const baseModule = require('./base');
-const {log, maybeRound} = require('../utils.js');
+const {maybeRound} = require('../utils.js');
+const {logger} = require('../../../autoscaler-common/logger');
 
 /**
  * Scaling calculation for Stepwise method
@@ -42,13 +43,12 @@ function calculateSize(spanner) {
     if (spanner.units.toUpperCase() == 'PROCESSING_UNITS' &&
         spanner.currentSize > 1000 && stepSize < 1000) {
       stepSize = 1000;
-      log(`\tCurrent=${spanner.currentSize} ${
-        spanner.units} (> 1000) => overriding stepSize from ${
-        spanner.stepSize} to 1000`,
-      {
+      logger.debug({
+        message: `\tCurrent=${spanner.currentSize} ${
+          spanner.units} (> 1000) => overriding stepSize from ${
+          spanner.stepSize} to 1000`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
-        severity: 'DEBUG',
       });
     }
 

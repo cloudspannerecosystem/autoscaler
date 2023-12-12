@@ -14,5 +14,5 @@
 
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '--tag=$LOCATION-docker.pkg.dev/$PROJECT_ID/spanner-autoscaler/scaler', '.']
+  args: ['build', '--tag=$LOCATION-docker.pkg.dev/$PROJECT_ID/spanner-autoscaler/scaler', '-f', 'Dockerfile-unified', '.']
 images: ['$LOCATION-docker.pkg.dev/$PROJECT_ID/spanner-autoscaler/scaler']

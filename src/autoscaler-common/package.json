@@ -1,0 +1,11 @@
+{
+    "name": "autoscaler-common",
+    "description": "Common code for Spanner autoscater",
+    "license": "Apache-2.0",
+    "author": "Google Inc.",
+    "dependencies": {
+      "@google-cloud/logging-bunyan": "^5.0.1",
+      "bunyan": "^1.8.15"
+    }
+  }
+  
