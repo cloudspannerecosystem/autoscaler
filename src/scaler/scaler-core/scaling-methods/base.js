@@ -36,7 +36,7 @@ const RelativeToRange = {
 // margin
 const DEFAULT_THRESHOLD_MARGIN = 5;
 
-const {log} = require('../utils.js');
+const {logger} = require('../../../autoscaler-common/logger');
 
 /**
  * Get a string describing the scaling suggestion.
@@ -126,16 +126,18 @@ function logSuggestion(spanner, metric, suggestedSize) {
       `${relativeToRange} the range [${range.min}%-${range.max}%]`;
 
   if (metric.name === OVERLOAD_METRIC && spanner.isOverloaded) {
-    log(`${metricDetails} ABOVE the ${
-      OVERLOAD_THRESHOLD} overload threshold => ${
-      getScaleSuggestionMessage(
-          spanner, suggestedSize, RelativeToRange.ABOVE)}`,
-    {projectId: spanner.projectId, instanceId: spanner.instanceId});
+    logger.debug({
+      message: `${metricDetails} ABOVE the ${
+        OVERLOAD_THRESHOLD} overload threshold => ${
+        getScaleSuggestionMessage(
+            spanner, suggestedSize, RelativeToRange.ABOVE)}`,
+      projectId: spanner.projectId, instanceId: spanner.instanceId});
   } else {
-    log(`${metricDetails} ${rangeDetails} => ${
-      getScaleSuggestionMessage(
-          spanner, suggestedSize, relativeToRange)}`,
-    {projectId: spanner.projectId, instanceId: spanner.instanceId});
+    logger.debug({
+      message: `${metricDetails} ${rangeDetails} => ${
+        getScaleSuggestionMessage(
+            spanner, suggestedSize, relativeToRange)}`,
+      projectId: spanner.projectId, instanceId: spanner.instanceId});
   }
 }
 
@@ -148,12 +150,14 @@ function logSuggestion(spanner, metric, suggestedSize) {
  * @return {number}
  */
 function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
-  log(`---- ${spanner.projectId}/${spanner.instanceId}: ${
-    spanner.scalingMethod} size suggestions----`,
-  {projectId: spanner.projectId, instanceId: spanner.instanceId});
-  log(`\tMin=${spanner.minSize}, Current=${spanner.currentSize}, Max=${
-    spanner.maxSize} ${spanner.units}`,
-  {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  logger.debug({
+    message: `---- ${spanner.projectId}/${spanner.instanceId}: ${
+      spanner.scalingMethod} size suggestions----`,
+    projectId: spanner.projectId, instanceId: spanner.instanceId});
+  logger.debug({
+    message: `\tMin=${spanner.minSize}, Current=${spanner.currentSize}, Max=${
+      spanner.maxSize} ${spanner.units}`,
+    projectId: spanner.projectId, instanceId: spanner.instanceId});
 
   let maxSuggestedSize = spanner.minSize;
   spanner.isOverloaded = false;
@@ -174,9 +178,10 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   }
 
   maxSuggestedSize = Math.min(maxSuggestedSize, spanner.maxSize);
-  log(`\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${
-    spanner.units}`,
-  {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  logger.debug({
+    message: `\t=> Final ${spanner.scalingMethod} suggestion: ${
+      maxSuggestedSize} ${spanner.units}`,
+    projectId: spanner.projectId, instanceId: spanner.instanceId});
   return maxSuggestedSize;
 }
 

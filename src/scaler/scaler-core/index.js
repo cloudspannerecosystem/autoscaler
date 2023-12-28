@@ -26,7 +26,7 @@
 const {Spanner} = require('@google-cloud/spanner');
 const sanitize = require('sanitize-filename');
 const {convertMillisecToHumanReadable} = require('./utils.js');
-const {log} = require('./utils.js');
+const {logger} = require('../../autoscaler-common/logger');
 const {publishProtoMsgDownstream} = require('./utils.js');
 const State = require('./state.js');
 const fs = require('fs');
@@ -50,14 +50,16 @@ function getScalingMethod(methodName, projectId, instanceId) {
   try {
     scalingMethod = require(SCALING_METHODS_FOLDER + methodName.toLowerCase());
   } catch (err) {
-    log(`Unknown scaling method '${methodName}'`,
-        {severity: 'WARNING', projectId: projectId, instanceId: instanceId});
+    logger.warn({
+      message: `Unknown scaling method '${methodName}'`,
+      projectId: projectId, instanceId: instanceId});
     scalingMethod =
         require(SCALING_METHODS_FOLDER + DEFAULT_METHOD_NAME.toLowerCase());
     methodName = DEFAULT_METHOD_NAME;
   }
-  log(`Using scaling method: ${methodName}`,
-      {severity: 'INFO', projectId: projectId, instanceId: instanceId});
+  logger.info({
+    message: `Using scaling method: ${methodName}`,
+    projectId: projectId, instanceId: instanceId});
   return scalingMethod;
 }
 
@@ -86,11 +88,10 @@ function getNewMetadata(suggestedSize, units) {
  * @return {Promise}
  */
 async function scaleSpannerInstance(spanner, suggestedSize) {
-  log(`----- ${spanner.projectId}/${
-    spanner.instanceId}: Scaling Spanner instance to ${suggestedSize} ${
-    spanner.units} -----`,
-  {
-    severity: 'INFO',
+  logger.info({
+    message: `----- ${spanner.projectId}/${
+      spanner.instanceId}: Scaling Spanner instance to ${suggestedSize} ${
+      spanner.units} -----`,
     projectId: spanner.projectId,
     instanceId: spanner.instanceId,
   });
@@ -104,8 +105,10 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
       .setMetadata(getNewMetadata(suggestedSize, spanner.units))
       .then(function(data) {
         const operation = data[0];
-        log(`Cloud Spanner started the scaling operation: ${operation.name}`,
-            {projectId: spanner.projectId, instanceId: spanner.instanceId});
+        logger.debug({
+          message:
+              `Cloud Spanner started the scaling operation: ${operation.name}`,
+          projectId: spanner.projectId, instanceId: spanner.instanceId});
       });
 }
 
@@ -146,9 +149,11 @@ function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
   let cooldownPeriodOver;
   let duringOverload = '';
 
-  log(`-----  ${spanner.projectId}/${
-    spanner.instanceId}: Verifying if scaling is allowed -----`,
-  {projectId: spanner.projectId, instanceId: spanner.instanceId});
+  logger.debug({
+    message: `-----  ${spanner.projectId}/${
+      spanner.instanceId}: Verifying if scaling is allowed -----`,
+    projectId: spanner.projectId,
+    instanceId: spanner.instanceId});
   const operation =
       (scaleOutSuggested ?
            {
@@ -165,10 +170,9 @@ function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
   if (spanner.isOverloaded) {
     if (spanner.overloadCoolingMinutes == null) {
       spanner.overloadCoolingMinutes = spanner.scaleOutCoolingMinutes;
-      log('\tNo cooldown period defined for overload situations. ' +
+      logger.info({
+        message: '\tNo cooldown period defined for overload situations. ' +
           `Using default: ${spanner.scaleOutCoolingMinutes} minutes`,
-      {
-        severity: 'INFO',
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
       });
@@ -179,34 +183,38 @@ function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
 
   if (operation.lastScalingMillisec == 0) {
     cooldownPeriodOver = true;
-    log(`\tNo previous scaling operation found for this Spanner instance`, {
-      severity: 'DEBUG',
+    logger.debug({
+      message:
+          `\tNo previous scaling operation found for this Spanner instance`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
     });
   } else {
     const elapsedMillisec = now - operation.lastScalingMillisec;
     cooldownPeriodOver = (elapsedMillisec >= operation.coolingMillisec);
-    log(`\tLast scaling operation was ${
-      convertMillisecToHumanReadable(
-          now - operation.lastScalingMillisec)} ago.`,
-    {projectId: spanner.projectId, instanceId: spanner.instanceId});
-    log(`\tCooldown period for ${operation.description}${
-      duringOverload} is ${
-      convertMillisecToHumanReadable(operation.coolingMillisec)}.`,
-    {projectId: spanner.projectId, instanceId: spanner.instanceId});
+    logger.debug({
+      message: `\tLast scaling operation was ${
+        convertMillisecToHumanReadable(
+            now - operation.lastScalingMillisec)} ago.`,
+      projectId: spanner.projectId,
+      instanceId: spanner.instanceId});
+    logger.debug({
+      message: `\tCooldown period for ${operation.description}${
+        duringOverload} is ${
+        convertMillisecToHumanReadable(operation.coolingMillisec)}.`,
+      projectId: spanner.projectId, instanceId: spanner.instanceId});
   }
 
   if (cooldownPeriodOver) {
-    log(`\t=> Autoscale allowed`, {
-      severity: 'INFO',
+    logger.info({
+      message: `\t=> Autoscale allowed`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
     });
     return false;
   } else {
-    log(`\t=> Autoscale NOT allowed yet`, {
-      severity: 'INFO',
+    logger.info({
+      message: `\t=> Autoscale NOT allowed yet`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
     });
@@ -236,10 +244,9 @@ function getSuggestedSize(spanner) {
  * @param {Object} autoscalerState
  */
 async function processScalingRequest(spanner, autoscalerState) {
-  log(`----- ${spanner.projectId}/${
-    spanner.instanceId}: Scaling request received`,
-  {
-    severity: 'INFO',
+  logger.info({
+    message: `----- ${spanner.projectId}/${
+      spanner.instanceId}: Scaling request received`,
     projectId: spanner.projectId,
     instanceId: spanner.instanceId,
     payload: spanner,
@@ -247,11 +254,10 @@ async function processScalingRequest(spanner, autoscalerState) {
 
   const suggestedSize = getSuggestedSize(spanner);
   if (suggestedSize == spanner.currentSize) {
-    log(`----- ${spanner.projectId}/${spanner.instanceId}: has ${
-      spanner.currentSize} ${
-      spanner.units}, no scaling needed at the moment`,
-    {
-      severity: 'INFO',
+    logger.info({
+      message: `----- ${spanner.projectId}/${spanner.instanceId}: has ${
+        spanner.currentSize} ${
+        spanner.units}, no scaling needed at the moment`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: spanner,
@@ -268,21 +274,21 @@ async function processScalingRequest(spanner, autoscalerState) {
       await autoscalerState.set();
       eventType = 'SCALING';
     } catch (err) {
-      log(`----- ${spanner.projectId}/${
-        spanner.instanceId}: Unsuccessful scaling attempt.`,
-      {
-        severity: 'ERROR',
+      logger.error({
+        message: `----- ${spanner.projectId}/${
+          spanner.instanceId}: Unsuccessful scaling attempt.`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
         payload: err,
+        err: err,
       });
-      log(`----- ${spanner.projectId}/${spanner.instanceId}: Spanner payload:`,
-          {
-            severity: 'ERROR',
-            projectId: spanner.projectId,
-            instanceId: spanner.instanceId,
-            payload: spanner,
-          });
+      logger.error({
+        message:
+          `----- ${spanner.projectId}/${spanner.instanceId}: Spanner payload:`,
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+        payload: spanner,
+      });
       eventType = 'SCALING_FAILURE';
     }
     await publishDownstreamEvent(eventType, spanner, suggestedSize);
@@ -305,17 +311,18 @@ exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
     await processScalingRequest(spanner, state);
     await state.close();
   } catch (err) {
-    log(`Failed to process scaling request\n`, {
-      severity: 'ERROR',
+    logger.error({
+      message: `Failed to process scaling request\n`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: spanner,
     });
-    log(`Exception\n`, {
-      severity: 'ERROR',
+    logger.error({
+      message: `Exception\n`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: err,
+      err: err,
     });
   }
 };
@@ -359,17 +366,18 @@ exports.scaleSpannerInstanceJSON = async (req, res) => {
 
     res.status(200).end();
   } catch (err) {
-    log(`Failed to process scaling request\n`, {
-      severity: 'ERROR',
+    logger.error({
+      message: `Failed to process scaling request\n`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: spanner,
     });
-    log(`Exception\n`, {
-      severity: 'ERROR',
+    logger.error({
+      message: `Exception\n`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: err,
+      err: err,
     });
     res.writeHead(500, {
       'Content-Type': 'text/plain',
@@ -389,19 +397,18 @@ exports.scaleSpannerInstanceLocal = async (spanner) => {
     await processScalingRequest(spanner, state);
     await state.close();
   } catch (err) {
-    log(`Failed to process scaling request\n`, {
-      severity: 'ERROR',
+    logger.error({
+      message: `Failed to process scaling request\n`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: spanner,
     });
-    log(`Exception\n`, {
-      severity: 'ERROR',
+    logger.error({
+      message: `Exception\n`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: err,
+      err: err,
     });
   }
 };
-
-module.exports.log = log;

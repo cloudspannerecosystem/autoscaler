@@ -35,7 +35,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm install
+    - name: npm install in autoscaler-common
+      working-directory: src/autoscaler-common
+      run: npm install
+    - name: npm install in poller-core
+      run: npm install
     - run: npm test
       env:
         CI: true
@@ -58,7 +62,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm install
+    - name: npm install in autoscaler-common
+      working-directory: src/autoscaler-common
+      run: npm install
+    - name: npm install in scaler-core
+      run: npm install
     - run: npm test
       env:
         CI: true

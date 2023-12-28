@@ -70,28 +70,16 @@ resource "google_storage_bucket" "bucket_gcf_source" {
   uniform_bucket_level_access = var.uniform_bucket_level_access
 }
 
-data "archive_file" "local_poller_source" {
+data "archive_file" "local_source" {
   type        = "zip"
-  source_dir  = abspath("${path.module}/../../../src/poller/poller-core")
-  output_path = "${var.local_output_path}/poller.zip"
+  source_dir  = abspath("${path.module}/../../../src")
+  output_path = "${var.local_output_path}/src.zip"
 }
 
-resource "google_storage_bucket_object" "gcs_functions_poller_source" {
-  name   = "poller.${data.archive_file.local_poller_source.output_md5}.zip"
+resource "google_storage_bucket_object" "gcs_functions_source" {
+  name   = "src.${data.archive_file.local_source.output_md5}.zip"
   bucket = google_storage_bucket.bucket_gcf_source.name
-  source = data.archive_file.local_poller_source.output_path
-}
-
-data "archive_file" "local_scaler_source" {
-  type        = "zip"
-  source_dir  = abspath("${path.module}/../../../src/scaler/scaler-core")
-  output_path = "${var.local_output_path}/scaler.zip"
-}
-
-resource "google_storage_bucket_object" "gcs_functions_scaler_source" {
-  name   = "scaler.${data.archive_file.local_scaler_source.output_md5}.zip"
-  bucket = google_storage_bucket.bucket_gcf_source.name
-  source = data.archive_file.local_scaler_source.output_path
+  source = data.archive_file.local_source.output_path
 }
 
 resource "google_cloudfunctions_function" "poller_function" {
@@ -107,7 +95,7 @@ resource "google_cloudfunctions_function" "poller_function" {
     resource   = google_pubsub_topic.poller_topic.id
   }
   source_archive_bucket = google_storage_bucket.bucket_gcf_source.name
-  source_archive_object = google_storage_bucket_object.gcs_functions_poller_source.name
+  source_archive_object = google_storage_bucket_object.gcs_functions_source.name
   service_account_email = var.poller_sa_email
 
   lifecycle {
@@ -128,7 +116,7 @@ resource "google_cloudfunctions_function" "scaler_function" {
     resource   = google_pubsub_topic.scaler_topic.id
   }
   source_archive_bucket = google_storage_bucket.bucket_gcf_source.name
-  source_archive_object = google_storage_bucket_object.gcs_functions_scaler_source.name
+  source_archive_object = google_storage_bucket_object.gcs_functions_source.name
   service_account_email = var.scaler_sa_email
 
   lifecycle {
