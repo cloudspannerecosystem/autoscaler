@@ -67,6 +67,7 @@ updates:
     package-ecosystem: "npm"
     schedule:
       interval: "weekly"
+    ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
