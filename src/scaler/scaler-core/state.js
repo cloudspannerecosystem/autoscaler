@@ -28,13 +28,26 @@
 
 const firestore = require('@google-cloud/firestore');
 const {Spanner} = require('@google-cloud/spanner');
+/**
+ * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
+ * } AutoscalerSpanner
+ */
+
+/**
+ * @typedef {{
+*  lastScalingTimestamp: number
+*  createdOn: number
+* }} StateData
+*/
+
 
 /**
  * Used to store state of a Spanner instance
  */
 class State {
   /**
-   * @param {Object} spanner
+   * @constructor
+   * @param {AutoscalerSpanner} spanner
    */
   constructor(spanner) {
     switch (spanner.stateDatabase && spanner.stateDatabase.name) {
@@ -58,21 +71,23 @@ class State {
   }
 
   /**
-   * proxy get to underlying state implementation
+   * Get scaling timestamp in storage from undelying state implementation
+   *
+   * @return {Promise<StateData>}
    */
   async get() {
     return await this.state.get();
   }
 
   /**
-   * proxy set to underlying state implementation
+   * Update scaling timestamp in storage from undelying state implementation
    */
   async set() {
     await this.state.set();
   }
 
   /**
-   * proxy close to underlying state implementation
+   * Close underlying state implementation
    */
   async close() {
     await this.state.close();
@@ -85,6 +100,7 @@ class State {
     return this.state.now;
   }
 }
+
 module.exports = State;
 
 /**
@@ -104,7 +120,7 @@ module.exports = State;
  */
 class StateSpanner {
   /**
-   * @param {Object} spanner
+   * @param {AutoscalerSpanner} spanner
    */
   constructor(spanner) {
     this.stateProjectId = (spanner.stateProjectId != null) ?
@@ -114,6 +130,9 @@ class StateSpanner {
     this.instanceId = spanner.instanceId;
 
     this.client = new Spanner({projectId: this.stateProjectId});
+    if (!spanner.stateDatabase) {
+      throw new Error('stateDatabase is not defined in Spanner config');
+    }
     this.db = this.client.instance(spanner.stateDatabase.instanceId)
         .database(spanner.stateDatabase.databaseId);
     this.table = this.db.table('spannerAutoscaler');
@@ -121,7 +140,7 @@ class StateSpanner {
 
   /**
    * Initialize state
-   * @return {Promise<Object>}
+   * @return {Promise<*>}
    */
   async init() {
     const initData = {
@@ -133,7 +152,7 @@ class StateSpanner {
   }
 
   /**
-   * @return {Promise<Object>} scaling information from storage
+   * @return {Promise<StateData>} lastScalingTimestamp from storage
    */
   async get() {
     const query = {
@@ -171,7 +190,7 @@ class StateSpanner {
    * Converts row data from Spanner.timestamp (implementation detail)
    * to standard JS timestamps, which are number of milliseconds since Epoch
    * @param {Object} rowData spanner data
-   * @return {Object} converted rowData
+   * @return {StateData} converted rowData
    */
   toMillis(rowData) {
     Object.keys(rowData).forEach((key) => {
@@ -230,7 +249,7 @@ class StateSpanner {
  */
 class StateFirestore {
   /**
-   * @param {Object} spanner
+   * @param {AutoscalerSpanner} spanner
    */
   constructor(spanner) {
     this.projectId = (spanner.stateProjectId != null) ? spanner.stateProjectId :
@@ -257,7 +276,7 @@ class StateFirestore {
    * to standard JS timestamps, which are number of milliseconds since Epoch
    * https://googleapis.dev/nodejs/firestore/latest/Timestamp.html
    * @param {Object} docData
-   * @return {Object} converted docData
+   * @return {StateData} converted docData
    */
   toMillis(docData) {
     Object.keys(docData).forEach((key) => {
@@ -283,7 +302,7 @@ class StateFirestore {
   }
 
   /**
-   * @return {Promise<Object>} scaling information from storage
+   * @return {Promise<StateData>} scaling timstamps from storage
    */
   async get() {
     const snapshot = await this.docRef.get(); // returns QueryDocumentSnapshot

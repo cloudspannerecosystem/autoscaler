@@ -23,8 +23,13 @@
 const {logger} = require('../../../autoscaler-common/logger');
 
 /**
+ * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
+* } AutoscalerSpanner
+*/
+
+/**
  * Size calculation for Direct scaling method
- * @param {Object} spanner
+ * @param {AutoscalerSpanner} spanner
  * @return {number}
  */
 function calculateSize(spanner) {

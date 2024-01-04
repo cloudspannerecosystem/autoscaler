@@ -24,13 +24,22 @@
  */
 // eslint-disable-next-line no-unused-vars -- for type checking only.
 const express = require('express');
-const {Spanner} = require('@google-cloud/spanner');
+// eslint-disable-next-line no-unused-vars -- spannerProtos used for type checks
+const {Spanner, protos: spannerProtos} = require('@google-cloud/spanner');
 const sanitize = require('sanitize-filename');
 const {convertMillisecToHumanReadable} = require('./utils.js');
 const {logger} = require('../../autoscaler-common/logger');
 const {publishProtoMsgDownstream} = require('./utils.js');
 const State = require('./state.js');
 const fs = require('fs');
+const {AutoscalerUnits} = require('../../autoscaler-common/types');
+
+/**
+ * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
+ * } AutoscalerSpanner
+ * @typedef {import('./state.js').StateData} StateData
+ */
+
 
 /**
  * Get scaling method function by name.
@@ -39,8 +48,8 @@ const fs = require('fs');
  * @param {string} projectId
  * @param {string} instanceId
  * @return {{
- *  calculateSize: function(*): number,
- *  calculateNumNodes: function(*): number
+ *  calculateSize: function(AutoscalerSpanner):number,
+ *  calculateNumNodes: function(AutoscalerSpanner): number
  * }}
  */
 function getScalingMethod(methodName, projectId, instanceId) {
@@ -71,12 +80,13 @@ function getScalingMethod(methodName, projectId, instanceId) {
  * Build metadata object.
  *
  * @param {number} suggestedSize
- * @param {string} units
- * @return {Object}
+ * @param {AutoscalerUnits} units
+ * @return {spannerProtos.google.spanner.admin.instance.v1.IInstance}}
  */
 function getNewMetadata(suggestedSize, units) {
-  const metadata = (units === 'NODES') ? {nodeCount: suggestedSize} :
-                                  {processingUnits: suggestedSize};
+  const metadata = (units === AutoscalerUnits.NODES) ?
+    {nodeCount: suggestedSize} :
+    {processingUnits: suggestedSize};
 
   // For testing:
   // metadata = { displayName : 'a' + Math.floor(Math.random() * 100) + '_' +
@@ -87,7 +97,7 @@ function getNewMetadata(suggestedSize, units) {
 /**
  * Scale the specified spanner instance to the specified size
  *
- * @param {Object} spanner
+ * @param {AutoscalerSpanner} spanner
  * @param {number} suggestedSize
  * @return {Promise}
  */
@@ -121,7 +131,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
  * Publish scaling PubSub event.
  *
  * @param {string} eventName
- * @param {Object} spanner
+ * @param {AutoscalerSpanner} spanner
  * @param {number} suggestedSize
  * @return {Promise}
  */
@@ -142,9 +152,9 @@ async function publishDownstreamEvent(eventName, spanner, suggestedSize) {
 /**
  * Test to see if spanner instance is in post-scale cooldown.
  *
- * @param {Object} spanner
+ * @param {AutoscalerSpanner} spanner
  * @param {number} suggestedSize
- * @param {Object} autoscalerState
+ * @param {StateData} autoscalerState
  * @param {number} now timestamp in millis since epoch
  * @return {boolean}
  */
@@ -229,7 +239,7 @@ function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
 
 /**
  * Get Suggested size from config using scalingMethod
- * @param {Object} spanner
+ * @param {AutoscalerSpanner} spanner
  * @return {number}
  */
 function getSuggestedSize(spanner) {
@@ -250,8 +260,8 @@ function getSuggestedSize(spanner) {
 /**
  * Process the request to check a spanner instance for scaling
  *
- * @param {Object} spanner
- * @param {Object} autoscalerState
+ * @param {AutoscalerSpanner} spanner
+ * @param {State} autoscalerState
  */
 async function processScalingRequest(spanner, autoscalerState) {
   logger.info({
@@ -308,7 +318,7 @@ async function processScalingRequest(spanner, autoscalerState) {
 /**
  * Handle scale request from a PubSub event.
  *
- * @param {Object} pubSubEvent
+ * @param {{data:string}} pubSubEvent -- a CloudEvent object.
  * @param {*} context
  */
 async function scaleSpannerInstancePubSub(pubSubEvent, context) {
@@ -351,8 +361,7 @@ async function scaleSpannerInstancePubSub(pubSubEvent, context) {
  */
 async function scaleSpannerInstanceHTTP(req, res) {
   try {
-    const payload = fs.readFileSync('./test/samples/parameters.json')
-        .toString();
+    const payload = fs.readFileSync('./test/samples/parameters.json', 'utf-8');
     const spanner = JSON.parse(payload);
     try {
       const state = new State(spanner);
@@ -410,8 +419,8 @@ async function scaleSpannerInstanceJSON(req, res) {
 }
 
 /**
- * Test to handle scale request from local function call
- * @param {Object} spanner
+ * Handle scale request from local function call
+ * @param {AutoscalerSpanner} spanner
  */
 async function scaleSpannerInstanceLocal(spanner) {
   try {

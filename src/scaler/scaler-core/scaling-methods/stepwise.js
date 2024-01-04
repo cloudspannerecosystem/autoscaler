@@ -27,9 +27,16 @@ const {maybeRound} = require('../utils.js');
 const {logger} = require('../../../autoscaler-common/logger');
 
 /**
+ * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
+ * } AutoscalerSpanner
+ * @typedef {import('../../../autoscaler-common/types').SpannerMetricValue
+ * } SpannerMetricValue
+ */
+
+/**
  * Scaling calculation for Stepwise method
  *
- * @param {Object} spanner
+ * @param {AutoscalerSpanner} spanner
  * @return {number}
  */
 function calculateSize(spanner) {

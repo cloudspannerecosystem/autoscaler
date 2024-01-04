@@ -27,25 +27,39 @@ const monitoring = require('@google-cloud/monitoring');
 const {PubSub} = require('@google-cloud/pubsub');
 const {Spanner} = require('@google-cloud/spanner');
 const {logger} = require('../../autoscaler-common/logger');
+const {AutoscalerUnits} = require('../../autoscaler-common/types');
+
+/**
+ * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
+ * } AutoscalerSpanner
+ * @typedef {import('../../autoscaler-common/types').SpannerConfig
+ * } SpannerConfig
+ * @typedef {import('../../autoscaler-common/types').SpannerMetadata
+ * } SpannerMetadata
+ * @typedef {import('../../autoscaler-common/types').SpannerMetricValue
+ * } SpannerMetricValue
+ * @typedef {import('../../autoscaler-common/types').SpannerMetric
+ * } SpannerMetric
+ */
 
 // GCP service clients
 const metricsClient = new monitoring.MetricServiceClient();
 const pubSub = new PubSub();
 const baseDefaults = {
-  units: 'NODES',
+  units: AutoscalerUnits.NODES,
   scaleOutCoolingMinutes: 5,
   scaleInCoolingMinutes: 30,
   scalingMethod: 'STEPWISE',
 };
 const nodesDefaults = {
-  units: 'NODES',
+  units: AutoscalerUnits.NODES,
   minSize: 1,
   maxSize: 3,
   stepSize: 2,
   overloadStepSize: 5,
 };
 const processingUnitsDefaults = {
-  units: 'PROCESSING_UNITS',
+  units: AutoscalerUnits.PROCESSING_UNITS,
   minSize: 100,
   maxSize: 2000,
   stepSize: 200,
@@ -63,11 +77,12 @@ const DEFAULT_THRESHOLD_MARGIN = 5;
  *
  * @param {string} projectId
  * @param {string} instanceId
- * @return {*} metrics to request
+ * @return {SpannerMetric[]} metrics to request
  */
 function buildMetrics(projectId, instanceId) {
   // Recommended alerting policies
   // https://cloud.google.com/spanner/docs/monitoring-stackdriver#create-alert
+  /** @type {SpannerMetric[]} */
   const metrics = [
     {
       name: 'high_priority_cpu',
@@ -122,7 +137,7 @@ function createBaseFilter(projectId, instanceId) {
 /**
  * Checks to make sure required fields are present and populated
  *
- * @param {!Object} metric
+ * @param {SpannerMetric} metric
  * @param {string} projectId
  * @param {string} instanceId
  * @return {boolean}
@@ -158,8 +173,8 @@ function validateCustomMetric(metric, projectId, instanceId) {
  *
  * @param {string} projectId
  * @param {string} spannerInstanceId
- * @param {Object} metric
- * @return {Promise}
+ * @param {SpannerMetric} metric
+ * @return {Promise<[number,string]>}
  */
 function getMaxMetricValue(projectId, spannerInstanceId, metric) {
   const metricWindow = 5;
@@ -184,7 +199,9 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
       alignmentPeriod: {
         seconds: metric.period,
       },
+      // @ts-ignore
       crossSeriesReducer: metric.reducer,
+      // @ts-ignore
       perSeriesAligner: metric.aligner,
       groupByFields: ['resource.location'],
     },
@@ -217,8 +234,8 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
  *
  * @param {string} projectId
  * @param {string} spannerInstanceId
- * @param {string} units NODES or PU
- * @return {Promise}
+ * @param {AutoscalerUnits} units NODES or PU
+ * @return {Promise<SpannerMetadata>}
  */
 function getSpannerMetadata(projectId, spannerInstanceId, units) {
   logger.info({
@@ -248,7 +265,7 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
       projectId: projectId, instanceId: spannerInstanceId});
 
     const spannerMetadata = {
-      currentSize: (units == 'NODES') ? metadata['nodeCount'] :
+      currentSize: (units === AutoscalerUnits.NODES) ? metadata['nodeCount'] :
                                         metadata['processingUnits'],
       regional: metadata['config'].split('/').pop().startsWith('regional'),
       // DEPRECATED
@@ -263,8 +280,8 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
 /**
  * Post a message to PubSub with the spanner instance and metrics.
  *
- * @param {Object} spanner
- * @param {Object} metrics
+ * @param {AutoscalerSpanner} spanner
+ * @param {SpannerMetricValue[]} metrics
  * @return {Promise}
  */
 async function postPubSubMessage(spanner, metrics) {
@@ -296,8 +313,8 @@ async function postPubSubMessage(spanner, metrics) {
 /**
  * Calls the Scaler cloud function by HTTP POST.
  *
- * @param {Object} spanner
- * @param {Object} metrics
+ * @param {SpannerConfig} spanner
+ * @param {SpannerMetricValue[]} metrics
  * @return {Promise}
  */
 async function callScalerHTTP(spanner, metrics) {
@@ -332,14 +349,16 @@ async function callScalerHTTP(spanner, metrics) {
  * Enrich the paylod by adding information from the config.
  *
  * @param {string} payload
- * @return {Promise} enriched payload
+ * @return {Promise<AutoscalerSpanner[]>} enriched payload
  */
 async function parseAndEnrichPayload(payload) {
+  /** @type {AutoscalerSpanner[]} */
   const spanners = JSON.parse(payload);
   const spannersFound = [];
 
   for (let sIdx = 0; sIdx < spanners.length; sIdx++) {
-    const metricOverrides = spanners[sIdx].metrics;
+    const metricOverrides = /** @type {SpannerMetric[]} */
+        (spanners[sIdx].metrics);
 
     // assemble the config
     // merge in the defaults
@@ -423,6 +442,7 @@ async function parseAndEnrichPayload(payload) {
             ...metricOverrides[oIdx],
           };
         } else {
+          /** @type {SpannerMetric} */
           const metric = {...metricDefaults, ...metricOverrides[oIdx]};
           if (validateCustomMetric(
               metric, spanners[sIdx].projectId,
@@ -463,8 +483,8 @@ async function parseAndEnrichPayload(payload) {
 /**
  * Retrive the metrics for a spanner instance
  *
- * @param {Object} spanner
- * @return {Promise<Object>} metrics
+ * @param {AutoscalerSpanner} spanner
+ * @return {Promise<SpannerMetricValue[]>} metric values
  */
 async function getMetrics(spanner) {
   logger.info({
@@ -473,8 +493,10 @@ async function getMetrics(spanner) {
     projectId: spanner.projectId,
     instanceId: spanner.instanceId,
   });
+  /** @type {SpannerMetricValue[]} */
   const metrics = [];
-  for (const metric of spanner.metrics) {
+  for (const m of spanner.metrics) {
+    const metric = /** @type {SpannerMetric} */ (m);
     const [maxMetricValue, maxLocation] =
         await getMaxMetricValue(spanner.projectId, spanner.instanceId, metric);
 
@@ -499,6 +521,7 @@ async function getMetrics(spanner) {
         threshold}, margin = ${margin}, location = ${maxLocation}`,
       projectId: spanner.projectId, instanceId: spanner.instanceId});
 
+    /** @type {SpannerMetricValue} */
     const metricsObject = {
       name: metric.name,
       threshold: threshold,
@@ -512,8 +535,10 @@ async function getMetrics(spanner) {
 
 /**
  * Forwards the metrics
- * @param {Function} forwarderFunction
- * @param {[*]} spanners config objects
+ * @param {function(
+ *    AutoscalerSpanner,
+ *    SpannerMetricValue[]): Promise} forwarderFunction
+ * @param {AutoscalerSpanner[]} spanners config objects
  * @return {Promise}
  */
 async function forwardMetrics(forwarderFunction, spanners) {
@@ -536,8 +561,8 @@ async function forwardMetrics(forwarderFunction, spanners) {
 /**
  * Aggregate metrics for a List of spanner config
  *
- * @param {[*]} spanners
- * @return {Promise} aggregatedMetrics
+ * @param {AutoscalerSpanner[]} spanners
+ * @return {Promise<AutoscalerSpanner[]>} aggregatedMetrics
  */
 async function aggregateMetrics(spanners) {
   const aggregatedMetrics = [];
@@ -562,7 +587,7 @@ async function aggregateMetrics(spanners) {
 /**
  * Handle a PubSub message and check if scaling is required
  *
- * @param {Object} pubSubEvent
+ * @param {{data: string}} pubSubEvent
  * @param {*} context
  */
 async function checkSpannerScaleMetricsPubSub(pubSubEvent, context) {
@@ -642,7 +667,7 @@ async function checkSpannerScaleMetricsJSON(payload) {
  * Local test
  *
  * @param {string} payload
- * @return {Promise} spanner object with metrics.
+ * @return {Promise<AutoscalerSpanner[]>}
  */
 async function checkSpannerScaleMetricsLocal(payload) {
   try {

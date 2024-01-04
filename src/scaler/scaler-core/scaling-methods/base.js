@@ -25,6 +25,7 @@
 const OVERLOAD_METRIC = 'high_priority_cpu';
 const OVERLOAD_THRESHOLD = 90;
 
+/** @enum {string} */
 const RelativeToRange = {
   BELOW: 'BELOW',
   WITHIN: 'WITHIN',
@@ -39,9 +40,16 @@ const DEFAULT_THRESHOLD_MARGIN = 5;
 const {logger} = require('../../../autoscaler-common/logger');
 
 /**
+ * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
+ * } AutoscalerSpanner
+ * @typedef {import('../../../autoscaler-common/types').SpannerMetricValue
+ * } SpannerMetricValue
+ */
+
+/**
  * Get a string describing the scaling suggestion.
  *
- * @param {Object} spanner
+ * @param {AutoscalerSpanner} spanner
  * @param {number} suggestedSize
  * @param {string} relativeToRange
  * @return {string}
@@ -73,7 +81,7 @@ function getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange) {
  * Build a ranger object from given threshold and margin.
  * @param {number} threshold
  * @param {number} margin
- * @return {Object}
+ * @return {{min: number,max: number}}
  */
 function getRange(threshold, margin) {
   const range = {min: threshold - margin, max: threshold + margin};
@@ -86,7 +94,7 @@ function getRange(threshold, margin) {
 
 /**
  * Test if given metric is within a range
- * @param {Object} metric
+ * @param {SpannerMetricValue} metric
  * @return {boolean}
  */
 function metricValueWithinRange(metric) {
@@ -100,8 +108,8 @@ function metricValueWithinRange(metric) {
 /**
  * Test to see where a metric fits within its range
  *
- * @param {Object} metric
- * @return {string} RelativeToRange enum
+ * @param {SpannerMetricValue} metric
+ * @return {RelativeToRange} RelativeToRange enum
  */
 function compareMetricValueWithRange(metric) {
   const range = getRange(metric.threshold, metric.margin);
@@ -113,8 +121,8 @@ function compareMetricValueWithRange(metric) {
 
 /**
  * Log the suggested scaling.
- * @param {Object} spanner
- * @param {Object} metric
+ * @param {AutoscalerSpanner} spanner
+ * @param {SpannerMetricValue} metric
  * @param {number} suggestedSize
  */
 function logSuggestion(spanner, metric, suggestedSize) {
@@ -145,8 +153,9 @@ function logSuggestion(spanner, metric, suggestedSize) {
  * Get the max suggested size for the given spanner instance based
  * on its metrics
  *
- * @param {Object} spanner
- * @param {Function} getSuggestedSize
+ * @param {AutoscalerSpanner} spanner
+ * @param {function(AutoscalerSpanner,SpannerMetricValue): number
+ * } getSuggestedSize
  * @return {number}
  */
 function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
@@ -162,7 +171,7 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   let maxSuggestedSize = spanner.minSize;
   spanner.isOverloaded = false;
 
-  for (const metric of spanner.metrics) {
+  for (const metric of /** @type {SpannerMetricValue[]} */ (spanner.metrics)) {
     if (metric.name === OVERLOAD_METRIC && metric.value > OVERLOAD_THRESHOLD) {
       spanner.isOverloaded = true;
     }

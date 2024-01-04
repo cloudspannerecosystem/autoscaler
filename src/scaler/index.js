@@ -14,7 +14,7 @@
  */
 
 const express = require('express');
-const scalerCore = require('scaler-core');
+const scalerCore = require('./scaler-core');
 const {logger} = require('../autoscaler-common/logger');
 
 /**

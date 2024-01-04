@@ -17,6 +17,12 @@ const fs = require('fs');
 const State = require('../state.js');
 
 /**
+ * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
+ * } AutoscalerSpanner
+ */
+
+
+/**
  * Read Spanner params from file
  *
  * @param {Object} [overrideParams]
@@ -33,8 +39,7 @@ function createSpannerParameters(overrideParams) {
  * @return {State} state class stub
  */
 function createStubState() {
-  const stubState = new State({});
-  sinon.stub(stubState, 'init').resolves();
+  const stubState = new State(/** @type {AutoscalerSpanner} */ ({}));
   sinon.stub(stubState, 'get').resolves(0);
   sinon.stub(stubState, 'set').resolves(0);
   sinon.stub(stubState, 'now').value(Date.now());
