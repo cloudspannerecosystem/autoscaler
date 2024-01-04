@@ -362,8 +362,8 @@ async function parseAndEnrichPayload(payload) {
       // and not match throw an error
       if (spanners[sIdx].minNodes && !spanners[sIdx].minSize) {
         logger.warn({
-          message: `DEPRECATION: minNodes is deprecated, ' + 
-            'remove minNodes from your config and instead use: ' + 
+          message: `DEPRECATION: minNodes is deprecated, ' +
+            'remove minNodes from your config and instead use: ' +
             'units = 'NODES' and minSize = ${spanners[sIdx].minNodes}`,
           projectId: spanners[sIdx].projectId,
           instanceId: spanners[sIdx].instanceId,
@@ -381,8 +381,8 @@ async function parseAndEnrichPayload(payload) {
       // and not match throw an error
       if (spanners[sIdx].maxNodes && !spanners[sIdx].maxSize) {
         logger.warn({
-          message: `DEPRECATION: maxNodes is deprecated, remove maxSize ' + 
-            'from your config and instead use: ' + 
+          message: `DEPRECATION: maxNodes is deprecated, remove maxSize ' +
+            'from your config and instead use: ' +
             'units = 'NODES' and maxSize = ${spanners[sIdx].maxNodes}`,
           projectId: spanners[sIdx].projectId,
           instanceId: spanners[sIdx].instanceId,
@@ -562,8 +562,9 @@ aggregateMetrics = async (spanners) => {
  * @param {*} context
  */
 exports.checkSpannerScaleMetricsPubSub = async (pubSubEvent, context) => {
+  let payload;
   try {
-    const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
+    payload = Buffer.from(pubSubEvent.data, 'base64').toString();
     const spanners = await parseAndEnrichPayload(payload);
     logger.debug({
       message: 'Autoscaler poller started (PubSub).',
@@ -583,17 +584,17 @@ exports.checkSpannerScaleMetricsPubSub = async (pubSubEvent, context) => {
  * @param {Response} res
  */
 exports.checkSpannerScaleMetricsHTTP = async (req, res) => {
+  const payload =
+    '[{ ' +
+    '  "projectId": "spanner-scaler", ' +
+    '  "instanceId": "autoscale-test", ' +
+    '  "scalerPubSubTopic": ' +
+    '     "projects/spanner-scaler/topics/test-scaling", ' +
+    '  "minNodes": 1, ' +
+    '  "maxNodes": 3, ' +
+    '  "stateProjectId" : "spanner-scaler"' +
+    '}]';
   try {
-    const payload =
-        '[{ '+
-        '  "projectId": "spanner-scaler", '+
-        '  "instanceId": "autoscale-test", '+
-        '  "scalerPubSubTopic": '+
-        '     "projects/spanner-scaler/topics/test-scaling", '+
-        '  "minNodes": 1, '+
-        '  "maxNodes": 3, '+
-        '  "stateProjectId" : "spanner-scaler"'+
-        '}]';
     const spanners = await parseAndEnrichPayload(payload);
     await forwardMetrics(postPubSubMessage, spanners);
     res.status(200).end();

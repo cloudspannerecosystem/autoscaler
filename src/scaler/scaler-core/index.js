@@ -302,10 +302,11 @@ async function processScalingRequest(spanner, autoscalerState) {
  * @param {*} context
  */
 exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
+  let spanner;
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
+    spanner = JSON.parse(payload);
 
-    const spanner = JSON.parse(payload);
     const state = new State(spanner);
 
     await processScalingRequest(spanner, state);
@@ -357,8 +358,8 @@ exports.scaleSpannerInstanceHTTP = async (req, res) => {
  * @param {Response} res
  */
 exports.scaleSpannerInstanceJSON = async (req, res) => {
+  const spanner = req.body;
   try {
-    const spanner = req.body;
     const state = new State(spanner);
 
     await processScalingRequest(spanner, state);

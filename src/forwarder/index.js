@@ -58,16 +58,16 @@ function log(message, severity = 'DEBUG', payload) {
  * @param {Response} res
  */
 exports.forwardFromHTTP = async (req, res) => {
+  const payloadString =
+    '[{ ' +
+    '  "projectId": "spanner-scaler", ' +
+    '  "instanceId": "my-spanner", ' +
+    '  "scalerPubSubTopic": "projects/spanner-scaler/topics/my-scaling", ' +
+    '  "minNodes": 1, ' +
+    '  "maxNodes": 3, ' +
+    '  "stateProjectId" : "spanner-scaler" ' +
+    '}]';
   try {
-    const payloadString =
-        '[{ '+
-        '  "projectId": "spanner-scaler", '+
-        '  "instanceId": "my-spanner", '+
-        '  "scalerPubSubTopic": "projects/spanner-scaler/topics/my-scaling", '+
-        '  "minNodes": 1, '+
-        '  "maxNodes": 3, '+
-        '  "stateProjectId" : "spanner-scaler" '+
-        '}]';
     const payload = Buffer.from(payloadString, 'utf8');
 
     JSON.parse(payload.toString()); // Log exception in App project if payload
@@ -89,8 +89,9 @@ exports.forwardFromHTTP = async (req, res) => {
  * @param {*} context
  */
 exports.forwardFromPubSub = async (pubSubEvent, context) => {
+  let payload;
   try {
-    const payload = Buffer.from(pubSubEvent.data, 'base64');
+    payload = Buffer.from(pubSubEvent.data, 'base64');
     JSON.parse(payload.toString()); // Log exception in App project if payload
     // cannot be parsed
 
