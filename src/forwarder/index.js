@@ -18,7 +18,8 @@
  *
  * * Forwards PubSub messages from the Scheduler topic to the Poller topic.
  */
-
+// eslint-disable-next-line no-unused-vars -- for type checking only.
+const express = require('express');
 const {PubSub} = require('@google-cloud/pubsub');
 
 // GCP service clients
@@ -54,8 +55,8 @@ function log(message, severity = 'DEBUG', payload) {
  *
  * For testing purposes - uses a fixed message.
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {express.Request} req
+ * @param {express.Response} res
  */
 exports.forwardFromHTTP = async (req, res) => {
   const payloadString =
@@ -96,10 +97,11 @@ exports.forwardFromPubSub = async (pubSubEvent, context) => {
     // cannot be parsed
 
     const pollerTopic = pubSub.topic(process.env.POLLER_TOPIC);
-    pollerTopic.publish(payload);
+    pollerTopic.publishMessage({data: payload});
 
     console.log('Poll request forwarded to ' + process.env.POLLER_TOPIC);
   } catch (err) {
-    log('failed to process payload: \n' + payload, 'ERROR', err);
+    log('failed to process pubsub payload: \n' + pubSubEvent.data, 'ERROR',
+        err);
   }
 };

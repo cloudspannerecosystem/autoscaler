@@ -6,6 +6,6 @@
     "allowJs": true,
     "noEmit": true,
   },
-  "include": ["src/**/*.js"],
-  "exclude": ["src/**/test/**/*.js"]
+  "include": ["src/**/*"],
+  "exclude": ["src/**/node_modules"]
 }

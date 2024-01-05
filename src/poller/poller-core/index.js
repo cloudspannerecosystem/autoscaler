@@ -20,7 +20,9 @@
  * * Sends metrics to Scaler to determine if an instance needs to be autoscaled
  */
 
-const axios = require('axios');
+const axios = require('axios').default;
+// eslint-disable-next-line no-unused-vars -- for type checking only.
+const express = require('express');
 const monitoring = require('@google-cloud/monitoring');
 const {PubSub} = require('@google-cloud/pubsub');
 const {Spanner} = require('@google-cloud/spanner');
@@ -166,6 +168,7 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
       spannerInstanceId} over ${metricWindow} minutes.`,
     projectId: projectId, instanceId: spannerInstanceId});
 
+  /** @type {monitoring.protos.google.monitoring.v3.IListTimeSeriesRequest} */
   const request = {
     name: 'projects/' + projectId,
     filter: metric.filter,
@@ -195,7 +198,7 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
 
     for (const resource of resources) {
       for (const point of resource.points) {
-        value = parseFloat(point.value.doubleValue) * 100;
+        const value = point.value.doubleValue * 100;
         if (value > maxValue) {
           maxValue = value;
           if (resource.resource.labels.location) {
@@ -224,6 +227,7 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
 
   const spanner = new Spanner({
     projectId: projectId,
+    // @ts-ignore -- hidden property of ServiceOptions.
     userAgent: 'cloud-solutions/spanner-autoscaler-poller-usage-v1.0',
   });
   const spannerInstance = spanner.instance(spannerInstanceId);
@@ -269,8 +273,8 @@ async function postPubSubMessage(spanner, metrics) {
   spanner.metrics = metrics;
   const messageBuffer = Buffer.from(JSON.stringify(spanner), 'utf8');
 
-  return topic.publish(messageBuffer)
-      .then(logger.info({
+  return topic.publishMessage({data: messageBuffer})
+      .then(() => logger.info({
         message:
           `----- Published message to topic: ${spanner.scalerPubSubTopic}`,
         projectId: spanner.projectId,
@@ -328,7 +332,7 @@ async function callScalerHTTP(spanner, metrics) {
  * Enrich the paylod by adding information from the config.
  *
  * @param {string} payload
- * @return {Object} enriched payload
+ * @return {Promise} enriched payload
  */
 async function parseAndEnrichPayload(payload) {
   const spanners = JSON.parse(payload);
@@ -411,7 +415,7 @@ async function parseAndEnrichPayload(payload) {
     // merge in custom thresholds
     if (metricOverrides != null) {
       for (let oIdx = 0; oIdx < metricOverrides.length; oIdx++) {
-        mIdx = spanners[sIdx].metrics.findIndex(
+        const mIdx = spanners[sIdx].metrics.findIndex(
             (x) => x.name === metricOverrides[oIdx].name);
         if (mIdx != -1) {
           spanners[sIdx].metrics[mIdx] = {
@@ -509,10 +513,10 @@ async function getMetrics(spanner) {
 /**
  * Forwards the metrics
  * @param {Function} forwarderFunction
- * @param {List} spanners config objects
+ * @param {[*]} spanners config objects
  * @return {Promise}
  */
-forwardMetrics = async (forwarderFunction, spanners) => {
+async function forwardMetrics(forwarderFunction, spanners) {
   for (const spanner of spanners) {
     try {
       const metrics = await getMetrics(spanner);
@@ -532,10 +536,10 @@ forwardMetrics = async (forwarderFunction, spanners) => {
 /**
  * Aggregate metrics for a List of spanner config
  *
- * @param {List} spanners
+ * @param {[*]} spanners
  * @return {Promise} aggregatedMetrics
  */
-aggregateMetrics = async (spanners) => {
+async function aggregateMetrics(spanners) {
   const aggregatedMetrics = [];
   for (const spanner of spanners) {
     try {
@@ -561,39 +565,45 @@ aggregateMetrics = async (spanners) => {
  * @param {Object} pubSubEvent
  * @param {*} context
  */
-exports.checkSpannerScaleMetricsPubSub = async (pubSubEvent, context) => {
-  let payload;
+async function checkSpannerScaleMetricsPubSub(pubSubEvent, context) {
   try {
-    payload = Buffer.from(pubSubEvent.data, 'base64').toString();
-    const spanners = await parseAndEnrichPayload(payload);
-    logger.debug({
-      message: 'Autoscaler poller started (PubSub).',
-      payload: spanners});
-    await forwardMetrics(postPubSubMessage, spanners);
+    const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
+    try {
+      const spanners = await parseAndEnrichPayload(payload);
+      logger.debug({
+        message: 'Autoscaler poller started (PubSub).',
+        payload: spanners});
+      await forwardMetrics(postPubSubMessage, spanners);
+    } catch (err) {
+      logger.error({
+        message: `An error occurred in the Autoscaler poller function (PubSub)`,
+        err: err});
+      logger.error({message: `JSON payload`, payload: payload});
+    }
   } catch (err) {
     logger.error({
       message: `An error occurred in the Autoscaler poller function (PubSub)`,
       err: err});
-    logger.error({message: `JSON payload`, payload: payload});
+    logger.error({message: `Pubsub data`, payload: pubSubEvent.data});
   }
 };
 
 /**
  * For testing with: https://cloud.google.com/functions/docs/functions-framework
- * @param {Request} req
- * @param {Response} res
+ * @param {express.Request} req
+ * @param {express.Response} res
  */
-exports.checkSpannerScaleMetricsHTTP = async (req, res) => {
+async function checkSpannerScaleMetricsHTTP(req, res) {
   const payload =
-    '[{ ' +
-    '  "projectId": "spanner-scaler", ' +
-    '  "instanceId": "autoscale-test", ' +
-    '  "scalerPubSubTopic": ' +
-    '     "projects/spanner-scaler/topics/test-scaling", ' +
-    '  "minNodes": 1, ' +
-    '  "maxNodes": 3, ' +
-    '  "stateProjectId" : "spanner-scaler"' +
-    '}]';
+  '[{ '+
+  '  "projectId": "spanner-scaler", '+
+  '  "instanceId": "autoscale-test", '+
+  '  "scalerPubSubTopic": '+
+  '     "projects/spanner-scaler/topics/test-scaling", '+
+  '  "minNodes": 1, '+
+  '  "maxNodes": 3, '+
+  '  "stateProjectId" : "spanner-scaler"'+
+  '}]';
   try {
     const spanners = await parseAndEnrichPayload(payload);
     await forwardMetrics(postPubSubMessage, spanners);
@@ -612,7 +622,7 @@ exports.checkSpannerScaleMetricsHTTP = async (req, res) => {
  *
  * @param {string} payload
  */
-exports.checkSpannerScaleMetricsJSON = async (payload) => {
+async function checkSpannerScaleMetricsJSON(payload) {
   try {
     const spanners = await parseAndEnrichPayload(payload);
     logger.debug({
@@ -632,9 +642,9 @@ exports.checkSpannerScaleMetricsJSON = async (payload) => {
  * Local test
  *
  * @param {string} payload
- * @return {metrics}
+ * @return {Promise} spanner object with metrics.
  */
-exports.checkSpannerScaleMetricsLocal = async (payload) => {
+async function checkSpannerScaleMetricsLocal(payload) {
   try {
     const spanners = await parseAndEnrichPayload(payload);
     logger.debug({
@@ -648,4 +658,11 @@ exports.checkSpannerScaleMetricsLocal = async (payload) => {
       err: err});
     logger.error({message: `JSON payload`, payload: payload});
   }
+};
+
+module.exports = {
+  checkSpannerScaleMetricsPubSub,
+  checkSpannerScaleMetricsHTTP,
+  checkSpannerScaleMetricsJSON,
+  checkSpannerScaleMetricsLocal,
 };

@@ -45,10 +45,10 @@ async function main() {
   }
 
   try {
-    config = await fs.readFile(configLocation, {encoding: 'utf8'});
-    spanners = await pollerCore.checkSpannerScaleMetricsLocal(
+    const config = await fs.readFile(configLocation, {encoding: 'utf8'});
+    const spanners = await pollerCore.checkSpannerScaleMetricsLocal(
         JSON.stringify(yaml.load(config)));
-    for (spanner of spanners) {
+    for (const spanner of spanners) {
       await scalerCore.scaleSpannerInstanceLocal(spanner);
     }
   } catch (err) {

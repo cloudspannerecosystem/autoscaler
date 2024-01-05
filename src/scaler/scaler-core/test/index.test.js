@@ -50,7 +50,7 @@ const processScalingRequest = app.__get__('processScalingRequest');
 describe('#processScalingRequest', () => {
   it('should not autoscale if suggested size is equal to current size',
       async function() {
-        spanner = createSpannerParameters();
+        const spanner = createSpannerParameters();
         app.__set__(
             'getSuggestedSize', sinon.stub().returns(spanner.currentSize));
         app.__set__('withinCooldownPeriod', sinon.stub().returns(false));
@@ -64,7 +64,7 @@ describe('#processScalingRequest', () => {
 
   it('should autoscale if suggested size is not equal to current size',
       async function() {
-        spanner = createSpannerParameters();
+        const spanner = createSpannerParameters();
         app.__set__('getSuggestedSize',
             sinon.stub().returns(spanner.currentSize + 100));
         app.__set__('withinCooldownPeriod', sinon.stub().returns(false));

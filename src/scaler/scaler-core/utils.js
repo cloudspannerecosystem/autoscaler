@@ -31,19 +31,19 @@ const {logger} = require('../../autoscaler-common/logger');
  */
 function convertMillisecToHumanReadable(millisec) {
   // By Nofi @ https://stackoverflow.com/a/32180863
-  const seconds = (millisec / 1000).toFixed(1);
-  const minutes = (millisec / (1000 * 60)).toFixed(1);
-  const hours = (millisec / (1000 * 60 * 60)).toFixed(1);
-  const days = (millisec / (1000 * 60 * 60 * 24)).toFixed(1);
+  const seconds = (millisec / 1000);
+  const minutes = (millisec / (1000 * 60));
+  const hours = (millisec / (1000 * 60 * 60));
+  const days = (millisec / (1000 * 60 * 60 * 24));
 
   if (seconds < 60) {
-    return seconds + ' Sec';
+    return seconds.toFixed(1) + ' Sec';
   } else if (minutes < 60) {
-    return minutes + ' Min';
+    return minutes.toFixed(1) + ' Min';
   } else if (hours < 24) {
-    return hours + ' Hrs';
+    return hours.toFixed(1) + ' Hrs';
   } else {
-    return days + ' Days';
+    return days.toFixed(1) + ' Days';
   }
 }
 
@@ -77,12 +77,12 @@ function maybeRound(suggestedSize, units, label = '', projectId, instanceId) {
 /**
  * Create Pub/Sub messages with Protobuf schema
  * @param {Object} jsonData
- * @return {Object}
+ * @return {Promise<protobuf.Message>}
  */
 async function createProtobufMessage(jsonData) {
   const root = await protobuf.load('downstream.schema.proto');
   const DownstreamEvent = root.lookupType('DownstreamEvent');
-  return message = DownstreamEvent.create(jsonData);
+  return DownstreamEvent.create(jsonData);
 }
 
 /**
@@ -107,9 +107,8 @@ async function publishProtoMsgDownstream(eventName, jsonData, topicId) {
   const attributes = {event: eventName};
 
   return topic.publishMessage({data: data, attributes: attributes})
-      .then(
-          logger.info(
-              `Published ${eventName} message downstream to topic: ${topicId}`))
+      .then( () => logger.info(
+          `Published ${eventName} message downstream to topic: ${topicId}`))
       .catch((err) => {
         logger.error({
           message: `An error occurred publishing ${
