@@ -58,7 +58,7 @@ function log(message, severity = 'DEBUG', payload) {
  * @param {express.Request} req
  * @param {express.Response} res
  */
-exports.forwardFromHTTP = async (req, res) => {
+async function forwardFromHTTP(req, res) {
   const payloadString =
     '[{ ' +
     '  "projectId": "spanner-scaler", ' +
@@ -81,7 +81,7 @@ exports.forwardFromHTTP = async (req, res) => {
     log('failed to process payload: \n' + payloadString, 'ERROR', err);
     res.status(500).end(err.toString());
   }
-};
+}
 
 /**
  * Handle the Forwarder request from PubSub
@@ -89,7 +89,7 @@ exports.forwardFromHTTP = async (req, res) => {
  * @param {Object} pubSubEvent
  * @param {*} context
  */
-exports.forwardFromPubSub = async (pubSubEvent, context) => {
+async function forwardFromPubSub(pubSubEvent, context) {
   let payload;
   try {
     payload = Buffer.from(pubSubEvent.data, 'base64');
@@ -104,4 +104,9 @@ exports.forwardFromPubSub = async (pubSubEvent, context) => {
     log('failed to process pubsub payload: \n' + pubSubEvent.data, 'ERROR',
         err);
   }
+};
+
+module.exports = {
+  forwardFromHTTP,
+  forwardFromPubSub,
 };
