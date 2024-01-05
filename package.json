@@ -1,10 +1,12 @@
 {
   "scripts": {
     "eslint": "eslint .",
-    "eslint-fix": "eslint --fix ."
+    "eslint-fix": "eslint --fix .",
+    "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit"
   },
   "devDependencies": {
     "eslint": "^8.56.0",
-    "eslint-config-google": "^0.14.0"
+    "eslint-config-google": "^0.14.0",
+    "typescript": "^5.3.3"
   }
 }
