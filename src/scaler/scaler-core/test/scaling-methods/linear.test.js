@@ -53,7 +53,7 @@ function stubBaseModule(spanner, metric, metricValueWithinRange) {
 const calculateSize = app.__get__('calculateSize');
 describe('#linear.calculateSize', () => {
   it('should return current size if the metric is within range', () => {
-    const spanner = createSpannerParameters({currentSize: 700}, true);
+    const spanner = createSpannerParameters({currentSize: 700});
     const callbackStub = stubBaseModule(spanner, {}, true);
 
     calculateSize(spanner).should.equal(700);
@@ -62,7 +62,7 @@ describe('#linear.calculateSize', () => {
 
   it('should return higher value of processing units if the metric is above range',
       () => {
-        const spanner = createSpannerParameters({currentSize: 700}, true);
+        const spanner = createSpannerParameters({currentSize: 700});
         const callbackStub =
            stubBaseModule(spanner, {value: 75, threshold: 65}, false);
 
@@ -72,7 +72,7 @@ describe('#linear.calculateSize', () => {
 
   it('should return higher value of nodes if the metric above range', () => {
     const spanner =
-        createSpannerParameters({units: 'NODES', currentSize: 7}, true);
+        createSpannerParameters({units: 'NODES', currentSize: 7});
     const callbackStub =
         stubBaseModule(spanner, {value: 75, threshold: 65}, false);
 
@@ -82,7 +82,7 @@ describe('#linear.calculateSize', () => {
 
   it('should return lower value of processing units if the metric is below range',
       () => {
-        const spanner = createSpannerParameters({currentSize: 700}, true);
+        const spanner = createSpannerParameters({currentSize: 700});
         const callbackStub =
            stubBaseModule(spanner, {value: 55, threshold: 65}, false);
 
@@ -92,7 +92,7 @@ describe('#linear.calculateSize', () => {
 
   it('should return the number of processing units rounded to next 1000 if over 1000',
       () => {
-        const spanner = createSpannerParameters({currentSize: 900}, true);
+        const spanner = createSpannerParameters({currentSize: 900});
         const callbackStub =
            stubBaseModule(spanner, {value: 85, threshold: 65}, false);
 
@@ -103,7 +103,7 @@ describe('#linear.calculateSize', () => {
   it('should return the higher instance size if a scaleInLimit is specified',
       () => {
         const spanner = createSpannerParameters(
-            {units: 'NODES', currentSize: 20, scaleInLimit: 10}, true);
+            {units: 'NODES', currentSize: 20, scaleInLimit: 10});
         const callbackStub =
            stubBaseModule(spanner, {value: 30, threshold: 65}, false);
 
@@ -114,7 +114,7 @@ describe('#linear.calculateSize', () => {
   it('should not scale in if the scaleInLimit would allow for scaling less than one node',
       () => {
         const spanner = createSpannerParameters(
-            {units: 'NODES', currentSize: 10, scaleInLimit: 5}, true);
+            {units: 'NODES', currentSize: 10, scaleInLimit: 5});
         const callbackStub =
            stubBaseModule(spanner, {value: 40, threshold: 65}, false);
 
@@ -125,8 +125,7 @@ describe('#linear.calculateSize', () => {
   it('should not scale in if the scaleInLimit would allow for scaling less than a valid processing unit step size (100 PU)',
       () => {
         const spanner = createSpannerParameters(
-            {units: 'PROCESSING_UNITS', currentSize: 1000, scaleInLimit: 5},
-            true);
+            {units: 'PROCESSING_UNITS', currentSize: 1000, scaleInLimit: 5});
         const callbackStub =
            stubBaseModule(spanner, {value: 30, threshold: 65}, false);
 
@@ -137,8 +136,7 @@ describe('#linear.calculateSize', () => {
   it('should produce a valid capacity size when using scaleInLimit with processing units',
       () => {
         const spanner = createSpannerParameters(
-            {units: 'PROCESSING_UNITS', currentSize: 1000, scaleInLimit: 50},
-            true);
+            {units: 'PROCESSING_UNITS', currentSize: 1000, scaleInLimit: 50});
         const callbackStub =
            stubBaseModule(spanner, {value: 30, threshold: 65}, false);
 
@@ -148,7 +146,7 @@ describe('#linear.calculateSize', () => {
 
   it('should scaleIn even when a scaleInLimit is not specified', () => {
     const spanner =
-        createSpannerParameters({units: 'NODES', currentSize: 20}, true);
+        createSpannerParameters({units: 'NODES', currentSize: 20});
     const callbackStub =
         stubBaseModule(spanner, {value: 30, threshold: 65}, false);
 
@@ -158,7 +156,7 @@ describe('#linear.calculateSize', () => {
 
   it('should ignore scaleInLimit when scaling out', () => {
     const spanner = createSpannerParameters(
-        {units: 'NODES', currentSize: 20, scaleInLimit: 10}, true);
+        {units: 'NODES', currentSize: 20, scaleInLimit: 10});
     const callbackStub =
         stubBaseModule(spanner, {value: 80, threshold: 65}, false);
 

@@ -195,7 +195,7 @@ describe('#getScaleSuggestionMessage', () => {
  * @return {Object} a test Spanner config
  */
 function getSpannerJSON() {
-  spanner = {
+  const spanner = {
     units: 'NODES',
     minSize: 1,
     metrics: [

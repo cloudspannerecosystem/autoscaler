@@ -22,7 +22,8 @@
  * * Selects a scaling method, and gets a number of suggested nodes
  * * Autoscales the Spanner instance by the number of suggested nodes
  */
-
+// eslint-disable-next-line no-unused-vars -- for type checking only.
+const express = require('express');
 const {Spanner} = require('@google-cloud/spanner');
 const sanitize = require('sanitize-filename');
 const {convertMillisecToHumanReadable} = require('./utils.js');
@@ -37,7 +38,10 @@ const fs = require('fs');
  * @param {string} methodName
  * @param {string} projectId
  * @param {string} instanceId
- * @return {Function}
+ * @return {{
+ *  calculateSize: function(*): number,
+ *  calculateNumNodes: function(*): number
+ * }}
  */
 function getScalingMethod(methodName, projectId, instanceId) {
   const SCALING_METHODS_FOLDER = './scaling-methods/';
@@ -67,11 +71,11 @@ function getScalingMethod(methodName, projectId, instanceId) {
  * Build metadata object.
  *
  * @param {number} suggestedSize
- * @param {number} units
+ * @param {string} units
  * @return {Object}
  */
 function getNewMetadata(suggestedSize, units) {
-  metadata = (units == 'NODES') ? {nodeCount: suggestedSize} :
+  const metadata = (units === 'NODES') ? {nodeCount: suggestedSize} :
                                   {processingUnits: suggestedSize};
 
   // For testing:
@@ -98,6 +102,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
 
   const spannerClient = new Spanner({
     projectId: spanner.projectId,
+    // @ts-ignore -- hidden property of ServiceOptions.
     userAgent: 'cloud-solutions/spanner-autoscaler-scaler-usage-v1.0',
   });
 
@@ -232,8 +237,13 @@ function getSuggestedSize(spanner) {
       spanner.scalingMethod, spanner.projectId, spanner.instanceId);
   if (scalingMethod.calculateSize) {
     return scalingMethod.calculateSize(spanner);
-  } else {
+  } else if (scalingMethod.calculateNumNodes) {
+    logger.warn(`scaling method ${
+      spanner.scalingMethod} uses deprecated calculateNumNodes function`);
     return scalingMethod.calculateNumNodes(spanner);
+  } else {
+    throw new Error(`no calculateSize() in scaling method ${
+      spanner.scalingMethod}`);
   }
 }
 
@@ -301,63 +311,75 @@ async function processScalingRequest(spanner, autoscalerState) {
  * @param {Object} pubSubEvent
  * @param {*} context
  */
-exports.scaleSpannerInstancePubSub = async (pubSubEvent, context) => {
-  let spanner;
+async function scaleSpannerInstancePubSub(pubSubEvent, context) {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
-    spanner = JSON.parse(payload);
+    const spanner = JSON.parse(payload);
+    try {
+      const state = new State(spanner);
 
-    const state = new State(spanner);
-
-    await processScalingRequest(spanner, state);
-    await state.close();
+      await processScalingRequest(spanner, state);
+      await state.close();
+    } catch (err) {
+      logger.error({
+        message: `Failed to process scaling request\n`,
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+        payload: spanner,
+      });
+      logger.error({
+        message: `Exception\n`,
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+        err: err,
+      });
+    }
   } catch (err) {
     logger.error({
-      message: `Failed to process scaling request\n`,
-      projectId: spanner.projectId,
-      instanceId: spanner.instanceId,
-      payload: spanner,
-    });
-    logger.error({
-      message: `Exception\n`,
-      projectId: spanner.projectId,
-      instanceId: spanner.instanceId,
-      payload: err,
+      message: `Failed to parse pubSub scaling request\n`,
+      payload: pubSubEvent.data,
       err: err,
     });
   }
-};
+}
 
 /**
  * Test to handle scale request from a HTTP call with fixed payload
  * For testing with: https://cloud.google.com/functions/docs/functions-framework
- * @param {Request} req
- * @param {Response} res
+ * @param {express.Request} req
+ * @param {express.Response} res
  */
-exports.scaleSpannerInstanceHTTP = async (req, res) => {
+async function scaleSpannerInstanceHTTP(req, res) {
   try {
-    const payload = fs.readFileSync('./test/samples/parameters.json');
-
+    const payload = fs.readFileSync('./test/samples/parameters.json')
+        .toString();
     const spanner = JSON.parse(payload);
-    const state = new State(spanner);
+    try {
+      const state = new State(spanner);
 
-    await processScalingRequest(spanner, state);
-    await state.close();
+      await processScalingRequest(spanner, state);
+      await state.close();
 
-    res.status(200).end();
+      res.status(200).end();
+    } catch (err) {
+      console.error(err);
+      res.status(500).end(err.toString());
+    }
   } catch (err) {
-    console.error(err);
-    res.status(500).end(err.toString());
+    logger.error({
+      message: `Failed to parse http scaling request\n`,
+      err: err,
+    });
   }
-};
+}
 
 /**
- * Test to handle scale request from a HTTP call with JSON payload
+ * Handle scale request from a HTTP call with JSON payload
 
- * @param {Request} req
- * @param {Response} res
+ * @param {express.Request} req
+ * @param {express.Response} res
  */
-exports.scaleSpannerInstanceJSON = async (req, res) => {
+async function scaleSpannerInstanceJSON(req, res) {
   const spanner = req.body;
   try {
     const state = new State(spanner);
@@ -385,13 +407,13 @@ exports.scaleSpannerInstanceJSON = async (req, res) => {
     });
     res.end(err.toString());
   }
-};
+}
 
 /**
  * Test to handle scale request from local function call
  * @param {Object} spanner
  */
-exports.scaleSpannerInstanceLocal = async (spanner) => {
+async function scaleSpannerInstanceLocal(spanner) {
   try {
     const state = new State(spanner);
 
@@ -412,4 +434,11 @@ exports.scaleSpannerInstanceLocal = async (spanner) => {
       err: err,
     });
   }
+}
+
+module.exports = {
+  scaleSpannerInstanceHTTP,
+  scaleSpannerInstancePubSub,
+  scaleSpannerInstanceJSON,
+  scaleSpannerInstanceLocal,
 };

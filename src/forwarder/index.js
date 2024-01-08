@@ -18,7 +18,8 @@
  *
  * * Forwards PubSub messages from the Scheduler topic to the Poller topic.
  */
-
+// eslint-disable-next-line no-unused-vars -- for type checking only.
+const express = require('express');
 const {PubSub} = require('@google-cloud/pubsub');
 
 // GCP service clients
@@ -54,10 +55,10 @@ function log(message, severity = 'DEBUG', payload) {
  *
  * For testing purposes - uses a fixed message.
  *
- * @param {Request} req
- * @param {Response} res
+ * @param {express.Request} req
+ * @param {express.Response} res
  */
-exports.forwardFromHTTP = async (req, res) => {
+async function forwardFromHTTP(req, res) {
   const payloadString =
     '[{ ' +
     '  "projectId": "spanner-scaler", ' +
@@ -80,7 +81,7 @@ exports.forwardFromHTTP = async (req, res) => {
     log('failed to process payload: \n' + payloadString, 'ERROR', err);
     res.status(500).end(err.toString());
   }
-};
+}
 
 /**
  * Handle the Forwarder request from PubSub
@@ -88,7 +89,7 @@ exports.forwardFromHTTP = async (req, res) => {
  * @param {Object} pubSubEvent
  * @param {*} context
  */
-exports.forwardFromPubSub = async (pubSubEvent, context) => {
+async function forwardFromPubSub(pubSubEvent, context) {
   let payload;
   try {
     payload = Buffer.from(pubSubEvent.data, 'base64');
@@ -96,10 +97,16 @@ exports.forwardFromPubSub = async (pubSubEvent, context) => {
     // cannot be parsed
 
     const pollerTopic = pubSub.topic(process.env.POLLER_TOPIC);
-    pollerTopic.publish(payload);
+    pollerTopic.publishMessage({data: payload});
 
     console.log('Poll request forwarded to ' + process.env.POLLER_TOPIC);
   } catch (err) {
-    log('failed to process payload: \n' + payload, 'ERROR', err);
+    log('failed to process pubsub payload: \n' + pubSubEvent.data, 'ERROR',
+        err);
   }
+};
+
+module.exports = {
+  forwardFromHTTP,
+  forwardFromPubSub,
 };

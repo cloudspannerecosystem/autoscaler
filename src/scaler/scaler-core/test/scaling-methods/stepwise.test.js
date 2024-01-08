@@ -55,7 +55,7 @@ function stubBaseModule(spanner, metric, metricValueWithinRange) {
 const calculateSize = app.__get__('calculateSize');
 describe('#stepwise.calculateSize', () => {
   it('should return current size if the metric is within range', () => {
-    const spanner = createSpannerParameters({currentSize: 700}, true);
+    const spanner = createSpannerParameters({currentSize: 700});
     const callbackStub = stubBaseModule(spanner, {}, true);
 
     calculateSize(spanner).should.equal(700);
@@ -65,7 +65,7 @@ describe('#stepwise.calculateSize', () => {
   it('should return number of processing units increased by stepSize if the metric is above range',
       () => {
         const spanner =
-           createSpannerParameters({currentSize: 700, stepSize: 100}, true);
+           createSpannerParameters({currentSize: 700, stepSize: 100});
         const callbackStub =
            stubBaseModule(spanner, {value: 85, threshold: 65}, false);
 
@@ -76,7 +76,7 @@ describe('#stepwise.calculateSize', () => {
   it('should return number of processing units decreased by stepSize if the metric is below range',
       () => {
         const spanner =
-           createSpannerParameters({currentSize: 700, stepSize: 100}, true);
+           createSpannerParameters({currentSize: 700, stepSize: 100});
         const callbackStub =
            stubBaseModule(spanner, {value: 15, threshold: 65}, false);
 
@@ -92,8 +92,7 @@ describe('#stepwise.calculateSize', () => {
               stepSize: 100,
               overloadStepSize: 600,
               isOverloaded: true,
-            },
-            true);
+            });
         const callbackStub = stubBaseModule(
             spanner, {
               value: OVERLOAD_THRESHOLD + 1,
@@ -109,7 +108,7 @@ describe('#stepwise.calculateSize', () => {
   it('should return the number of processing units rounded to next 1000 if over 1000',
       () => {
         const spanner =
-           createSpannerParameters({currentSize: 800, stepSize: 400}, true);
+           createSpannerParameters({currentSize: 800, stepSize: 400});
         const callbackStub =
            stubBaseModule(spanner, {value: 85, threshold: 65}, false);
 
@@ -120,7 +119,7 @@ describe('#stepwise.calculateSize', () => {
   it('should return PUs decreased by 1000 when scaling-in, and the size is >1000 PUs, and stepSize is <1000 PUs',
       () => {
         const spanner =
-           createSpannerParameters({currentSize: 4000, stepSize: 100}, true);
+           createSpannerParameters({currentSize: 4000, stepSize: 100});
         const callbackStub =
            stubBaseModule(spanner, {value: 5, threshold: 65}, false);
 
@@ -131,7 +130,7 @@ describe('#stepwise.calculateSize', () => {
   it('should return PUs increased by 1000 when scaling-out, and the size is >1000 PUs, and stepSize is <1000 PUs',
       () => {
         const spanner =
-           createSpannerParameters({currentSize: 4000, stepSize: 100}, true);
+           createSpannerParameters({currentSize: 4000, stepSize: 100});
         const callbackStub =
            stubBaseModule(spanner, {value: 85, threshold: 65}, false);
 

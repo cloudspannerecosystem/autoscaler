@@ -26,7 +26,7 @@
  * The default database is Firestore.
  */
 
-const {Firestore} = require('@google-cloud/firestore');
+const firestore = require('@google-cloud/firestore');
 const {Spanner} = require('@google-cloud/spanner');
 
 /**
@@ -125,7 +125,7 @@ class StateSpanner {
    */
   async init() {
     const initData = {
-      lastScalingTimestamp: Spanner.timestamp(new Date(0)),
+      lastScalingTimestamp: Spanner.timestamp(0),
       createdOn: Spanner.timestamp(Date.now()),
     };
     await this.updateState(initData);
@@ -236,16 +236,16 @@ class StateFirestore {
     this.projectId = (spanner.stateProjectId != null) ? spanner.stateProjectId :
                                                         spanner.projectId;
     this.instanceId = spanner.instanceId;
-    this.firestore = new Firestore({projectId: this.projectId});
+    this.firestore = new firestore.Firestore({projectId: this.projectId});
   }
 
   /**
    * build or return the document reference
-   * @return {string}
+   * @return {firestore.DocumentReference}
    */
   get docRef() {
     if (this._docRef == null) {
-      this.firestore = new Firestore({projectId: this.projectId});
+      this.firestore = new firestore.Firestore({projectId: this.projectId});
       this._docRef =
           this.firestore.collection('spannerAutoscaler').doc(this.instanceId);
     }
@@ -261,7 +261,7 @@ class StateFirestore {
    */
   toMillis(docData) {
     Object.keys(docData).forEach((key) => {
-      if (docData[key] instanceof Firestore.Timestamp) {
+      if (docData[key] instanceof firestore.Timestamp) {
         docData[key] = docData[key].toMillis();
       }
     });
@@ -275,7 +275,7 @@ class StateFirestore {
   async init() {
     const initData = {
       lastScalingTimestamp: 0,
-      createdOn: Firestore.FieldValue.serverTimestamp(),
+      createdOn: firestore.FieldValue.serverTimestamp(),
     };
 
     await this.docRef.set(initData);
@@ -303,8 +303,8 @@ class StateFirestore {
   async set() {
     await this.get(); // make sure doc exists
 
-    const newData = {updatedOn: Firestore.FieldValue.serverTimestamp()};
-    newData.lastScalingTimestamp = Firestore.FieldValue.serverTimestamp();
+    const newData = {updatedOn: firestore.FieldValue.serverTimestamp()};
+    newData.lastScalingTimestamp = firestore.FieldValue.serverTimestamp();
 
     await this.docRef.update(newData);
   }
@@ -318,6 +318,6 @@ class StateFirestore {
    * @return {number} current timestamp
    */
   get now() {
-    return Firestore.Timestamp.now().toMillis();
+    return firestore.Timestamp.now().toMillis();
   }
 }
