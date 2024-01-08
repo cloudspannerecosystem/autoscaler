@@ -49,9 +49,13 @@ async function forwardFromHTTP(req, res) {
 
     JSON.parse(payload.toString()); // Log exception in App project if payload
     // cannot be parsed
-    const pollerTopic = pubSub.topic(process.env.POLLER_TOPIC);
-    pollerTopic.publish(payload);
 
+    const pollerTopicName = process.env.POLLER_TOPIC;
+    const pollerTopic = pubSub.topic(pollerTopicName);
+    pollerTopic.publishMessage({data: payload});
+    logger.debug({
+      message: `Poll request forwarded to PubSub Topic ${pollerTopicName}`,
+    });
     res.status(200).end();
   } catch (err) {
     logger.error({
