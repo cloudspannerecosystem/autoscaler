@@ -17,7 +17,7 @@ name: Node.js unit tests
 on: [push, pull_request]
 
 jobs:
-  test-poller:
+  unit-tests:
 
     runs-on: ubuntu-latest
 
@@ -27,46 +27,36 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [16.x, 18.x, 20.x]
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+
     - name: npm install in autoscaler-common
       working-directory: src/autoscaler-common
       run: npm install
+
     - name: npm install in poller-core
+      working-directory: src/poller/poller-core
       run: npm install
-    - run: npm test
+
+    - name: poller-core unit tests
+      working-directory: src/poller/poller-core
+      run: npm test
       env:
         CI: true
 
-  test-scaler:
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: src/scaler/scaler-core
-
-    strategy:
-      matrix:
-        node-version: [16.x, 18.x]
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-    - name: npm install in autoscaler-common
-      working-directory: src/autoscaler-common
-      run: npm install
     - name: npm install in scaler-core
+      working-directory: src/scaler/scaler-core
       run: npm install
-    - run: npm test
+
+    - name: scaler-core unit tests
+      working-directory: src/scaler/scaler-core
+      run: npm test
       env:
         CI: true
