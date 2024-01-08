@@ -1,4 +1,4 @@
-name: "ESLint and NPM audit"
+name: "Code health checks (npm audit, eslint, tscompiler)"
 
 on:
   push:
@@ -6,11 +6,14 @@ on:
 
 jobs:
   analyze:
-    name: "Eslint-analyze"
+    name: "Analyze"
     runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
+    strategy:
+      fail-fast: false
+
 
     steps:
     - name: Checkout repository
@@ -19,18 +22,24 @@ jobs:
     - name: Use Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: 21
+        node-version: 20
         check-latest: true
 
-    - name: Install eslint
-      working-directory: .
+    - name: Install eslint and typescript compiler
       run: npm install
 
-    - name: ESlint all subdirs
+    - name: Install node modules in src/
+      working-directory: src
+      run: npm install
+
+    - name: Execute "npm run typecheck"
       working-directory: .
+      run: npm run typecheck
+
+    - name: Execute "npm run eslint"
       run: npm run eslint
 
-    - name: NPM Audit src
+    - name: NPM Audit src/
       working-directory: src
       run: npm audit
 
