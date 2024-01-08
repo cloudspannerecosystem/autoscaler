@@ -15,6 +15,7 @@
 
 const pollerCore = require('./poller/poller-core');
 const scalerCore = require('./scaler/scaler-core');
+const forwarder = require('./forwarder');
 const {logger} = require('./autoscaler-common/logger');
 const yaml = require('js-yaml');
 const fs = require('fs/promises');
@@ -61,5 +62,6 @@ async function main() {
 module.exports = {
   ...scalerCore,
   ...pollerCore,
+  ...forwarder,
   main,
 };
