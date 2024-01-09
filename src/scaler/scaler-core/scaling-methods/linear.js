@@ -26,6 +26,14 @@ const {maybeRound} = require('../utils.js');
 const {logger} = require('../../../autoscaler-common/logger');
 
 /**
+ * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
+ * } AutoscalerSpanner
+ * @typedef {import('../../../autoscaler-common/types').SpannerMetricValue
+ * } SpannerMetricValue
+ */
+
+
+/**
  * Is suggested size less than current size
  *
  * @param {number} suggestedSize
@@ -38,7 +46,7 @@ function isScaleIn(suggestedSize, currentSize) {
 
 /**
  * Scaling method for Linear scaling
- * @param {Object} spanner
+ * @param {AutoscalerSpanner} spanner
  * @return {number}
  */
 function calculateSize(spanner) {
