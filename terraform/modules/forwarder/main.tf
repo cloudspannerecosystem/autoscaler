@@ -47,7 +47,7 @@ resource "google_storage_bucket" "bucket_gcf_source" {
 
 data "archive_file" "local_forwarder_source" {
   type        = "zip"
-  source_dir  = abspath("${path.module}/../../../src/forwarder")
+  source_dir  = abspath("${path.module}/../../../src")
   output_path = "${var.local_output_path}/forwarder.zip"
 }
 
@@ -64,7 +64,7 @@ resource "google_cloudfunctions_function" "forwarder_function" {
   ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
   available_memory_mb = "256"
   entry_point         = "forwardFromPubSub"
-  runtime             = "nodejs10"
+  runtime             = "nodejs${var.nodejs_version}"
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = google_pubsub_topic.forwarder_topic.id

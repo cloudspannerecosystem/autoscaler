@@ -21,34 +21,10 @@
 // eslint-disable-next-line no-unused-vars -- for type checking only.
 const express = require('express');
 const {PubSub} = require('@google-cloud/pubsub');
+const {logger} = require('../autoscaler-common/logger');
 
 // GCP service clients
 const pubSub = new PubSub();
-
-/**
- * Output a structured log message to stdout
- *
- * @param {!string} message
- * @param {?string} severity
- * @param {?*} payload
- */
-function log(message, severity = 'DEBUG', payload) {
-  // Structured logging
-  // https://cloud.google.com/functions/docs/monitoring/logging#writing_structured_logs
-
-  if (!!payload) {
-    // If payload is an Error, get the stack trace.
-    if (payload instanceof Error && !!payload.stack) {
-      if (!!message) {
-        message = message + '\n' + payload.stack;
-      } else {
-        message = payload.stack;
-      }
-    }
-  }
-  const logEntry = {message: message, severity: severity, payload: payload};
-  console.log(JSON.stringify(logEntry));
-}
 
 /**
  * Handle the forwarder request from HTTP
@@ -73,12 +49,19 @@ async function forwardFromHTTP(req, res) {
 
     JSON.parse(payload.toString()); // Log exception in App project if payload
     // cannot be parsed
-    const pollerTopic = pubSub.topic(process.env.POLLER_TOPIC);
-    pollerTopic.publish(payload);
 
+    const pollerTopicName = process.env.POLLER_TOPIC;
+    const pollerTopic = pubSub.topic(pollerTopicName);
+    pollerTopic.publishMessage({data: payload});
+    logger.debug({
+      message: `Poll request forwarded to PubSub Topic ${pollerTopicName}`,
+    });
     res.status(200).end();
   } catch (err) {
-    log('failed to process payload: \n' + payloadString, 'ERROR', err);
+    logger.error({
+      message: `An error occurred in the Autoscaler forwarder (HTTP)`,
+      err: err});
+    logger.error({message: `JSON payload`, payload: payloadString});
     res.status(500).end(err.toString());
   }
 }
@@ -96,15 +79,20 @@ async function forwardFromPubSub(pubSubEvent, context) {
     JSON.parse(payload.toString()); // Log exception in App project if payload
     // cannot be parsed
 
-    const pollerTopic = pubSub.topic(process.env.POLLER_TOPIC);
+    const pollerTopicName = process.env.POLLER_TOPIC;
+    const pollerTopic = pubSub.topic(pollerTopicName);
     pollerTopic.publishMessage({data: payload});
-
-    console.log('Poll request forwarded to ' + process.env.POLLER_TOPIC);
+    logger.debug({
+      message: `Poll request forwarded to PubSub Topic ${pollerTopicName}`,
+    });
   } catch (err) {
-    log('failed to process pubsub payload: \n' + pubSubEvent.data, 'ERROR',
-        err);
+    logger.error({
+      message:
+        `An error occurred in the Autoscaler forwarder (PubSub)`,
+      err: err});
+    logger.error({message: `JSON payload`, payload: payload});
   }
-};
+}
 
 module.exports = {
   forwardFromHTTP,

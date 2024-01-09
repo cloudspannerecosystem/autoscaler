@@ -23,6 +23,11 @@ variable "region" {
   default = "us-central1"
 }
 
+variable "nodejs_version" {
+  type    = string
+  default = "18"
+}
+
 variable "local_output_path" {
   type    = string
   default = "build"
