@@ -40,7 +40,7 @@ locals {
 
 resource "google_app_engine_application" "app" {
   project     = var.project_id
-  location_id = var.location
+  location_id = var.location == "us-central1" ? "us-central" : var.location
 }
 
 resource "google_cloud_scheduler_job" "poller_job" {

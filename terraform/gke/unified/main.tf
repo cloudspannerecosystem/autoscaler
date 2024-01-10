@@ -80,6 +80,7 @@ module "spanner" {
   terraform_spanner_state        = var.terraform_spanner_state
   terraform_spanner_test         = var.terraform_spanner_test
   project_id                     = var.project_id
+  region                         = var.region
   spanner_name                   = var.spanner_name
   spanner_state_name             = var.spanner_state_name
   spanner_test_processing_units  = var.spanner_test_processing_units

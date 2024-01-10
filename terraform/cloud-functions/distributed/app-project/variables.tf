@@ -19,13 +19,11 @@ variable "project_id" {
 }
 
 variable "region" {
-  type    = string
-  default = "us-central1"
+  type = string
 }
 
 variable "zone" {
-  type    = string
-  default = "us-central1-c"
+  type = string
 }
 
 variable "spanner_name" {

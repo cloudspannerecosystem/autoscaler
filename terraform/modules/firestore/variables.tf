@@ -25,8 +25,3 @@ variable "poller_sa_email" {
 variable "scaler_sa_email" {
   type = string
 }
-
-variable "region" {
-  type    = string
-  default = "us-central1"
-}
