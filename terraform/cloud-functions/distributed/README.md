@@ -156,6 +156,8 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
         appengine.googleapis.com \
         firestore.googleapis.com \
         pubsub.googleapis.com \
+        logging.googleapis.com \
+        monitoring.googleapis.com \
         cloudfunctions.googleapis.com  \
         cloudbuild.googleapis.com \
         cloudresourcemanager.googleapis.com
@@ -247,6 +249,8 @@ topic and function in the project where the Spanner instances live.
         appengine.googleapis.com \
         spanner.googleapis.com \
         pubsub.googleapis.com \
+        logging.googleapis.com \
+        monitoring.googleapis.com \
         cloudfunctions.googleapis.com \
         cloudscheduler.googleapis.com \
         cloudbuild.googleapis.com

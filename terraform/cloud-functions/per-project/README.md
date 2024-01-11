@@ -149,6 +149,8 @@ In this section you prepare your project for deployment.
       firestore.googleapis.com \
       spanner.googleapis.com \
       pubsub.googleapis.com \
+      logging.googleapis.com \
+      monitoring.googleapis.com \
       cloudfunctions.googleapis.com \
       cloudbuild.googleapis.com \
       cloudscheduler.googleapis.com \
@@ -278,10 +280,11 @@ in this section.
 1.  List your spanner instances
 
     ```sh
-    gcloud spanner instances list
+    gcloud spanner instances list --format="table(name)"
     ```
 
-2.  Set the following variable with the instance name to import
+2.  Set the following variable with the instance name from the output of the
+    above command that you want to import
 
     ```sh
     SPANNER_INSTANCE_NAME=<YOUR_SPANNER_INSTANCE_NAME>
