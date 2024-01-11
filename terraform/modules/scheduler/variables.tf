@@ -19,8 +19,7 @@ variable "project_id" {
 }
 
 variable "location" {
-  type    = string
-  default = "us-central"
+  type = string
 }
 
 variable "schedule" {

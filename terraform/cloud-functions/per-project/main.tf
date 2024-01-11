@@ -51,6 +51,7 @@ module "autoscaler-functions" {
   source = "../../modules/autoscaler-functions"
 
   project_id      = var.project_id
+  region          = var.region
   poller_sa_email = google_service_account.poller_sa.email
   scaler_sa_email = google_service_account.scaler_sa.email
 }
@@ -69,6 +70,7 @@ module "spanner" {
   terraform_spanner_state        = var.terraform_spanner_state
   terraform_spanner_test         = var.terraform_spanner_test
   project_id                     = local.app_project_id
+  region                         = var.region
   spanner_name                   = var.spanner_name
   spanner_state_name             = var.spanner_state_name
   spanner_test_processing_units  = var.spanner_test_processing_units
@@ -81,6 +83,7 @@ module "scheduler" {
   source = "../../modules/scheduler"
 
   project_id              = var.project_id
+  location                = var.region
   spanner_name            = var.spanner_name
   pubsub_topic            = module.autoscaler-functions.poller_topic
   target_pubsub_topic     = module.autoscaler-functions.scaler_topic
