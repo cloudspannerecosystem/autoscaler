@@ -218,6 +218,8 @@ In this section you prepare your project for deployment.
       cloudbuild.googleapis.com \
       cloudresourcemanager.googleapis.com \
       container.googleapis.com \
+      logging.googleapis.com \
+      monitoring.googleapis.com \
       spanner.googleapis.com
     ```
 
@@ -368,10 +370,11 @@ in this section.
 1.  List your spanner instances
 
     ```sh
-    gcloud spanner instances list
+    gcloud spanner instances list --format="table(name)"
     ```
 
-2.  Set the following variable with the instance name to import
+2.  Set the following variable with the instance name from the output of the
+    above command that you want to import
 
     ```sh
     SPANNER_INSTANCE_NAME=<YOUR_SPANNER_INSTANCE_NAME>
