@@ -20,7 +20,7 @@
         "mdlint": "cd .. && markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"
     },
     "devDependencies": {
-        "markdownlint": "^0.32.1",
+        "markdownlint": "^0.33.0",
         "mocha": "^10.2.0",
         "mocha-suppress-logs": "^0.4.1",
         "nyc": "^15.1.0",
