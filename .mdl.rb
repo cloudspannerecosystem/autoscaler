@@ -29,7 +29,7 @@ rule 'MD004', :style => :asterisk
 rule 'MD007', :indent => 4
 
 # Allow table and code lines to be longer than 80 chars
-rule 'MD013', :ignore_code_blocks => true, :tables => false
+rule 'MD013', :ignore_code_blocks => true, :code_blocks => false, :tables => false
 
 # Ordered list item prefixes
 rule 'MD029', :style => :ordered

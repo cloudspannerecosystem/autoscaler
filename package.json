@@ -2,12 +2,14 @@
   "scripts": {
     "eslint": "eslint .",
     "eslint-fix": "eslint --fix .",
-    "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit"
+    "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit",
+    "mdlint": "markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
     "eslint": "^8.56.0",
     "eslint-config-google": "^0.14.0",
+    "markdownlint-cli": "^0.38.0",
     "typescript": "^5.3.3"
   }
 }
