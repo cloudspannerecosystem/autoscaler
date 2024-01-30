@@ -84,7 +84,7 @@ const ExporterMode = {
 };
 
 const EXPORTER_PARAMETERS = {
-  // GCM direct pushing is only done in Cloud functions deployments, where
+  // GCM direct pushing is only done in Cloud Run functions deployments, where
   // we only flush directly.
   //
   [ExporterMode.GCM_ONLY_FLUSHING]: {

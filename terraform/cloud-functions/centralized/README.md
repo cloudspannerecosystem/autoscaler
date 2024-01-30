@@ -5,7 +5,8 @@
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
-    Set up the Autoscaler in Cloud Functions in a centralized deployment using Terraform
+    Set up the Autoscaler in Cloud Run functions in a centralized
+    deployment using Terraform
     <br />
     <a href="../../../README.md">Home</a>
     ·
@@ -19,7 +20,7 @@
     ·
     <a href="../README.md#Monitoring">Monitoring</a>
     <br />
-    Cloud Functions
+    Cloud Run functions
     ·
     <a href="../../gke/README.md">Google Kubernetes Engine</a>
     <br />

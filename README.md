@@ -61,7 +61,7 @@ interaction flow:
     *   [The Poller component][autoscaler-poller]
     *   [The Scaler component][autoscaler-scaler]
 
-    These can be deployed to either [Cloud Functions][cloud-functions] or
+    These can be deployed to either [Cloud Run functions][cloud-functions] or
     [Google Kubernetes Engine (GKE)][gke], and configured so that the
     Autoscaler runs according to a user-defined schedule. In certain deployment
     topologies a third component, the [Forwarder][autoscaler-forwarder], is also
@@ -93,7 +93,7 @@ tracking and auditing.
 To deploy the Autoscaler, decide which of the following strategies
 is best adjusted to fulfill your technical and operational needs:
 
-*   [Deployment to Cloud Functions](terraform/cloud-functions/README.md)
+*   [Deployment to Cloud Run functions](terraform/cloud-functions/README.md)
 *   [Deployment to Google Kubernetes Engine (GKE)](terraform/gke/README.md)
 
 In both of the above instances, the Google Cloud Platform resources are
@@ -163,7 +163,7 @@ used to monitor the behavior of the autoscaler, and to configure alerts.
 The parameters for configuring the Autoscaler are identical regardless of the chosen
 deployment type, but the mechanism for configuration differs slightly:
 
-*   [Cloud Functions](terraform/cloud-functions/README.md#configuration)
+*   [Cloud Run functions](terraform/cloud-functions/README.md#configuration)
 *   [Google Kubernetes Engine (GKE)](terraform/gke/README.md#building-and-deploying-the-autoscaler-services)
 
 There is also a [browser-based configuration file editor and a command line

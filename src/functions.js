@@ -17,7 +17,7 @@
  * @fileoverview
  * Cloud Spanner Autoscaler
  *
- * Entry points for Cloud Functions invocations.
+ * Entry points for Cloud Run functions invocations.
  */
 
 const poller = require('./poller/poller-core');

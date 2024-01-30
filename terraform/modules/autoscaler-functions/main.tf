@@ -20,6 +20,10 @@ terraform {
   }
 }
 
+data "google_project" "project" {
+
+}
+
 // PubSub
 
 resource "google_pubsub_topic" "poller_topic" {
@@ -62,7 +66,8 @@ resource "google_pubsub_topic_iam_member" "scaler_pubsub_sub_iam" {
   member  = "serviceAccount:${var.scaler_sa_email}"
 }
 
-// Cloud Functions
+
+// Cloud Run functions
 
 resource "google_storage_bucket" "bucket_gcf_source" {
   project                     = var.project_id
@@ -96,46 +101,92 @@ resource "google_storage_bucket_object" "gcs_functions_source" {
   source = data.archive_file.local_source.output_path
 }
 
-resource "google_cloudfunctions_function" "poller_function" {
-  name                = "tf-poller-function"
-  project             = var.project_id
-  region              = var.region
-  ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
-  available_memory_mb = "256"
-  entry_point         = "checkSpannerScaleMetricsPubSub"
-  runtime             = "nodejs${var.nodejs_version}"
-  event_trigger {
-    event_type = "google.pubsub.topic.publish"
-    resource   = google_pubsub_topic.poller_topic.id
+resource "google_cloudfunctions2_function" "poller_function" {
+  name     = "tf-poller-function"
+  project  = var.project_id
+  location = var.region
+
+  build_config {
+    runtime     = "nodejs${var.nodejs_version}"
+    entry_point = "checkSpannerScaleMetricsPubSub"
+    source {
+      storage_source {
+        bucket = google_storage_bucket.bucket_gcf_source.name
+        object = google_storage_bucket_object.gcs_functions_source.name
+      }
+    }
+    service_account = var.build_sa_id
   }
-  source_archive_bucket = google_storage_bucket.bucket_gcf_source.name
-  source_archive_object = google_storage_bucket_object.gcs_functions_source.name
-  service_account_email = var.poller_sa_email
-  build_service_account = var.build_sa_id
+
+  service_config {
+    available_memory      = "256M"
+    ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
+    service_account_email = var.poller_sa_email
+  }
+
+  event_trigger {
+    event_type            = "google.cloud.pubsub.topic.v1.messagePublished"
+    pubsub_topic          = google_pubsub_topic.poller_topic.id
+    retry_policy          = "RETRY_POLICY_RETRY"
+    service_account_email = var.poller_sa_email
+  }
 
   lifecycle {
-    ignore_changes = [max_instances]
+    ignore_changes = [
+      service_config[0].max_instance_count
+    ]
   }
 }
 
-resource "google_cloudfunctions_function" "scaler_function" {
-  name                = "tf-scaler-function"
-  project             = var.project_id
-  region              = var.region
-  ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
-  available_memory_mb = "256"
-  entry_point         = "scaleSpannerInstancePubSub"
-  runtime             = "nodejs${var.nodejs_version}"
-  event_trigger {
-    event_type = "google.pubsub.topic.publish"
-    resource   = google_pubsub_topic.scaler_topic.id
+resource "google_cloudfunctions2_function" "scaler_function" {
+  name     = "tf-scaler-function"
+  project  = var.project_id
+  location = var.region
+
+  build_config {
+    runtime     = "nodejs${var.nodejs_version}"
+    entry_point = "scaleSpannerInstancePubSub"
+    source {
+      storage_source {
+        bucket = google_storage_bucket.bucket_gcf_source.name
+        object = google_storage_bucket_object.gcs_functions_source.name
+      }
+    }
+    service_account = var.build_sa_id
   }
-  source_archive_bucket = google_storage_bucket.bucket_gcf_source.name
-  source_archive_object = google_storage_bucket_object.gcs_functions_source.name
-  service_account_email = var.scaler_sa_email
-  build_service_account = var.build_sa_id
+
+  service_config {
+    available_memory      = "256M"
+    ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
+    service_account_email = var.scaler_sa_email
+  }
+
+  event_trigger {
+    event_type            = "google.cloud.pubsub.topic.v1.messagePublished"
+    pubsub_topic          = google_pubsub_topic.scaler_topic.id
+    retry_policy          = "RETRY_POLICY_RETRY"
+    service_account_email = var.scaler_sa_email
+  }
 
   lifecycle {
-    ignore_changes = [max_instances]
+    ignore_changes = [
+      service_config[0].max_instance_count
+    ]
   }
+}
+
+resource "google_cloud_run_service_iam_member" "cloud_run_poller_invoker" {
+  project  = google_cloudfunctions2_function.poller_function.project
+  location = google_cloudfunctions2_function.poller_function.location
+  service  = google_cloudfunctions2_function.poller_function.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${var.poller_sa_email}"
+}
+
+resource "google_cloud_run_service_iam_member" "cloud_run_scaler_invoker" {
+  project  = google_cloudfunctions2_function.scaler_function.project
+  location = google_cloudfunctions2_function.scaler_function.location
+  service  = google_cloudfunctions2_function.scaler_function.name
+  role     = "roles/run.invoker"
+  member   = "serviceAccount:${var.scaler_sa_email}"
 }
