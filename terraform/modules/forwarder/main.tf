@@ -57,22 +57,33 @@ resource "google_storage_bucket_object" "gcs_functions_forwarder_source" {
   source = data.archive_file.local_forwarder_source.output_path
 }
 
-resource "google_cloudfunctions_function" "forwarder_function" {
-  name                = "tf-forwarder-function"
-  project             = var.project_id
-  region              = var.region
-  ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
-  available_memory_mb = "256"
-  entry_point         = "forwardFromPubSub"
-  runtime             = "nodejs${var.nodejs_version}"
+resource "google_cloudfunctions2_function" "forwarder_function" {
+  name     = "tf-forwarder-function"
+  project  = var.project_id
+  location = var.region
+
+  build_config {
+    runtime     = "nodejs${var.nodejs_version}"
+    entry_point = "forwardFromPubSub"
+    environment_variables = {
+      POLLER_TOPIC = var.target_pubsub_topic
+    }
+    source {
+      storage_source {
+        bucket = google_storage_bucket.bucket_gcf_source.name
+        object = google_storage_bucket_object.gcs_functions_forwarder_source.name
+      }
+    }
+  }
+
+  service_config {
+    available_memory      = "256M"
+    ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
+    service_account_email = google_service_account.forwarder_sa.email
+  }
+
   event_trigger {
-    event_type = "google.pubsub.topic.publish"
-    resource   = google_pubsub_topic.forwarder_topic.id
+    event_type   = "google.cloud.pubsub.topic.v1.messagePublished"
+    pubsub_topic = google_pubsub_topic.forwarder_topic.id
   }
-  environment_variables = {
-    POLLER_TOPIC = var.target_pubsub_topic
-  }
-  source_archive_bucket = google_storage_bucket.bucket_gcf_source.name
-  source_archive_object = google_storage_bucket_object.gcs_functions_forwarder_source.name
-  service_account_email = google_service_account.forwarder_sa.email
 }
