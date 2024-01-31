@@ -3,7 +3,8 @@
     "eslint": "eslint .",
     "eslint-fix": "eslint --fix .",
     "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit",
-    "mdlint": "markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'"
+    "mdlint": "markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md'",
+    "install-all": "find . -name package.json -a ! -path '*/node_modules/*' -execdir pwd \\;  -execdir npm install --save \\;"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",
