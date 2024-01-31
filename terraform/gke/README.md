@@ -463,8 +463,8 @@ following commands:
 1.  Build the Autoscaler components:
 
     ```sh
-    gcloud builds submit . --config=poller/cloudbuild-poller.yaml --region=${REGION} && \
-    gcloud builds submit . --config=scaler/cloudbuild-scaler.yaml --region=${REGION}
+    gcloud builds submit . --config=cloudbuild-poller.yaml --region=${REGION} && \
+    gcloud builds submit . --config=cloudbuild-scaler.yaml --region=${REGION}
     ```
 
 2.  Construct the paths to the images:
