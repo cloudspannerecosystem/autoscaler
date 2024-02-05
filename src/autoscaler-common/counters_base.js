@@ -25,7 +25,10 @@ const {MeterProvider, PeriodicExportingMetricReader} =
 const {Resource} = require('@opentelemetry/resources');
 const {MetricExporter: GcpMetricExporter} =
   require('@google-cloud/opentelemetry-cloud-monitoring-exporter');
-const {GcpDetectorSync} = require('@google-cloud/opentelemetry-resource-util');
+const {OTLPMetricExporter} =
+  require('@opentelemetry/exporter-metrics-otlp-grpc');
+const {GcpDetectorSync} =
+   require('@google-cloud/opentelemetry-resource-util');
 const {SemanticResourceAttributes} =
   require('@opentelemetry/semantic-conventions');
 const OpenTelemetryApi = require('@opentelemetry/api');
@@ -51,6 +54,11 @@ const AUTOSCALER_RESOURCE_ATTRIBUTES = {
   [SemanticResourceAttributes.SERVICE_NAMESPACE]: 'cloudspannerecosystem',
   [SemanticResourceAttributes.SERVICE_NAME]: 'autoscaler',
   [SemanticResourceAttributes.SERVICE_VERSION]: '1.0',
+};
+
+const COUNTER_ATTRIBUTE_NAMES = {
+  SPANNER_PROJECT_ID: 'spanner_project_id',
+  SPANNER_INSTANCE_ID: 'spanner_project_id',
 };
 
 /**
@@ -138,11 +146,11 @@ function openTelemetryGlobalErrorHandler(err) {
 }
 
 
-// Setup OpenTelemetry logging.
+// Setup OpenTelemetry client libraries logging.
 OpenTelemetryApi.default.diag.setLogger(
     new DiagToBunyanLogger(),
     {
-      logLevel: OpenTelemetryApi.DiagLogLevel.DEBUG,
+      logLevel: OpenTelemetryApi.DiagLogLevel.INFO,
       suppressOverrideMessage: true,
     });
 OpenTelemetryCore.setGlobalErrorHandler(openTelemetryGlobalErrorHandler);
@@ -179,19 +187,39 @@ async function initMetrics() {
     await gcpResources.waitForAsyncAttributes();
     logger.debug('got GCP resources %o', gcpResources);
 
+
+    if (process.env.KUBERNETES_SERVICE_HOST) {
+      if (process.env.K8S_POD_NAME) {
+        gcpResources[SemanticResourceAttributes.K8S_POD_NAME] =
+            process.env.K8S_POD_NAME;
+      } else {
+        logger.warn('WARNING: running under Kubernetes, but K8S_POD_NAME ' +
+        'environment variable is not set. ' +
+        'This may lead to duplicate TimeSeries errors');
+      }
+    }
+
+    let exporter;
+    if (process.env.OLTP_COLLECTOR_URL) {
+      logger.info(`Counters using OLTP Metrics exporter to ${
+        process.env.OLTP_COLLECTOR_URL}`);
+      exporter = new OTLPMetricExporter({url: process.env.OLTP_COLLECTOR_URL});
+    } else {
+      logger.info('Counters exporting directly to GCP monitoring');
+      exporter = new GcpMetricExporter();
+    }
+
     meterProvider = new MeterProvider({
       resource: new Resource(AUTOSCALER_RESOURCE_ATTRIBUTES)
           .merge(gcpResources),
+      readers: [
+        new PeriodicExportingMetricReader({
+          exportIntervalMillis: PERIODIC_FLUSH_INTERVAL,
+          exportTimeoutMillis: PERIODIC_FLUSH_INTERVAL,
+          exporter: exporter,
+        }),
+      ],
     });
-
-    // Export metrics to GCP.
-    const gcpMetricExporter = new GcpMetricExporter();
-
-    meterProvider.addMetricReader(new PeriodicExportingMetricReader({
-      exportIntervalMillis: PERIODIC_FLUSH_INTERVAL,
-      exportTimeoutMillis: PERIODIC_FLUSH_INTERVAL,
-      exporter: gcpMetricExporter,
-    }));
   } catch (e) {
     // report failures to other waiters.
     rejectPendingInit(e);
@@ -346,6 +374,7 @@ function setTryFlushEnabled(newTryFlushEnabled) {
 }
 
 module.exports = {
+  COUNTER_ATTRIBUTE_NAMES,
   createCounters,
   incCounter,
   tryFlush,

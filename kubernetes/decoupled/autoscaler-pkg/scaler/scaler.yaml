@@ -19,6 +19,7 @@ metadata:
   namespace: spanner-autoscaler # kpt-set: ${namespace}
   labels:
     app: scaler
+    otel-submitter: "true"
 spec:
   replicas: 3
   selector:
@@ -28,6 +29,7 @@ spec:
     metadata:
       labels:
         app: scaler
+        otel-submitter: "true"
     spec:
       containers:
       - name: scaler
@@ -40,6 +42,13 @@ spec:
             cpu: "100m"
           limits:
             memory: "256Mi"
+        env:
+          - name: K8S_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: OLTP_COLLECTOR_URL
+            value: "http://otel-collector:4713/"
       nodeSelector:
         iam.gke.io/gke-metadata-server-enabled: "true"
       serviceAccountName: scaler-sa

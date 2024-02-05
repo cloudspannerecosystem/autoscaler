@@ -72,8 +72,10 @@ const pendingInit = CountersBase.createCounters(COUNTERS);
  */
 function _getCounterAttributes(spanner) {
   return {
-    'projectId': spanner.projectId,
-    'instanceId': spanner.instanceId,
+    [CountersBase.COUNTER_ATTRIBUTE_NAMES.SPANNER_PROJECT_ID]:
+        spanner.projectId,
+    [CountersBase.COUNTER_ATTRIBUTE_NAMES.SPANNER_INSTANCE_ID]:
+        spanner.instanceId,
   };
 }
 

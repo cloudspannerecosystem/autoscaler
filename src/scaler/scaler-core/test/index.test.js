@@ -100,6 +100,7 @@ describe('#processScalingRequest', () => {
   it('should not autoscale if suggested size is equal to max size',
       async function() {
         const spanner = createSpannerParameters();
+        spanner.currentSize = spanner.maxSize;
         getSuggestedSizeStub.returns(spanner.maxSize);
 
         await processScalingRequest(spanner, createStubState());

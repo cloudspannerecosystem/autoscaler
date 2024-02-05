@@ -40,3 +40,23 @@ spec:
       ports:
         - protocol: TCP
           port: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-otel-submitter-to-collector
+  namespace: spanner-autoscaler # kpt-set: ${namespace}
+spec:
+  podSelector:
+    matchLabels:
+      app: otel-collector
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              otel-submitter: "true"
+      ports:
+        - protocol: TCP
+          port: 4317

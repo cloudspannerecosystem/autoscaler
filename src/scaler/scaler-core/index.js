@@ -274,7 +274,8 @@ async function processScalingRequest(spanner, autoscalerState) {
   });
 
   const suggestedSize = getSuggestedSize(spanner);
-  if (suggestedSize === spanner.maxSize) {
+  if (suggestedSize === spanner.currentSize &&
+      spanner.currentSize === spanner.maxSize) {
     logger.info({
       message: `----- ${spanner.projectId}/${spanner.instanceId}: has ${
         spanner.currentSize} ${

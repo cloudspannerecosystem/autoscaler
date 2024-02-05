@@ -31,6 +31,12 @@ const COUNTER_NAMES = {
   REQUESTS_FAILED: COUNTERS_PREFIX + 'requests-failed',
 };
 
+const ATTRIBUTE_NAMES = {
+  ...CountersBase.COUNTER_ATTRIBUTE_NAMES,
+  SCALING_DENIED_REASON: 'scaling_denied_reason',
+  SCALING_METHOD: 'scaling_method',
+  SCALING_DIRECTION: 'scaling_direction',
+};
 
 /**
  * @typedef {import('../../autoscaler-common/types.js')
@@ -79,10 +85,10 @@ const pendingInit = CountersBase.createCounters(COUNTERS);
  */
 function _getCounterAttributes(spanner, requestedSize) {
   return {
-    'projectId': spanner.projectId,
-    'instanceId': spanner.instanceId,
-    'method': spanner.scalingMethod,
-    'direction':
+    [ATTRIBUTE_NAMES.SPANNER_PROJECT_ID]: spanner.projectId,
+    [ATTRIBUTE_NAMES.SPANNER_INSTANCE_ID]: spanner.instanceId,
+    [ATTRIBUTE_NAMES.SCALING_METHOD]: spanner.scalingMethod,
+    [ATTRIBUTE_NAMES.SCALING_DIRECTION]:
         requestedSize > spanner.currentSize ? 'SCALE_UP' :
         requestedSize < spanner.currentSize ? 'SCALE_DOWN' : 'SCALE_SAME',
   };
@@ -124,7 +130,7 @@ async function incScalingDeniedCounter(spanner, requestedSize, reason) {
   await pendingInit;
   CountersBase.incCounter(COUNTER_NAMES.SCALING_DENIED, {
     ..._getCounterAttributes(spanner, requestedSize),
-    'reason': reason,
+    [ATTRIBUTE_NAMES.SCALING_DENIED_REASON]: reason,
   });
 }
 
