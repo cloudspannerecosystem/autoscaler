@@ -117,23 +117,23 @@ let pendingInit;
 class DiagToBunyanLogger {
   // eslint-disable-next-line require-jsdoc
   verbose(message, ...args) {
-    logger.trace(message, args);
+    logger.trace('otel: '+message, args);
   }
   // eslint-disable-next-line require-jsdoc
   debug(message, ...args) {
-    logger.debug(message, args);
+    logger.debug('otel: '+message, args);
   }
   // eslint-disable-next-line require-jsdoc
   info(message, ...args) {
-    logger.info(message, args);
+    logger.info('otel: '+message, args);
   }
   // eslint-disable-next-line require-jsdoc
   warn(message, ...args) {
-    logger.warn(message, args);
+    logger.warn('otel: '+message, args);
   }
   // eslint-disable-next-line require-jsdoc
   error(message, ...args) {
-    logger.error(message, args);
+    logger.error('otel: '+message, args);
   }
 };
 
@@ -153,7 +153,7 @@ let openTelemetryErrorCount = 0;
 function openTelemetryGlobalErrorHandler(err) {
   openTelemetryErrorCount++;
   if (err instanceof Error) {
-    logger.error({message: 'OpenTelemetry: ' + err.message, err: err});
+    logger.error({message: 'otel: ' + err.message, err: err});
   } else {
     // delegate to Otel's own error handler for stringification
     OpenTelemetryCore.loggingErrorHandler()(err);
