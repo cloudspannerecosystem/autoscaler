@@ -198,9 +198,6 @@ async function initMetrics() {
   try {
     logger.debug('initializing metrics');
 
-    const gcpResources = new GcpDetectorSync().detect();
-    await gcpResources.waitForAsyncAttributes();
-
     if (process.env.KUBERNETES_SERVICE_HOST) {
       if (process.env.K8S_POD_NAME) {
         AUTOSCALER_RESOURCE_ATTRIBUTES[
@@ -214,7 +211,8 @@ async function initMetrics() {
     }
 
     const resources = new Resource(AUTOSCALER_RESOURCE_ATTRIBUTES)
-        .merge(gcpResources);
+        .merge(new GcpDetectorSync().detect());
+    await resources.waitForAsyncAttributes();
 
     logger.debug('Got metrics resource attrs: %o', resources.attributes);
 
