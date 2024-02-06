@@ -606,7 +606,7 @@ Metrics can be sent to other exporters by modifying the Collector ConfigMap.
 
 A [NetworkPolicy rule](../../kubernetes/decoupled/autoscaler-pkg/networkpolicy.yaml)
 is also configured to allow traffic from the `poller` and `scaler` workloads
-to the `otel-collector` service.
+(labelled with `otel-submitter:true`) to the `otel-collector` service.
 
 ## Troubleshooting
 
