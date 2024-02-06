@@ -130,13 +130,12 @@ In this section you prepare your project for deployment.
     gcloud config set project "${PROJECT_ID}"
     ```
 
-4.  Choose the [region and zone][region-and-zone] and
+4.  Choose the [region][region-and-zone] and
     [App Engine Location][app-engine-location] where the Autoscaler
     infrastructure will be located.
 
     ```sh
     export REGION=us-central1
-    export ZONE=us-central1-c
     export APP_ENGINE_LOCATION=us-central
     ```
 
@@ -177,13 +176,12 @@ In this section you prepare your project for deployment.
 
 ## Deploying the Autoscaler
 
-1.  Set the project ID, region and zone in the corresponding Terraform
+1.  Set the project ID and region in the corresponding Terraform
     environment variables
 
     ```sh
     export TF_VAR_project_id="${PROJECT_ID}"
     export TF_VAR_region="${REGION}"
-    export TF_VAR_zone="${ZONE}"
     ```
 
 2.  If you want to create a new Spanner instance for testing the Autoscaler, set

@@ -22,10 +22,6 @@ variable "region" {
   type = string
 }
 
-variable "zone" {
-  type = string
-}
-
 variable "spanner_name" {
   type    = string
   default = "autoscale-test"

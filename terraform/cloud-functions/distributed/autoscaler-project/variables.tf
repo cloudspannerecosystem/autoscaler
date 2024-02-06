@@ -22,10 +22,6 @@ variable "region" {
   type = string
 }
 
-variable "zone" {
-  type = string
-}
-
 variable "forwarder_sa_emails" {
   type = list(string)
   // Example ["serviceAccount:forwarder_sa@app-project.iam.gserviceaccount.com"]
