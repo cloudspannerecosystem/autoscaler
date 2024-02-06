@@ -200,8 +200,6 @@ async function initMetrics() {
 
     const gcpResources = new GcpDetectorSync().detect();
     await gcpResources.waitForAsyncAttributes();
-    logger.debug('got GCP resources %o', gcpResources);
-
 
     if (process.env.KUBERNETES_SERVICE_HOST) {
       if (process.env.K8S_POD_NAME) {
@@ -213,6 +211,8 @@ async function initMetrics() {
         'This may lead to duplicate TimeSeries errors');
       }
     }
+
+    logger.debug('Got GCP metrics resource attrs: %o', gcpResources);
 
     let exporter;
     if (process.env.OLTP_COLLECTOR_URL) {
