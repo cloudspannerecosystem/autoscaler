@@ -77,15 +77,18 @@ const ExporterMode = {
   OTEL: 'OTEL',
 };
 
-const OTEL_PERIODIC_FLUSH_INTERVAL = 30_000;
-const FORCE_FLUSH_PARAMS = {
+// GCM requires minimum 5sec per push.
+// In OTEL Collector mode, we can push more frequently.
+const EXPORTER_PARAMETERS = {
   [ExporterMode.GCM]: {
-    MIN_INTERVAL: 10_000,
-    ATTEMPTS: 6,
+    PERIODIC_FLUSH_INTERVAL: 30_000,
+    FLUSH_MIN_INTERVAL: 10_000,
+    FLUSH_MAX_ATTEMPTS: 6,
   },
   [ExporterMode.OTEL]: {
-    MIN_INTERVAL: 2_000,
-    ATTEMPTS: 30,
+    PERIODIC_FLUSH_INTERVAL: 10_000,
+    FLUSH_MIN_INTERVAL: 2_000,
+    FLUSH_MAX_ATTEMPTS: 30,
   },
 };
 
@@ -232,8 +235,10 @@ async function initMetrics() {
       resource: resources,
       readers: [
         new PeriodicExportingMetricReader({
-          exportIntervalMillis: OTEL_PERIODIC_FLUSH_INTERVAL,
-          exportTimeoutMillis: OTEL_PERIODIC_FLUSH_INTERVAL,
+          exportIntervalMillis: EXPORTER_PARAMETERS[exporterMode]
+              .PERIODIC_FLUSH_INTERVAL,
+          exportTimeoutMillis: EXPORTER_PARAMETERS[exporterMode]
+              .PERIODIC_FLUSH_INTERVAL,
           exporter: exporter,
         }),
       ],
@@ -329,7 +334,7 @@ async function tryFlush() {
   try {
     // If flushed recently, wait for the min interval to pass.
     const millisUntilNextForceFlush = lastForceFlushTime +
-      FORCE_FLUSH_PARAMS[exporterMode].MIN_INTERVAL -
+      EXPORTER_PARAMETERS[exporterMode].FLUSH_MIN_INTERVAL -
       Date.now();
 
     if (millisUntilNextForceFlush > 0) {
@@ -350,24 +355,24 @@ async function tryFlush() {
     // Note that if the OpenTelemetry metrics are exported to Google Cloud
     // Monitoring, the first time a counter is used, it will fail to be
     // exported and will need to be retried.
-    let attempts = FORCE_FLUSH_PARAMS[exporterMode].ATTEMPTS;
+    let attempts = EXPORTER_PARAMETERS[exporterMode].FLUSH_MAX_ATTEMPTS;
     while (attempts > 0) {
       const oldOpenTelemetryErrorCount = openTelemetryErrorCount;
       await meterProvider.forceFlush();
       lastForceFlushTime = Date.now();
 
       if (oldOpenTelemetryErrorCount === openTelemetryErrorCount) {
-        logger.info('Counters sent.');
+        // success!
         return;
       } else {
         logger.warn('Opentelemetry errors during flushing - see logs');
       }
-      await setTimeout(FORCE_FLUSH_PARAMS[exporterMode].MIN_INTERVAL);
+      await setTimeout(EXPORTER_PARAMETERS[exporterMode].FLUSH_MIN_INTERVAL);
       attempts--;
     }
     if (attempts <= 0) {
       logger.error(`Failed to flush counters after ${
-        FORCE_FLUSH_PARAMS[exporterMode].ATTEMPTS
+        EXPORTER_PARAMETERS[exporterMode].FLUSH_MAX_ATTEMPTS
       } attempts - see OpenTelemetry logging`);
     }
   } catch (e) {
