@@ -203,7 +203,8 @@ async function initMetrics() {
 
     if (process.env.KUBERNETES_SERVICE_HOST) {
       if (process.env.K8S_POD_NAME) {
-        gcpResources[SemanticResourceAttributes.K8S_POD_NAME] =
+        AUTOSCALER_RESOURCE_ATTRIBUTES[
+            SemanticResourceAttributes.K8S_POD_NAME] =
             process.env.K8S_POD_NAME;
       } else {
         logger.warn('WARNING: running under Kubernetes, but K8S_POD_NAME ' +
@@ -212,7 +213,10 @@ async function initMetrics() {
       }
     }
 
-    logger.debug('Got GCP metrics resource attrs: %o', gcpResources);
+    const resources = new Resource(AUTOSCALER_RESOURCE_ATTRIBUTES)
+        .merge(gcpResources);
+
+    logger.debug('Got metrics resource attrs: %o', resources.attributes);
 
     let exporter;
     if (process.env.OTLP_COLLECTOR_URL) {
@@ -227,8 +231,7 @@ async function initMetrics() {
     }
 
     meterProvider = new MeterProvider({
-      resource: new Resource(AUTOSCALER_RESOURCE_ATTRIBUTES)
-          .merge(gcpResources),
+      resource: resources,
       readers: [
         new PeriodicExportingMetricReader({
           exportIntervalMillis: OTEL_PERIODIC_FLUSH_INTERVAL,

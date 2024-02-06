@@ -516,8 +516,8 @@ Next, follow the instructions in the
 
     ```sh
     cd ${AUTOSCALER_ROOT}/kubernetes/${AUTOSCALER_DEPLOYMENT_MODEL} && \
-    kubectl apply -f autoscaler-config/networkpolicy.yaml
-    kubectl apply -f autoscaler-config/otel-collector.yaml
+    kubectl apply -f autoscaler-config/otel-collector.yaml && \
+    kubectl apply -f autoscaler-pkg/networkpolicy.yaml && \
     kubectl apply -f autoscaler-pkg/otel-collector/otel-collector.yaml
     ```
 
