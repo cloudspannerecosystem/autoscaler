@@ -62,3 +62,159 @@ resource "google_project_iam_member" "metrics_publisher_iam_scaler" {
   role    = "roles/monitoring.metricWriter"
   member  = "serviceAccount:${var.scaler_sa_email}"
 }
+
+locals {
+  spanner_labels = [
+    {
+        key = "spanner_project_id"
+        description = "The project ID of the spanner instance being scaled"
+    }, {
+        key = "spanner_instance_id"
+        description = "The instance ID of the spanner instance being scaled"
+    }
+  ]
+  scaler_labels = concat(local.spanner_labels, [
+    {
+        key = "scaling_method"
+        description = "The scaling method used to calculate the new size"
+    }, {
+        key = "scaling_direction"
+        description = "The direction of the scaling event"
+    }])
+  scaler_denied_labels = concat(local.scaler_labels, [
+    {
+        key = "scaling_denied_reason"
+        description = "The reason why the scaling request was rejected"
+    }])
+}
+
+resource "google_monitoring_metric_descriptor" "metric_scaler_scaling_success" {
+  project = var.project_id
+  description = "The number of Spanner scaling events that succeeded"
+  display_name = "cloudspannerecosystem/autoscaler/scaler/scaling-success"
+  type = "workload.googleapis.com/cloudspannerecosystem/autoscaler/scaler/scaling-success"
+  metric_kind = "CUMULATIVE"
+  value_type = "DOUBLE"
+  unit = "1"
+  dynamic "labels" {
+    for_each = local.scaler_labels
+    content {
+      key = labels.value["key"]
+      value_type = "STRING"
+      description = labels.value["description"]
+    }
+  }
+}
+
+resource "google_monitoring_metric_descriptor" "metric_scaler_scaling_denied" {
+  project = var.project_id
+  description = "The number of Spanner scaling events denied"
+  display_name = "cloudspannerecosystem/autoscaler/scaler/scaling-denied"
+  type = "workload.googleapis.com/cloudspannerecosystem/autoscaler/scaler/scaling-denied"
+  metric_kind = "CUMULATIVE"
+  value_type = "DOUBLE"
+  unit = "1"
+  dynamic "labels" {
+    for_each = local.scaler_denied_labels
+    content {
+      key = labels.value["key"]
+      value_type = "STRING"
+      description = labels.value["description"]
+    }
+  }
+}
+
+resource "google_monitoring_metric_descriptor" "metric_scaler_scaling_failed" {
+  project = var.project_id
+  description = "The number of Spanner scaling events that failed"
+  display_name = "cloudspannerecosystem/autoscaler/scaler/scaling-failed"
+  type = "workload.googleapis.com/cloudspannerecosystem/autoscaler/scaler/scaling-failed"
+  metric_kind = "CUMULATIVE"
+  value_type = "DOUBLE"
+  unit = "1"
+  dynamic "labels" {
+    for_each = local.scaler_labels
+    content {
+      key = labels.value["key"]
+      value_type = "STRING"
+      description = labels.value["description"]
+    }
+  }
+}
+
+resource "google_monitoring_metric_descriptor" "metric_scaler_requests_success" {
+  project = var.project_id
+  description = "The number of scaling request messages handled successfully"
+  display_name = "cloudspannerecosystem/autoscaler/scaler/requests-success"
+  type = "workload.googleapis.com/cloudspannerecosystem/autoscaler/scaler/requests-success"
+  metric_kind = "CUMULATIVE"
+  value_type = "DOUBLE"
+  unit = "1"
+}
+
+resource "google_monitoring_metric_descriptor" "metric_scaler_requests_failed" {
+  project = var.project_id
+  description = "The number of scaling request messages handled failedfully"
+  display_name = "cloudspannerecosystem/autoscaler/scaler/requests-failed"
+  type = "workload.googleapis.com/cloudspannerecosystem/autoscaler/scaler/requests-failed"
+  metric_kind = "CUMULATIVE"
+  value_type = "DOUBLE"
+  unit = "1"
+}
+
+
+resource "google_monitoring_metric_descriptor" "metric_poller_polling_success" {
+  project = var.project_id
+  description = "The number of Spanner polling events that succeeded"
+  display_name = "cloudspannerecosystem/autoscaler/poller/polling-success"
+  type = "workload.googleapis.com/cloudspannerecosystem/autoscaler/poller/polling-success"
+  metric_kind = "CUMULATIVE"
+  value_type = "DOUBLE"
+  unit = "1"
+  dynamic "labels" {
+    for_each = local.spanner_labels
+    content {
+      key = labels.value["key"]
+      value_type = "STRING"
+      description = labels.value["description"]
+    }
+  }
+}
+
+resource "google_monitoring_metric_descriptor" "metric_poller_polling_failed" {
+  project = var.project_id
+  description = "The number of Spanner polling events that failed"
+  display_name = "cloudspannerecosystem/autoscaler/poller/polling-failed"
+  type = "workload.googleapis.com/cloudspannerecosystem/autoscaler/poller/polling-failed"
+  metric_kind = "CUMULATIVE"
+  value_type = "DOUBLE"
+  unit = "1"
+  dynamic "labels" {
+    for_each = local.spanner_labels
+    content {
+      key = labels.value["key"]
+      value_type = "STRING"
+      description = labels.value["description"]
+    }
+  }
+}
+
+resource "google_monitoring_metric_descriptor" "metric_poller_requests_success" {
+  project = var.project_id
+  description = "The number of polling request messages handled successfully"
+  display_name = "cloudspannerecosystem/autoscaler/poller/requests-success"
+  type = "workload.googleapis.com/cloudspannerecosystem/autoscaler/poller/requests-success"
+  metric_kind = "CUMULATIVE"
+  value_type = "DOUBLE"
+  unit = "1"
+}
+
+resource "google_monitoring_metric_descriptor" "metric_poller_requests_failed" {
+  project = var.project_id
+  description = "The number of polling request messages that failed"
+  display_name = "cloudspannerecosystem/autoscaler/poller/requests-failed"
+  type = "workload.googleapis.com/cloudspannerecosystem/autoscaler/poller/requests-failed"
+  metric_kind = "CUMULATIVE"
+  value_type = "DOUBLE"
+  unit = "1"
+}

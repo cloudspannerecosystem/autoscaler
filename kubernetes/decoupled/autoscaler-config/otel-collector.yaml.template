@@ -33,6 +33,9 @@ data:
     exporters:
       googlecloud:
         timeout: 45s
+      # Enable the debug exporter, and add to expoters pipeline to see the metrics being delivered
+      # debug:
+      #   verbosity: detailed
 
     service:
       pipelines:
@@ -40,3 +43,7 @@ data:
           receivers: [otlp]
           processors: [resourcedetection, batch, memory_limiter]
           exporters: [googlecloud]
+      telemetry:
+        logs:
+          # Change log level from "info" to "debug" to view detailed logs
+          level: "info"

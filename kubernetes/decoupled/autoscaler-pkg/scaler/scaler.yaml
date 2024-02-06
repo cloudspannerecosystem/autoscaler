@@ -43,12 +43,12 @@ spec:
           limits:
             memory: "256Mi"
         env:
-          - name: K8S_POD_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: OTLP_COLLECTOR_URL
-            value: "http://otel-collector:4317/"
+        - name: K8S_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: OTLP_COLLECTOR_URL
+          value: "http://otel-collector:4317/"
       nodeSelector:
         iam.gke.io/gke-metadata-server-enabled: "true"
       serviceAccountName: scaler-sa
