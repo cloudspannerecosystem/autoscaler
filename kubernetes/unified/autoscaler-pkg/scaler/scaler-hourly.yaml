@@ -43,7 +43,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
-            - name: OLTP_COLLECTOR_URL
+            - name: OTLP_COLLECTOR_URL
               value: "http://otel-collector:4317/"
             volumeMounts:
             - name: config-volume

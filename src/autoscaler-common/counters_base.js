@@ -215,14 +215,14 @@ async function initMetrics() {
     logger.debug('Got GCP metrics resource attrs: %o', gcpResources);
 
     let exporter;
-    if (process.env.OLTP_COLLECTOR_URL) {
+    if (process.env.OTLP_COLLECTOR_URL) {
       exporterMode = ExporterMode.OTEL;
-      logger.info(`Counters using OLTP Metrics exporter to ${
-        process.env.OLTP_COLLECTOR_URL}`);
-      exporter = new OTLPMetricExporter({url: process.env.OLTP_COLLECTOR_URL});
+      logger.info(`Counters sent using OTLP to ${
+        process.env.OTLP_COLLECTOR_URL}`);
+      exporter = new OTLPMetricExporter({url: process.env.OTLP_COLLECTOR_URL});
     } else {
       exporterMode = ExporterMode.GCM;
-      logger.info('Counters exporting directly to GCP monitoring');
+      logger.info('Counters sent directly to GCP monitoring');
       exporter = new GcpMetricExporter();
     }
 
