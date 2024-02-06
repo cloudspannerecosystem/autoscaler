@@ -22,18 +22,18 @@ data:
         # batch metrics before sending to reduce API usage
         send_batch_max_size: 200
         send_batch_size: 200
-        timeout: 5s
+        timeout: 10s
 
       memory_limiter:
         # drop metrics if memory usage gets too high
-        check_interval: 1s
+        check_interval: 10s
         limit_percentage: 65
         spike_limit_percentage: 20
 
     exporters:
       googlecloud:
         timeout: 45s
-      # Enable the debug exporter, and add to expoters pipeline to see the metrics being delivered
+      # Enable the debug exporter, and add to exporters pipeline to see the metrics being delivered
       # debug:
       #   verbosity: detailed
 
