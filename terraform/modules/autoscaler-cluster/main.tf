@@ -20,6 +20,23 @@ terraform {
   }
 }
 
+locals {
+  poller_sa_name = element(split("@", var.poller_sa_email), 0)
+  scaler_sa_name = element(split("@", var.scaler_sa_email), 0)
+}
+
+resource "google_service_account" "otel_collector_service_account" {
+  project      = var.project_id
+  account_id   = var.otel_collector_sa_name
+  display_name = "Autoscaler - service account for OpenTelemetry Collector in ${var.name}"
+}
+
+resource "google_project_iam_member" "metrics_publisher_otel_collector" {
+  project = var.project_id
+  role    = "roles/monitoring.metricWriter"
+  member  = "serviceAccount:${google_service_account.otel_collector_service_account.email}"
+}
+
 resource "google_service_account" "service_account" {
   project      = var.project_id
   account_id   = "cluster-sa"
@@ -96,11 +113,6 @@ resource "google_artifact_registry_repository" "autoscaler_artifact_repo" {
   format        = "DOCKER"
 }
 
-locals {
-  poller_sa_name = element(split("@", var.poller_sa_email), 0)
-  scaler_sa_name = element(split("@", var.scaler_sa_email), 0)
-}
-
 data "google_client_config" "default" {}
 
 provider "kubernetes" {
@@ -135,6 +147,18 @@ module "workload_identity_scaler" {
   name                = local.scaler_sa_name
   depends_on          = [kubernetes_namespace.autoscaler_namespace, var.scaler_sa_email]
 }
+
+
+module "workload_identity_otel_collector" {
+  source              = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+  project_id          = var.project_id
+  namespace           = "spanner-autoscaler"
+  use_existing_k8s_sa = false
+  use_existing_gcp_sa = true
+  name                = var.otel_collector_sa_name
+  depends_on          = [kubernetes_namespace.autoscaler_namespace, google_service_account.otel_collector_service_account]
+}
+
 
 module "cluster" {
   source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
