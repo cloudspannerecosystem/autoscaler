@@ -505,14 +505,14 @@ Next, follow the instructions in the
     gcloud container clusters get-credentials spanner-autoscaler --region=${REGION}
     ```
 
-1.  Prepare the Autoscaler configuration files by running the following command:
+2.  Prepare the Autoscaler configuration files by running the following command:
 
     ```sh
     cd ${AUTOSCALER_ROOT}/kubernetes/${AUTOSCALER_DEPLOYMENT_MODEL} && \
     for template in $(ls autoscaler-config/*.template) ; do envsubst < ${template} > ${template%.*} ; done
     ```
 
-1.  Deploy the `otel-collector` service so that it is ready to collect metrics:
+3.  Deploy the `otel-collector` service so that it is ready to collect metrics:
 
     ```sh
     cd ${AUTOSCALER_ROOT}/kubernetes/${AUTOSCALER_DEPLOYMENT_MODEL} && \
@@ -521,7 +521,7 @@ Next, follow the instructions in the
     kubectl apply -f autoscaler-pkg/otel-collector/otel-collector.yaml
     ```
 
-1.  Next configure the Kubernetes manifests and deploy the Autoscaler to
+4.  Next configure the Kubernetes manifests and deploy the Autoscaler to
     the clusterusing the following commands:
 
     ```sh
@@ -531,7 +531,7 @@ Next, follow the instructions in the
     kubectl apply -f autoscaler-pkg/ --recursive
     ```
 
-1.  Next, to see how the Autoscaler is configured, run the following command to
+5.  Next, to see how the Autoscaler is configured, run the following command to
     output the example configuration:
 
     ```sh
@@ -559,7 +559,7 @@ Next, follow the instructions in the
     to directly scale the Spanner instance every hour. When you configure the
     Autoscaler for production, you can configure this schedule to fit your needs.
 
-1.  If you have chosen to use Firestore to hold the Autoscaler state as described
+6.  If you have chosen to use Firestore to hold the Autoscaler state as described
     above, edit the above files, and remove the following lines:
 
     ```yaml
@@ -577,17 +577,17 @@ Next, follow the instructions in the
     If you have chosen to use your own Spanner instance, please edit the above
     configuration files accordingly.
 
-1.  To configure the Autoscaler and begin scaling operations, run the following
+7.  To configure the Autoscaler and begin scaling operations, run the following
      command:
 
      ```sh
      kubectl apply -f autoscaler-config/
      ```
 
-1.  Any changes made to the configuration files and applied with `kubectl
+8.  Any changes made to the configuration files and applied with `kubectl
      apply` will update the Autoscaler configuration.
 
-1.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
+9.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
      Logging][cloud-console-logging] interface in the Google Cloud console.
 
 ## Metrics in GKE deployment

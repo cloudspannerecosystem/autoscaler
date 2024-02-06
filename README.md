@@ -138,19 +138,23 @@ used to monitor the behavior of the autoscaler, and to configure alerts.
         configuration or policy.
 
     *   These three metrics have the following attributes:
-        *   `projectid` - Spanner Project ID
-        *   `instanceid` - Spanner Instance ID
-        *   `method` - the scaling method used
-        *   `direction` - which can be `SCALE_UP`, `SCALE_DOWN` or `SCALE_SAME`
-            (when the calculated rescale size is equal to the current size)
-    *   In addition, the `scaling-denied` counter has a `reason` attribute
-        containing the reason why the scaling was not performed, which can be:
-        *   `SAME_SIZE` - when the calculated rescale size is equal to the
-            current instance size.
-        *   `MAX_SIZE` - when the instance has already been scaled up to the
-            maximum configured size.
-        *   `WITHIN_COOLDOWN` - when the instance has been recently rescaled,
-            and the autoscaler is waiting for the cooldown period to end.
+        *   `spanner_project_id` - the Project ID of the affected Spanner
+            instance
+        *   `spanner_instance_id` - the Instance ID of the affected Spanner
+            instance
+        *   `scaling_method` - the scaling method used
+        *   `scaling_direction` - which can be `SCALE_UP`, `SCALE_DOWN` or
+            `SCALE_SAME` (when the calculated rescale size is equal to the
+            current size)
+        *   In addition, the `scaling-denied` counter has a `scaling_denied_reason`
+            attribute containing the reason why the scaling was not performed, which
+            can be:
+            *   `SAME_SIZE` - when the calculated rescale size is equal to the
+                current instance size.
+            *   `MAX_SIZE` - when the instance has already been scaled up to the
+                maximum configured size.
+            *   `WITHIN_COOLDOWN` - when the instance has been recently rescaled,
+                and the autoscaler is waiting for the cooldown period to end.
 
 ## Configuration
 
