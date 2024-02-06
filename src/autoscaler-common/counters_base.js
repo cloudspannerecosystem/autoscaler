@@ -71,11 +71,26 @@ const COUNTERS_PREFIX =
   '/';
 
 
-/** Opentelemetry counters parameters */
-const PERIODIC_FLUSH_INTERVAL = 30_000;
-const MIN_FORCE_FLUSH_INTERVAL = 10_000;
-const MAX_FORCE_FLUSH_ATTEMPTS = 6;
+/** @enum{String} */
+const ExporterMode = {
+  GCM: 'GCM',
+  OTEL: 'OTEL',
+};
 
+const OTEL_PERIODIC_FLUSH_INTERVAL = 30_000;
+const FORCE_FLUSH_PARAMS = {
+  [ExporterMode.GCM]: {
+    MIN_INTERVAL: 10_000,
+    ATTEMPTS: 6,
+  },
+  [ExporterMode.OTEL]: {
+    MIN_INTERVAL: 2_000,
+    ATTEMPTS: 30,
+  },
+};
+
+/** @type {ExporterMode} */
+let exporterMode;
 
 /**
  * Global counters object, populated by createCounters.
@@ -201,10 +216,12 @@ async function initMetrics() {
 
     let exporter;
     if (process.env.OLTP_COLLECTOR_URL) {
+      exporterMode = ExporterMode.OTEL;
       logger.info(`Counters using OLTP Metrics exporter to ${
         process.env.OLTP_COLLECTOR_URL}`);
       exporter = new OTLPMetricExporter({url: process.env.OLTP_COLLECTOR_URL});
     } else {
+      exporterMode = ExporterMode.GCM;
       logger.info('Counters exporting directly to GCP monitoring');
       exporter = new GcpMetricExporter();
     }
@@ -214,8 +231,8 @@ async function initMetrics() {
           .merge(gcpResources),
       readers: [
         new PeriodicExportingMetricReader({
-          exportIntervalMillis: PERIODIC_FLUSH_INTERVAL,
-          exportTimeoutMillis: PERIODIC_FLUSH_INTERVAL,
+          exportIntervalMillis: OTEL_PERIODIC_FLUSH_INTERVAL,
+          exportTimeoutMillis: OTEL_PERIODIC_FLUSH_INTERVAL,
           exporter: exporter,
         }),
       ],
@@ -311,7 +328,7 @@ async function tryFlush() {
   try {
     // If flushed recently, wait for the min interval to pass.
     const millisUntilNextForceFlush = lastForceFlushTime +
-      MIN_FORCE_FLUSH_INTERVAL -
+      FORCE_FLUSH_PARAMS[exporterMode].MIN_INTERVAL -
       Date.now();
 
     if (millisUntilNextForceFlush > 0) {
@@ -332,7 +349,7 @@ async function tryFlush() {
     // Note that if the OpenTelemetry metrics are exported to Google Cloud
     // Monitoring, the first time a counter is used, it will fail to be
     // exported and will need to be retried.
-    let attempts = MAX_FORCE_FLUSH_ATTEMPTS;
+    let attempts = FORCE_FLUSH_PARAMS[exporterMode].ATTEMPTS;
     while (attempts > 0) {
       const oldOpenTelemetryErrorCount = openTelemetryErrorCount;
       await meterProvider.forceFlush();
@@ -344,12 +361,13 @@ async function tryFlush() {
       } else {
         logger.warn('Opentelemetry errors during flushing - see logs');
       }
-      await setTimeout(MIN_FORCE_FLUSH_INTERVAL);
+      await setTimeout(FORCE_FLUSH_PARAMS[exporterMode].MIN_INTERVAL);
       attempts--;
     }
     if (attempts <= 0) {
       logger.error(`Failed to flush counters after ${
-        MAX_FORCE_FLUSH_ATTEMPTS} attempts - see OpenTelemetry logging`);
+        FORCE_FLUSH_PARAMS[exporterMode].ATTEMPTS
+      } attempts - see OpenTelemetry logging`);
     }
   } catch (e) {
     logger.error('Error while flushing counters', e);

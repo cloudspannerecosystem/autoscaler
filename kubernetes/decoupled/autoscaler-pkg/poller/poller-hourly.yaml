@@ -44,7 +44,7 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OLTP_COLLECTOR_URL
-              value: "http://otel-collector:4713/"
+              value: "http://otel-collector:4317/"
             volumeMounts:
             - name: config-volume
               mountPath: /etc/autoscaler-config

@@ -48,7 +48,7 @@ spec:
               fieldRef:
                 fieldPath: metadata.name
           - name: OLTP_COLLECTOR_URL
-            value: "http://otel-collector:4713/"
+            value: "http://otel-collector:4317/"
       nodeSelector:
         iam.gke.io/gke-metadata-server-enabled: "true"
       serviceAccountName: scaler-sa
