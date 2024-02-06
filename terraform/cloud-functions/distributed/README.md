@@ -137,13 +137,12 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
     gcloud config set project "${AUTOSCALER_PROJECT_ID}"
     ```
 
-4.  Choose the [region and zone][region-and-zone] and
+4.  Choose the [region][region-and-zone] and
     [App Engine Location][app-engine-location] where the Autoscaler
     infrastructure will be located.
 
     ```sh
     export AUTOSCALER_REGION=us-central1
-    export AUTOSCALER_ZONE=us-central1-c
     export AUTOSCALER_APP_ENGINE_LOCATION=us-central
     ```
 
@@ -182,13 +181,12 @@ Autoscaler infrastructure, with the exception of Cloud Scheduler, lives.
 
 ### Deploying the Autoscaler
 
-1.  Set the project ID, region, zone and App Engine location in the
+1.  Set the project ID, region, and App Engine location in the
     corresponding Terraform environment variables
 
     ```sh
     export TF_VAR_project_id="${AUTOSCALER_PROJECT_ID}"
     export TF_VAR_region="${AUTOSCALER_REGION}"
-    export TF_VAR_zone="${AUTOSCALER_ZONE}"
     export TF_VAR_location="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
@@ -231,13 +229,12 @@ topic and function in the project where the Spanner instances live.
     gcloud config set project "${APP_PROJECT_ID}"
     ```
 
-4.  Choose the [region and zone][region-and-zone] and
+4.  Choose the [region][region-and-zone] and
     [App Engine Location][app-engine-location] where the Application project
     will be located.
 
     ```sh
     export APP_REGION=us-central1
-    export APP_ZONE=us-central1-c
     export APP_APP_ENGINE_LOCATION=us-central
     ```
 
@@ -265,13 +262,12 @@ topic and function in the project where the Spanner instances live.
 
 ### Deploy the Application infrastructure
 
-1.  Set the project ID, region, zone and App Engine location in the
+1.  Set the project ID, region, and App Engine location in the
     corresponding Terraform environment variables
 
     ```sh
     export TF_VAR_project_id="${APP_PROJECT_ID}"
     export TF_VAR_region="${APP_REGION}"
-    export TF_VAR_zone="${APP_ZONE}"
     export TF_VAR_location="${APP_APP_ENGINE_LOCATION}"
     ```
 
@@ -377,7 +373,6 @@ topic and function in the project where the Spanner instances live.
 
     export TF_VAR_project_id="${AUTOSCALER_PROJECT_ID}"
     export TF_VAR_region="${AUTOSCALER_REGION}"
-    export TF_VAR_zone="${AUTOSCALER_ZONE}"
     export TF_VAR_location="${AUTOSCALER_APP_ENGINE_LOCATION}"
     ```
 
