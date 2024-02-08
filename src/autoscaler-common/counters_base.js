@@ -58,7 +58,7 @@ const AUTOSCALER_RESOURCE_ATTRIBUTES = {
 
 const COUNTER_ATTRIBUTE_NAMES = {
   SPANNER_PROJECT_ID: 'spanner_project_id',
-  SPANNER_INSTANCE_ID: 'spanner_project_id',
+  SPANNER_INSTANCE_ID: 'spanner_instance_id',
 };
 
 /**
