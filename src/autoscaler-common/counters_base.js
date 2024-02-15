@@ -365,7 +365,7 @@ async function tryFlush() {
         // success!
         return;
       } else {
-        logger.warn('Opentelemetry errors during flushing - see logs');
+        logger.warn('Opentelemetry reported errors during flushing, retrying.');
       }
       await setTimeout(EXPORTER_PARAMETERS[exporterMode].FLUSH_MIN_INTERVAL);
       attempts--;
