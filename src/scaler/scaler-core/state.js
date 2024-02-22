@@ -144,8 +144,10 @@ class StateSpanner {
    */
   async init() {
     const initData = {
-      lastScalingTimestamp: Spanner.timestamp(0),
-      createdOn: Spanner.timestamp(Date.now()),
+      // Spanner.timestamp(0) is the same as Spanner.timestamp(null), returns
+      // now - so use the string value of the epoch.
+      lastScalingTimestamp: Spanner.timestamp('1970-01-01T00:00:00Z'),
+      createdOn: Spanner.timestamp(this.now),
     };
     await this.updateState(initData);
     return initData;
@@ -174,8 +176,8 @@ class StateSpanner {
   async set() {
     await this.get(); // make sure doc exists
 
-    const newData = {updatedOn: Spanner.timestamp(Date.now())};
-    newData.lastScalingTimestamp = Spanner.timestamp(Date.now());
+    const newData = {updatedOn: Spanner.timestamp(this.now)};
+    newData.lastScalingTimestamp = Spanner.timestamp(this.now);
     await this.updateState(newData);
   }
 
