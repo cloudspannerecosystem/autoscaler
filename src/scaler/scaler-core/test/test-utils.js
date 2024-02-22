@@ -21,6 +21,7 @@ const State = require('../state.js');
  * } AutoscalerSpanner
  */
 
+const DUMMY_TIMESTAMP = 1704110400000;
 
 /**
  * Read Spanner params from file
@@ -39,10 +40,13 @@ function createSpannerParameters(overrideParams) {
  * @return {State} state class stub
  */
 function createStubState() {
-  const stubState = new State(/** @type {AutoscalerSpanner} */ ({}));
-  sinon.stub(stubState, 'get').resolves(0);
-  sinon.stub(stubState, 'set').resolves(0);
-  sinon.stub(stubState, 'now').value(Date.now());
+  const stubState = sinon.createStubInstance(State);
+  stubState.get.resolves({
+    lastScalingTimestamp: 0,
+    createdOn: 0,
+  });
+  stubState.set.resolves();
+  sinon.replaceGetter(stubState, 'now', () => DUMMY_TIMESTAMP);
   return stubState;
 }
 

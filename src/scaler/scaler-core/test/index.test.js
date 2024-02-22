@@ -18,7 +18,9 @@ const rewire = require('rewire');
 const should = require('should');
 const sinon = require('sinon');
 const referee = require('@sinonjs/referee');
+// @ts-ignore
 const assert = referee.assert;
+// @ts-ignore
 const refute = referee.refute;
 const {createSpannerParameters, createStubState} = require('./test-utils.js');
 

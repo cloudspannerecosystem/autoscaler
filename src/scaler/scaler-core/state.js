@@ -35,10 +35,10 @@ const {Spanner} = require('@google-cloud/spanner');
 
 /**
  * @typedef {{
-*  lastScalingTimestamp: number
-*  createdOn: number
-* }} StateData
-*/
+ *  lastScalingTimestamp: number
+ *  createdOn: number
+ * }} StateData
+ */
 
 
 /**
@@ -46,58 +46,84 @@ const {Spanner} = require('@google-cloud/spanner');
  */
 class State {
   /**
-   * @constructor
+   * Build a State object for the given configuration
+   *
    * @param {AutoscalerSpanner} spanner
+   * @return {State}
    */
-  constructor(spanner) {
-    switch (spanner.stateDatabase && spanner.stateDatabase.name) {
+  static buildFor(spanner) {
+    if (! spanner) {
+      throw new Error('spanner should not be null');
+    }
+    switch (spanner?.stateDatabase?.name) {
       case 'firestore':
-        this.state = new StateFirestore(spanner);
-        break;
+        return new StateFirestore(spanner);
       case 'spanner':
-        this.state = new StateSpanner(spanner);
-        break;
+        return new StateSpanner(spanner);
       default:
-        this.state = new StateFirestore(spanner);
-        break;
+        return new StateFirestore(spanner);
     }
   }
 
   /**
-   * proxy init to underlying state implementation
+   * @constructor
+   * @protected
+   * @param {AutoscalerSpanner} spanner
    */
-  async init() {
-    return await this.state.init();
+  constructor(spanner) {
+    /** @type {string} */
+    this.stateProjectId = (spanner.stateProjectId != null) ?
+        spanner.stateProjectId :
+        spanner.projectId;
+    this.projectId = spanner.projectId;
+    this.instanceId = spanner.instanceId;
   }
 
   /**
-   * Get scaling timestamp in storage from undelying state implementation
+   * Initialize value in storage
+   * @return {Promise<*>}
+   */
+  async init() {
+    throw new Error('Not implemented');
+  }
+
+  /**
+   * Get scaling timestamp from storage
    *
    * @return {Promise<StateData>}
    */
   async get() {
-    return await this.state.get();
+    throw new Error('Not implemented');
   }
 
   /**
-   * Update scaling timestamp in storage from undelying state implementation
+   * Update scaling timestamp in storage
    */
   async set() {
-    await this.state.set();
+    throw new Error('Not implemented');
   }
 
   /**
-   * Close underlying state implementation
+   * Close storage
    */
   async close() {
-    await this.state.close();
+    throw new Error('Not implemented');
   }
 
   /**
-   * proxy now() to underlying state implementation
+   * Get current timestamp in millis.
+   *
+   * @return {number};
    */
   get now() {
-    return this.state.now;
+    return Date.now();
+  }
+
+  /**
+   * @return {string} full ID for this spanner instance
+   */
+  getSpannerId() {
+    return `projects/${this.projectId}/instances/${this.instanceId}`;
   }
 }
 
@@ -118,16 +144,12 @@ module.exports = State;
  *   }
  * }
  */
-class StateSpanner {
+class StateSpanner extends State {
   /**
    * @param {AutoscalerSpanner} spanner
    */
   constructor(spanner) {
-    this.stateProjectId = (spanner.stateProjectId != null) ?
-        spanner.stateProjectId :
-        spanner.projectId;
-    this.projectId = spanner.projectId;
-    this.instanceId = spanner.instanceId;
+    super(spanner);
 
     this.client = new Spanner({projectId: this.stateProjectId});
     if (!spanner.stateDatabase) {
@@ -138,10 +160,7 @@ class StateSpanner {
     this.table = this.db.table('spannerAutoscaler');
   }
 
-  /**
-   * Initialize state
-   * @return {Promise<*>}
-   */
+  /** @inheritdoc */
   async init() {
     const initData = {
       // Spanner.timestamp(0) is the same as Spanner.timestamp(null), returns
@@ -153,13 +172,11 @@ class StateSpanner {
     return initData;
   }
 
-  /**
-   * @return {Promise<StateData>} lastScalingTimestamp from storage
-   */
+  /** @inheritdoc */
   async get() {
     const query = {
       columns: ['lastScalingTimestamp', 'createdOn'],
-      keySet: {keys: [{values: [{stringValue: this.rowId()}]}]},
+      keySet: {keys: [{values: [{stringValue: this.getSpannerId()}]}]},
     };
     const [rows] = await this.table.read(query);
     if (rows.length == 0) {
@@ -170,9 +187,7 @@ class StateSpanner {
     return this.toMillis(this.data);
   }
 
-  /**
-   * Update scaling timestamp in storage
-   */
+  /** @inheritdoc */
   async set() {
     await this.get(); // make sure doc exists
 
@@ -181,9 +196,7 @@ class StateSpanner {
     await this.updateState(newData);
   }
 
-  /**
-   * Close DB connection
-   */
+  /** @inheritdoc */
   async close() {
     await this.db.close();
   }
@@ -204,27 +217,13 @@ class StateSpanner {
   }
 
   /**
-   * @return {number} current timestamp
-   */
-  get now() {
-    return Date.now();
-  }
-
-  /**
-   * @return {string} row ID for this instance
-   */
-  rowId() {
-    return `projects/${this.projectId}/instances/${this.instanceId}`;
-  }
-
-  /**
    * Write state data to database.
    * @param {Object} rowData
    */
   async updateState(rowData) {
     const row = JSON.parse(JSON.stringify(rowData));
     // for Centralized or Distributed projects, rows have a unique key.
-    row.id = this.rowId();
+    row.id = this.getSpannerId();
     // converts TIMESTAMP type columns to ISO format string for registration
     Object.keys(row).forEach((key) => {
       if (row[key] instanceof Date) {
@@ -249,15 +248,13 @@ class StateSpanner {
  *   }
  * }
  */
-class StateFirestore {
+class StateFirestore extends State {
   /**
    * @param {AutoscalerSpanner} spanner
    */
   constructor(spanner) {
-    this.projectId = (spanner.stateProjectId != null) ? spanner.stateProjectId :
-                                                        spanner.projectId;
-    this.instanceId = spanner.instanceId;
-    this.firestore = new firestore.Firestore({projectId: this.projectId});
+    super(spanner);
+    this.firestore = new firestore.Firestore({projectId: this.stateProjectId});
   }
 
   /**
@@ -289,10 +286,7 @@ class StateFirestore {
     return docData;
   }
 
-  /**
-   * Initialize state
-   * @return {Promise<Object>}
-   */
+  /** @inheritdoc */
   async init() {
     const initData = {
       lastScalingTimestamp: 0,
@@ -303,9 +297,7 @@ class StateFirestore {
     return initData;
   }
 
-  /**
-   * @return {Promise<StateData>} scaling timstamps from storage
-   */
+  /** @inheritdoc */
   async get() {
     const snapshot = await this.docRef.get(); // returns QueryDocumentSnapshot
 
@@ -318,9 +310,7 @@ class StateFirestore {
     return this.toMillis(this.data);
   }
 
-  /**
-   * Update scaling timestamp in storage
-   */
+  /** @inheritdoc */
   async set() {
     await this.get(); // make sure doc exists
 
@@ -330,15 +320,6 @@ class StateFirestore {
     await this.docRef.update(newData);
   }
 
-  /**
-   * Close DB connection
-   */
+  /** @inheritdoc */
   async close() {}
-
-  /**
-   * @return {number} current timestamp
-   */
-  get now() {
-    return firestore.Timestamp.now().toMillis();
-  }
 }

@@ -326,7 +326,7 @@ async function scaleSpannerInstancePubSub(pubSubEvent, context) {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
     const spanner = JSON.parse(payload);
     try {
-      const state = new State(spanner);
+      const state = State.buildFor(spanner);
 
       await processScalingRequest(spanner, state);
       await state.close();
@@ -364,7 +364,7 @@ async function scaleSpannerInstanceHTTP(req, res) {
     const payload = fs.readFileSync('./test/samples/parameters.json', 'utf-8');
     const spanner = JSON.parse(payload);
     try {
-      const state = new State(spanner);
+      const state = State.buildFor(spanner);
 
       await processScalingRequest(spanner, state);
       await state.close();
@@ -391,7 +391,7 @@ async function scaleSpannerInstanceHTTP(req, res) {
 async function scaleSpannerInstanceJSON(req, res) {
   const spanner = req.body;
   try {
-    const state = new State(spanner);
+    const state = State.buildFor(spanner);
 
     await processScalingRequest(spanner, state);
     await state.close();
@@ -424,7 +424,7 @@ async function scaleSpannerInstanceJSON(req, res) {
  */
 async function scaleSpannerInstanceLocal(spanner) {
   try {
-    const state = new State(spanner);
+    const state = State.buildFor(spanner);
 
     await processScalingRequest(spanner, state);
     await state.close();

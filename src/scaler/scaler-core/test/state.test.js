@@ -72,10 +72,11 @@ afterEach(() => {
 const DUMMY_TIMESTAMP = 1704110400000;
 
 describe('stateFirestoreTests', () => {
-  const stubFirestoreInstance = sinon.createStubInstance(firestore.Firestore);
-  const collectionRef = sinon
+  let stubFirestoreInstance = sinon.createStubInstance(firestore.Firestore);
+  let collectionRef = sinon
       .createStubInstance(firestore.CollectionReference);
-  const docRef = sinon.createStubInstance(firestore.DocumentReference);
+  let docRef = sinon.createStubInstance(firestore.DocumentReference);
+
   const autoscalerConfig = {
     projectId: 'myProject',
     instanceId: 'myInstance',
@@ -86,15 +87,13 @@ describe('stateFirestoreTests', () => {
       .fromMillis(DUMMY_TIMESTAMP);
 
   beforeEach(() => {
+    stubFirestoreInstance = sinon.createStubInstance(firestore.Firestore);
+    collectionRef = sinon
+        .createStubInstance(firestore.CollectionReference);
+    docRef = sinon.createStubInstance(firestore.DocumentReference);
     stubFirestoreConstructor.returns(stubFirestoreInstance);
-    stubFirestoreInstance.collection=sinon.stub();
     stubFirestoreInstance.collection.returns(collectionRef);
-    // @ts-ignore
-    collectionRef.doc = sinon.stub();
     collectionRef.doc.returns(docRef);
-    docRef.get = sinon.stub();
-    docRef.update = sinon.stub();
-    docRef.set = sinon.stub();
   });
 
   it('should create a StateFirestore object on spanner projectId',
@@ -103,18 +102,16 @@ describe('stateFirestoreTests', () => {
           ...autoscalerConfig,
           stateProjectId: null,
         };
-        // @ts-ignore
-        const state = new State(config);
-        assert.equals(state.state.constructor.name, 'StateFirestore');
+        const state = State.buildFor(config);
+        assert.equals(state.constructor.name, 'StateFirestore');
         sinon.assert.calledWith(stubFirestoreConstructor,
             {projectId: 'myProject'});
       });
 
   it('should create a StateFirestore object connecting to stateProjectId',
       function() {
-        // @ts-ignore
-        const state = new State(autoscalerConfig);
-        assert.equals(state.state.constructor.name, 'StateFirestore');
+        const state = State.buildFor(autoscalerConfig);
+        assert.equals(state.constructor.name, 'StateFirestore');
         sinon.assert.calledWith(stubFirestoreConstructor,
             {projectId: 'stateProject'});
       });
@@ -133,8 +130,7 @@ describe('stateFirestoreTests', () => {
           },
         }));
 
-        // @ts-ignore
-        const state = new State(autoscalerConfig);
+        const state = State.buildFor(autoscalerConfig);
         const data = await state.get();
 
         sinon.assert.calledWith(stubFirestoreInstance.collection,
@@ -153,8 +149,7 @@ describe('stateFirestoreTests', () => {
           exists: false,
         }));
 
-        // @ts-ignore
-        const state = new State(autoscalerConfig);
+        const state = State.buildFor(autoscalerConfig);
         const data = await state.get();
 
         const expected = {
@@ -179,8 +174,7 @@ describe('stateFirestoreTests', () => {
           },
         }));
 
-        // @ts-ignore
-        const state = new State(autoscalerConfig);
+        const state = State.buildFor(autoscalerConfig);
         await state.set();
 
         assert.equals(docRef.update.getCall(0).args[0], {
@@ -191,10 +185,10 @@ describe('stateFirestoreTests', () => {
 });
 
 describe('stateSpannerTests', () => {
-  const stubSpannerClient = sinon.createStubInstance(spanner.Spanner);
-  const stubSpannerInstance = sinon.createStubInstance(spanner.Instance);
-  const stubSpannerDatabase = sinon.createStubInstance(spanner.Database);
-  const stubSpannerTable = sinon.createStubInstance(spanner.Table);
+  let stubSpannerClient = sinon.createStubInstance(spanner.Spanner);
+  let stubSpannerInstance = sinon.createStubInstance(spanner.Instance);
+  let stubSpannerDatabase = sinon.createStubInstance(spanner.Database);
+  let stubSpannerTable = sinon.createStubInstance(spanner.Table);
 
   const autoscalerConfig = {
     projectId: 'myProject',
@@ -223,17 +217,15 @@ describe('stateSpannerTests', () => {
       .toISOString();
 
   beforeEach(() => {
+    stubSpannerClient = sinon.createStubInstance(spanner.Spanner);
+    stubSpannerInstance = sinon.createStubInstance(spanner.Instance);
+    stubSpannerDatabase = sinon.createStubInstance(spanner.Database);
+    stubSpannerTable = sinon.createStubInstance(spanner.Table);
+
     stubSpannerConstructor.returns(stubSpannerClient);
-    stubSpannerClient.instance = sinon.stub();
     stubSpannerClient.instance.returns(stubSpannerInstance);
-    stubSpannerInstance.database = sinon.stub();
     stubSpannerInstance.database.returns(stubSpannerDatabase);
-    stubSpannerDatabase.table = sinon.stub();
     stubSpannerDatabase.table.returns(stubSpannerTable);
-    // @ts-ignore
-    stubSpannerTable.read = sinon.stub();
-    // @ts-ignore
-    stubSpannerTable.upsert = sinon.stub();
   });
 
 
@@ -243,9 +235,8 @@ describe('stateSpannerTests', () => {
           ...autoscalerConfig,
           stateProjectId: null,
         };
-        // @ts-ignore
-        const state = new State(config);
-        assert.equals(state.state.constructor.name, 'StateSpanner');
+        const state = State.buildFor(config);
+        assert.equals(state.constructor.name, 'StateSpanner');
         sinon.assert.calledWith(stubSpannerConstructor,
             {projectId: 'myProject'});
         sinon.assert.calledWith(stubSpannerClient.instance,
@@ -258,9 +249,8 @@ describe('stateSpannerTests', () => {
 
   it('should create a StateSpanner object connecting to stateProjectId',
       function() {
-        // @ts-ignore
-        const state = new State(autoscalerConfig);
-        assert.equals(state.state.constructor.name, 'StateSpanner');
+        const state = State.buildFor(autoscalerConfig);
+        assert.equals(state.constructor.name, 'StateSpanner');
         sinon.assert.calledWith(stubSpannerConstructor,
             {projectId: 'stateProject'});
         sinon.assert.calledWith(stubSpannerClient.instance,
@@ -284,8 +274,7 @@ describe('stateSpannerTests', () => {
             },
           }]]));
 
-        // @ts-ignore
-        const state = new State(autoscalerConfig);
+        const state = State.buildFor(autoscalerConfig);
         const data = await state.get();
 
         sinon.assert.calledWith(stubSpannerTable.read, expectedQuery);
@@ -300,11 +289,10 @@ describe('stateSpannerTests', () => {
         // @ts-ignore
         stubSpannerTable.read.returns(Promise.resolve([[]]));
 
-        // @ts-ignore
-        const state = new State(autoscalerConfig);
+        const state = State.buildFor(autoscalerConfig);
         // make state.now return a fixed value
         const nowfunc = sinon.stub();
-        sinon.replaceGetter(state.state, 'now', nowfunc);
+        sinon.replaceGetter(state, 'now', nowfunc);
         nowfunc.returns(DUMMY_TIMESTAMP);
 
         const data = await state.get();
@@ -335,11 +323,10 @@ describe('stateSpannerTests', () => {
             },
           }]]));
 
-        // @ts-ignore
-        const state = new State(autoscalerConfig);
+        const state = State.buildFor(autoscalerConfig);
         // make state.now return a fixed value
         const nowfunc = sinon.stub();
-        sinon.replaceGetter(state.state, 'now', nowfunc);
+        sinon.replaceGetter(state, 'now', nowfunc);
         nowfunc.returns(DUMMY_TIMESTAMP);
         await state.set();
 
