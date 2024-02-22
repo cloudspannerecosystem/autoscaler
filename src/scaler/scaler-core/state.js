@@ -36,10 +36,23 @@ const {logger} = require('../../autoscaler-common/logger');
 
 /**
  * @typedef {{
+ *  lastScalingCompleteTimestamp? : number
+ *  scalingOperationId?: string
  *  lastScalingTimestamp: number
  *  createdOn: number
+ *  updatedOn: number
  * }} StateData
  */
+
+/** @typedef {{name: string, type: string}} ColumnDef */
+/** @type {Array<ColumnDef>} */
+const STATE_KEY_DEFINITIONS = [
+  {name: 'lastScalingTimestamp', type: 'timestamp'},
+  {name: 'createdOn', type: 'timestamp'},
+  {name: 'updatedOn', type: 'timestamp'},
+  {name: 'lastScalingCompleteTimestamp', type: 'timestamp'},
+  {name: 'scalingOperationId', type: 'string'},
+];
 
 /**
  * Used to store state of a Spanner instance
@@ -98,9 +111,10 @@ class State {
   }
 
   /**
-   * Update scaling timestamp in storage
+   * Update state data in storage with the given values
+   * @param {StateData} stateData
    */
-  async set() {
+  async updateState(stateData) {
     throw new Error('Not implemented');
   }
 
@@ -156,48 +170,52 @@ class StateSpanner extends State {
     if (!spanner.stateDatabase) {
       throw new Error('stateDatabase is not defined in Spanner config');
     }
-    this.db = this.client
-      .instance(spanner.stateDatabase.instanceId)
-      .database(spanner.stateDatabase.databaseId);
+    this.instance = this.client.instance(spanner.stateDatabase.instanceId);
+    this.db = this.instance.database(spanner.stateDatabase.databaseId);
     this.table = this.db.table('spannerAutoscaler');
   }
 
   /** @inheritdoc */
   async init() {
-    const initData = {
-      // Spanner.timestamp(0) is the same as Spanner.timestamp(null), returns
-      // now - so use the string value of the epoch.
-      lastScalingTimestamp: Spanner.timestamp('1970-01-01T00:00:00Z'),
-      createdOn: Spanner.timestamp(this.now),
+    /** @type {StateData} */
+    const data = {
+      createdOn: this.now,
+      updatedOn: this.now,
+      lastScalingTimestamp: 0,
+      lastScalingCompleteTimestamp: 0,
+      scalingOperationId: null,
     };
-    await this.updateState(initData);
-    return initData;
+    await this.writeToSpanner(StateSpanner.convertToStorage(data));
+    // Need to return storage-format data which uses Date objects
+    return {
+      createdOn: new Date(data.createdOn),
+      updatedOn: new Date(data.updatedOn),
+      lastScalingTimestamp: new Date(0),
+      lastScalingCompleteTimestamp: new Date(0),
+      scalingOperationId: null,
+    };
   }
 
   /** @inheritdoc */
   async get() {
-    const query = {
-      columns: ['lastScalingTimestamp', 'createdOn'],
-      keySet: {keys: [{values: [{stringValue: this.getSpannerId()}]}]},
-    };
-    const [rows] = await this.table.read(query);
+    try {
+      const query = {
+        columns: STATE_KEY_DEFINITIONS.map((c) => c.name),
+        keySet: {keys: [{values: [{stringValue: this.getSpannerId()}]}]},
+      };
 
-    let data;
-    if (rows.length == 0) {
-      data = await this.init();
-    } else {
-      data = rows[0].toJSON();
+      const [rows] = await this.table.read(query);
+      if (rows.length == 0) {
+        return StateSpanner.convertFromStorage(await this.init());
+      }
+      return StateSpanner.convertFromStorage(rows[0].toJSON());
+    } catch (e) {
+      logger.fatal({
+        message: `Failed to read from Spanner State storage: projects/${this.client.projectId}/instances/${this.instance.id}/databases/${this.db.id}/tables/${this.table.name}: ${e.message}`,
+        err: e,
+      });
+      throw e;
     }
-    return this.toMillis(data);
-  }
-
-  /** @inheritdoc */
-  async set() {
-    await this.get(); // make sure doc exists
-
-    const newData = {updatedOn: Spanner.timestamp(this.now)};
-    newData.lastScalingTimestamp = Spanner.timestamp(this.now);
-    await this.updateState(newData);
   }
 
   /** @inheritdoc */
@@ -211,30 +229,88 @@ class StateSpanner extends State {
    * @param {Object} rowData spanner data
    * @return {StateData} converted rowData
    */
-  toMillis(rowData) {
-    Object.keys(rowData).forEach((key) => {
-      if (rowData[key] instanceof Date) {
-        rowData[key] = rowData[key].getTime();
+  static convertFromStorage(rowData) {
+    const ret = {};
+
+    const rowDataKeys = Object.keys(rowData);
+
+    for (const colDef of STATE_KEY_DEFINITIONS) {
+      if (rowDataKeys.includes(colDef.name)) {
+        // copy value
+        ret[colDef.name] = rowData[colDef.name];
+        if (rowData[colDef.name] instanceof Date) {
+          ret[colDef.name] = rowData[colDef.name].getTime();
+        }
+      } else {
+        // value not present in storage
+        if (colDef.type === 'timestamp') {
+          ret[colDef.name] = 0;
+        } else {
+          ret[colDef.name] = null;
+        }
       }
-    });
-    return rowData;
+    }
+    return /** @type {StateData} */ (ret);
   }
 
   /**
-   * Write state data to database.
-   * @param {Object} rowData
+   * Convert StateData to a row object only containing defined spanner
+   * columns, including converting timestamps.
+   *
+   * @param {StateData} stateData
+   * @return {*} Spanner row
    */
-  async updateState(rowData) {
-    const row = JSON.parse(JSON.stringify(rowData));
-    // for Centralized or Distributed projects, rows have a unique key.
-    row.id = this.getSpannerId();
-    // converts TIMESTAMP type columns to ISO format string for registration
-    Object.keys(row).forEach((key) => {
-      if (row[key] instanceof Date) {
-        row[key] = row[key].toISOString();
+  static convertToStorage(stateData) {
+    const row = {};
+
+    const stateDataKeys = Object.keys(stateData);
+
+    // Only copy values into row that have defined column names.
+    for (const colDef of STATE_KEY_DEFINITIONS) {
+      if (stateDataKeys.includes(colDef.name)) {
+        // copy value
+        row[colDef.name] = stateData[colDef.name];
+
+        // convert timestamp
+        if (colDef.type === 'timestamp' && row[colDef.name] !== null) {
+          // convert millis to ISO timestamp
+          row[colDef.name] = new Date(row[colDef.name]).toISOString();
+        }
       }
-    });
-    await this.table.upsert(row);
+    }
+    return row;
+  }
+
+  /**
+   * Update state data in storage with the given values
+   * @param {StateData} stateData
+   */
+  async updateState(stateData) {
+    stateData.updatedOn = this.now;
+    const row = StateSpanner.convertToStorage(stateData);
+
+    // we never want to update createdOn
+    delete row.createdOn;
+
+    this.writeToSpanner(row);
+  }
+
+  /**
+   * Write the given row to spanner, retrying with the older
+   * schema if a column not found error is returned.
+   * @param {*} row
+   */
+  async writeToSpanner(row) {
+    try {
+      row.id = this.getSpannerId();
+      await this.table.upsert(row);
+    } catch (e) {
+      logger.fatal({
+        msg: `Failed to write to Spanner State storage: projects/${this.client.projectId}/instances/${this.instance.id}/databases/${this.db.id}/tables/${this.table.name}: ${e.message}`,
+        err: e,
+      });
+      throw e;
+    }
   }
 }
 
@@ -281,20 +357,70 @@ class StateFirestore extends State {
    * @param {Object} docData
    * @return {StateData} converted docData
    */
-  toMillis(docData) {
-    Object.keys(docData).forEach((key) => {
-      if (docData[key] instanceof firestore.Timestamp) {
-        docData[key] = docData[key].toMillis();
+  static convertFromStorage(docData) {
+    const ret = {};
+
+    const docDataKeys = Object.keys(docData);
+
+    // Copy values into row that are present and are known keys.
+    for (const colDef of STATE_KEY_DEFINITIONS) {
+      if (docDataKeys.includes(colDef.name)) {
+        ret[colDef.name] = docData[colDef.name];
+        if (docData[colDef.name] instanceof firestore.Timestamp) {
+          ret[colDef.name] = docData[colDef.name].toMillis();
+        }
+      } else {
+        // not present in doc:
+        if (colDef.type === 'timestamp') {
+          ret[colDef.name] = 0;
+        } else {
+          ret[colDef.name] = null;
+        }
       }
-    });
-    return docData;
+    }
+    return /** @type {StateData} */ (ret);
+  }
+
+  /**
+   * Convert StateData to an object only containing defined
+   * columns, including converting timestamps from millis to Firestore.Timestamp
+   *
+   * @param {StateData} stateData
+   * @return {*}
+   */
+  static convertToStorage(stateData) {
+    const doc = {};
+
+    const stateDataKeys = Object.keys(stateData);
+
+    // Copy values into row that are present and are known keys.
+    for (const colDef of STATE_KEY_DEFINITIONS) {
+      if (stateDataKeys.includes(colDef.name)) {
+        if (colDef.type === 'timestamp') {
+          // convert millis to Firestore timestamp
+          doc[colDef.name] = firestore.Timestamp.fromMillis(
+            stateData[colDef.name],
+          );
+        } else {
+          // copy value
+          doc[colDef.name] = stateData[colDef.name];
+        }
+      }
+    }
+    // we never want to update createdOn
+    delete doc.createdOn;
+
+    return doc;
   }
 
   /** @inheritdoc */
   async init() {
     const initData = {
-      lastScalingTimestamp: 0,
-      createdOn: firestore.FieldValue.serverTimestamp(),
+      createdOn: firestore.Timestamp.fromMillis(this.now),
+      updatedOn: firestore.Timestamp.fromMillis(this.now),
+      lastScalingTimestamp: firestore.Timestamp.fromMillis(0),
+      lastScalingCompleteTimestamp: firestore.Timestamp.fromMillis(0),
+      scalingOperationId: null,
     };
 
     await this.docRef.set(initData);
@@ -317,7 +443,7 @@ class StateFirestore extends State {
       data = snapshot.data();
     }
 
-    return this.toMillis(data);
+    return StateFirestore.convertFromStorage(data);
   }
 
   /**
@@ -348,15 +474,18 @@ class StateFirestore extends State {
   }
 
   /**
-   * Update scaling timestamp in storage
+   * Update state data in storage with the given values
+   * @param {StateData} stateData
    */
-  async set() {
-    await this.get(); // make sure doc exists
+  async updateState(stateData) {
+    stateData.updatedOn = this.now;
 
-    const newData = {updatedOn: firestore.FieldValue.serverTimestamp()};
-    newData.lastScalingTimestamp = firestore.FieldValue.serverTimestamp();
+    const doc = StateFirestore.convertToStorage(stateData);
 
-    await this.docRef.update(newData);
+    // we never want to update createdOn
+    delete doc.createdOn;
+
+    await this.docRef.update(doc);
   }
 
   /** @inheritdoc */

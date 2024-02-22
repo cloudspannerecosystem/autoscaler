@@ -225,7 +225,17 @@ CREATE TABLE spannerAutoscaler (
   lastScalingTimestamp TIMESTAMP,
   createdOn TIMESTAMP,
   updatedOn TIMESTAMP,
+  lastScalingCompleteTimestamp TIMESTAMP,
+  scalingOperationId STRING(MAX),
 ) PRIMARY KEY (id)
+```
+
+Note: If you are upgrading from V1, then you need to add the 2 new columns to the
+spanner schema using the following DDL statements
+
+```sql
+ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS lastScalingCompleteTimestamp TIMESTAMP;
+ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingOperationId STRING(MAX);
 ```
 
 ## Example configuration for Cloud Functions

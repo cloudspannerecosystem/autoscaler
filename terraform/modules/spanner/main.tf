@@ -92,7 +92,7 @@ resource "google_spanner_instance_iam_member" "scaler_update_capacity_iam" {
   depends_on = [google_spanner_instance.main]
 }
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 ## If Terraform must create an instance to store the state of the Autoscaler
 ##
 resource "google_spanner_instance" "state_instance" {
@@ -118,6 +118,8 @@ resource "google_spanner_database" "state-database" {
       lastScalingTimestamp TIMESTAMP,
       createdOn TIMESTAMP,
       updatedOn TIMESTAMP,
+      lastScalingCompleteTimestamp TIMESTAMP,
+      scalingOperationId STRING(MAX),
     ) PRIMARY KEY (id)
     EOT
   ]

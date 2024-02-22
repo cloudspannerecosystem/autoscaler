@@ -15,10 +15,8 @@
 
 const firestore = require('@google-cloud/firestore');
 const spanner = require('@google-cloud/spanner');
-
+const {AutoscalerUnits} = require('../../../autoscaler-common/types');
 const rewire = require('rewire');
-// eslint-disable-next-line no-unused-vars
-const should = require('should');
 const sinon = require('sinon');
 const referee = require('@sinonjs/referee');
 // @ts-ignore
@@ -58,9 +56,15 @@ class DummySpannerClass {
   }
 }
 
-const State = rewire('../state.js');
+// import module to define State type for typechecking...
+let State = require('../state');
+// override module with rewired module
+// @ts-ignore
+State = rewire('../state.js');
 
+// @ts-expect-error
 State.__set__('firestore', dummyFirestoreModule);
+// @ts-expect-error
 State.__set__('Spanner', DummySpannerClass);
 
 afterEach(() => {
@@ -70,6 +74,24 @@ afterEach(() => {
 });
 
 const DUMMY_TIMESTAMP = 1704110400000;
+const DUMMY_TIMESTAMP2 = 1709660000000;
+
+/** @type {AutoscalerSpanner} */
+const BASE_CONFIG = {
+  projectId: 'myProject',
+  instanceId: 'myInstance',
+  stateProjectId: 'stateProject',
+  scalingMethod: 'LINEAR',
+  units: AutoscalerUnits.PROCESSING_UNITS,
+  scaleOutCoolingMinutes: 30,
+  scaleInCoolingMinutes: 5,
+  overloadCoolingMinutes: 10,
+  currentSize: 100,
+  currentNodes: 0,
+  regional: true,
+  isOverloaded: false,
+  metrics: [],
+};
 
 describe('stateFirestoreTests', () => {
   /** @tyoe {sinon.SinonStubbedInstance<firestore.Firestore>} */
@@ -79,18 +101,19 @@ describe('stateFirestoreTests', () => {
   /** @type {sinon.SinonStubbedInstance<firestore.DocumentReference<any>>} */
   let oldDocRef;
 
-  const autoscalerConfig = {
-    projectId: 'myProject',
-    instanceId: 'myInstance',
-    stateProjectId: 'stateProject',
-  };
-
   const DUMMY_FIRESTORE_TIMESTAMP =
     firestore.Timestamp.fromMillis(DUMMY_TIMESTAMP);
+  const DUMMY_FIRESTORE_TIMESTAMP2 =
+    firestore.Timestamp.fromMillis(DUMMY_TIMESTAMP2);
 
   const NEW_DOC_PATH =
     'spannerAutoscaler/state/projects/myProject/instances/myInstance';
   const OLD_DOC_PATH = 'spannerAutoscaler/myInstance';
+
+  /** @type {AutoscalerSpanner} */
+  const autoscalerConfig = {
+    ...BASE_CONFIG,
+  };
 
   /** @type {firestore.DocumentSnapshot<any>} */
   // @ts-ignore
@@ -101,6 +124,8 @@ describe('stateFirestoreTests', () => {
         createdOn: DUMMY_FIRESTORE_TIMESTAMP,
         updatedOn: DUMMY_FIRESTORE_TIMESTAMP,
         lastScalingTimestamp: DUMMY_FIRESTORE_TIMESTAMP,
+        lastScalingCompleteTimestamp: DUMMY_FIRESTORE_TIMESTAMP,
+        scalingOperationId: null,
       };
     },
   };
@@ -155,6 +180,8 @@ describe('stateFirestoreTests', () => {
       createdOn: DUMMY_TIMESTAMP,
       updatedOn: DUMMY_TIMESTAMP,
       lastScalingTimestamp: DUMMY_TIMESTAMP,
+      lastScalingCompleteTimestamp: DUMMY_TIMESTAMP,
+      scalingOperationId: null,
     });
   });
 
@@ -163,11 +190,27 @@ describe('stateFirestoreTests', () => {
     oldDocRef.get.returns(Promise.resolve(NON_EXISTING_DOC));
 
     const state = State.buildFor(autoscalerConfig);
+    // make state.now return a fixed value
+    const nowfunc = sinon.stub();
+    sinon.replaceGetter(state, 'now', nowfunc);
+    nowfunc.returns(DUMMY_TIMESTAMP);
+
     const data = await state.get();
 
-    const expected = {
+    const expectedValue = {
       lastScalingTimestamp: 0,
-      createdOn: firestore.FieldValue.serverTimestamp(),
+      createdOn: DUMMY_TIMESTAMP,
+      updatedOn: DUMMY_TIMESTAMP,
+      lastScalingCompleteTimestamp: 0,
+      scalingOperationId: null,
+    };
+
+    const expectedDoc = {
+      createdOn: DUMMY_FIRESTORE_TIMESTAMP,
+      updatedOn: DUMMY_FIRESTORE_TIMESTAMP,
+      lastScalingTimestamp: firestore.Timestamp.fromMillis(0),
+      lastScalingCompleteTimestamp: firestore.Timestamp.fromMillis(0),
+      scalingOperationId: null,
     };
 
     sinon.assert.calledTwice(stubFirestoreInstance.doc);
@@ -180,8 +223,8 @@ describe('stateFirestoreTests', () => {
     sinon.assert.calledOnce(oldDocRef.get);
 
     sinon.assert.calledOnce(newDocRef.set);
-    assert.equals(newDocRef.set.getCall(0).args[0], expected);
-    assert.equals(data, expected);
+    assert.equals(newDocRef.set.getCall(0).args[0], expectedDoc);
+    assert.equals(data, expectedValue);
   });
 
   it('get() should copy document from old location to new if missing in new', async function () {
@@ -202,6 +245,8 @@ describe('stateFirestoreTests', () => {
       lastScalingTimestamp: DUMMY_TIMESTAMP,
       createdOn: DUMMY_TIMESTAMP,
       updatedOn: DUMMY_TIMESTAMP,
+      lastScalingCompleteTimestamp: DUMMY_TIMESTAMP,
+      scalingOperationId: null,
     };
 
     sinon.assert.calledTwice(stubFirestoreInstance.doc);
@@ -222,20 +267,30 @@ describe('stateFirestoreTests', () => {
     assert.equals(data, expected);
   });
 
-  it('set() should write document to collection', async function () {
+  it('updateState() should write document to collection', async function () {
     // set calls get(), so give it a doc to return...
     newDocRef.get.returns(Promise.resolve(EXISTING_DOC));
 
     const state = State.buildFor(autoscalerConfig);
-    await state.set();
+
+    // make state.now return a fixed value
+    const nowfunc = sinon.stub();
+    sinon.replaceGetter(state, 'now', nowfunc);
+    nowfunc.returns(DUMMY_TIMESTAMP2);
+
+    const doc = await state.get();
+    doc.lastScalingTimestamp = DUMMY_TIMESTAMP2;
+    await state.updateState(doc);
 
     sinon.assert.calledOnce(stubFirestoreInstance.doc);
     assert.equals(stubFirestoreInstance.doc.getCall(0).args[0], NEW_DOC_PATH);
 
     sinon.assert.calledOnce(newDocRef.update);
     assert.equals(newDocRef.update.getCall(0).args[0], {
-      updatedOn: firestore.FieldValue.serverTimestamp(),
-      lastScalingTimestamp: firestore.FieldValue.serverTimestamp(),
+      updatedOn: DUMMY_FIRESTORE_TIMESTAMP2,
+      lastScalingTimestamp: DUMMY_FIRESTORE_TIMESTAMP2,
+      lastScalingCompleteTimestamp: DUMMY_FIRESTORE_TIMESTAMP,
+      scalingOperationId: null,
     });
   });
 });
@@ -251,9 +306,7 @@ describe('stateSpannerTests', () => {
   let stubSpannerTable;
 
   const autoscalerConfig = {
-    projectId: 'myProject',
-    instanceId: 'myInstance',
-    stateProjectId: 'stateProject',
+    ...BASE_CONFIG,
     stateDatabase: {
       name: 'spanner',
       instanceId: 'stateInstanceId',
@@ -263,7 +316,13 @@ describe('stateSpannerTests', () => {
 
   const expectedRowId = 'projects/myProject/instances/myInstance';
   const expectedQuery = {
-    columns: ['lastScalingTimestamp', 'createdOn'],
+    columns: [
+      'lastScalingTimestamp',
+      'createdOn',
+      'updatedOn',
+      'lastScalingCompleteTimestamp',
+      'scalingOperationId',
+    ],
     keySet: {
       keys: [
         {
@@ -282,12 +341,16 @@ describe('stateSpannerTests', () => {
       return {
         lastScalingTimestamp: new Date(DUMMY_TIMESTAMP),
         createdOn: new Date(DUMMY_TIMESTAMP),
+        updatedOn: new Date(DUMMY_TIMESTAMP),
+        lastScalingCompleteTimestamp: new Date(DUMMY_TIMESTAMP),
+        scalingOperationId: null,
       };
     },
   };
 
-  const DUMMY_SPANNER_ISO_TIME =
-    spanner.Spanner.timestamp(DUMMY_TIMESTAMP).toISOString();
+  const SPANNER_EPOCH_ISO_TIME = new Date(0).toISOString();
+  const DUMMY_SPANNER_ISO_TIME = new Date(DUMMY_TIMESTAMP).toISOString();
+  const DUMMY_SPANNER_ISO_TIME2 = new Date(DUMMY_TIMESTAMP2).toISOString();
 
   beforeEach(() => {
     stubSpannerClient = sinon.createStubInstance(spanner.Spanner);
@@ -353,10 +416,12 @@ describe('stateSpannerTests', () => {
     const data = await state.get();
 
     sinon.assert.calledWith(stubSpannerTable.read, expectedQuery);
-    // timestamp was converted...
     assert.equals(data, {
       createdOn: DUMMY_TIMESTAMP,
+      updatedOn: DUMMY_TIMESTAMP,
       lastScalingTimestamp: DUMMY_TIMESTAMP,
+      lastScalingCompleteTimestamp: DUMMY_TIMESTAMP,
+      scalingOperationId: null,
     });
   });
 
@@ -373,19 +438,24 @@ describe('stateSpannerTests', () => {
     const data = await state.get();
 
     sinon.assert.calledWith(stubSpannerTable.upsert, {
-      id: expectedRowId,
+      lastScalingTimestamp: SPANNER_EPOCH_ISO_TIME,
       createdOn: DUMMY_SPANNER_ISO_TIME,
-      lastScalingTimestamp: '1970-01-01T00:00:00.000000000Z',
+      updatedOn: DUMMY_SPANNER_ISO_TIME,
+      lastScalingCompleteTimestamp: SPANNER_EPOCH_ISO_TIME,
+      scalingOperationId: null,
+      id: expectedRowId,
     });
 
     assert.equals(data, {
       lastScalingTimestamp: 0,
+      lastScalingCompleteTimestamp: 0,
       createdOn: DUMMY_TIMESTAMP,
+      updatedOn: DUMMY_TIMESTAMP,
+      scalingOperationId: null,
     });
   });
 
-  it('set() should write document to table', async function () {
-    // set calls get(), so give it a doc to return...
+  it('updateState() should write document to table', async function () {
     // @ts-ignore
     stubSpannerTable.read.returns(Promise.resolve([[VALID_ROW]]));
 
@@ -395,12 +465,19 @@ describe('stateSpannerTests', () => {
     const nowfunc = sinon.stub();
     sinon.replaceGetter(state, 'now', nowfunc);
     nowfunc.returns(DUMMY_TIMESTAMP);
-    await state.set();
+
+    const doc = await state.get();
+
+    nowfunc.returns(DUMMY_TIMESTAMP2);
+    doc.lastScalingTimestamp = DUMMY_TIMESTAMP2;
+    await state.updateState(doc);
 
     sinon.assert.calledWith(stubSpannerTable.upsert, {
+      updatedOn: DUMMY_SPANNER_ISO_TIME2,
+      lastScalingTimestamp: DUMMY_SPANNER_ISO_TIME2,
+      lastScalingCompleteTimestamp: DUMMY_SPANNER_ISO_TIME,
+      scalingOperationId: null,
       id: expectedRowId,
-      updatedOn: DUMMY_SPANNER_ISO_TIME,
-      lastScalingTimestamp: DUMMY_SPANNER_ISO_TIME,
     });
   });
 });

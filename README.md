@@ -155,6 +155,8 @@ used to monitor the behavior of the autoscaler, and to configure alerts.
                 maximum configured size.
             *   `WITHIN_COOLDOWN` - when the instance has been recently rescaled,
                 and the autoscaler is waiting for the cooldown period to end.
+            *   `IN_PROGRESS` - when a instance scaling operation is still
+                ongoing.
 
 ## Configuration
 
