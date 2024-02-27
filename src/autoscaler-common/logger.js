@@ -18,6 +18,21 @@
 const bunyan = require('bunyan');
 const {LoggingBunyan} = require('@google-cloud/logging-bunyan');
 
+/**
+ * Return a bunyan level based on environment variables (or lack thereof).
+ *
+ * @return {bunyan.LogLevel}
+ */
+function getLogLevel() {
+  if (process.env.LOG_LEVEL) {
+    return bunyan.levelFromName[process.env.LOG_LEVEL.toLowerCase()];
+  } else if (process.env.NODE_ENV?.toLowerCase() === 'test') {
+    return bunyan.FATAL;
+  } else {
+    return bunyan.DEBUG;
+  }
+}
+
 // Create logging client.
 const loggingBunyan = new LoggingBunyan({
   redirectToStdout: true,
@@ -29,7 +44,7 @@ const loggingBunyan = new LoggingBunyan({
 const logger = bunyan.createLogger({
   name: 'cloud-spanner-autoscaler',
   streams: [
-    loggingBunyan.stream('trace'),
+    loggingBunyan.stream(getLogLevel()),
   ],
 });
 
