@@ -15,12 +15,10 @@
     "scripts": {
         "start": "functions-framework --target=checkSpannerScaleMetricsHTTP",
         "debug": "node --inspect node_modules/.bin/functions-framework --target=checkSpannerScaleMetricsHTTP",
-        "test": "nyc --reporter=text mocha --recursive --require mocha-suppress-logs",
-        "test2": "nyc --reporter=text mocha --recursive"
+        "test": "NODE_ENV=test nyc --reporter=text mocha --recursive"
     },
     "devDependencies": {
-        "mocha": "^10.2.0",
-        "mocha-suppress-logs": "^0.5.1",
+        "mocha": "^10.3.0",
         "nyc": "^15.1.0",
         "rewire": "^7.0.0",
         "should": "^13.2.3",
