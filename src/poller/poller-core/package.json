@@ -18,7 +18,7 @@
         "test": "NODE_ENV=test nyc --reporter=text mocha --recursive"
     },
     "devDependencies": {
-        "mocha": "^10.2.0",
+        "mocha": "^10.3.0",
         "nyc": "^15.1.0",
         "rewire": "^7.0.0",
         "should": "^13.2.3",
