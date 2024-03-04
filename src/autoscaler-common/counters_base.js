@@ -118,6 +118,13 @@ let pendingInit;
  * @extends {OpenTelemetryApi.DiagLogger}
  */
 class DiagToBunyanLogger {
+  /** @constructor */
+  constructor() {
+    // In some cases where errors may be expected, we want to be able to supress
+    // them.
+    this.suppressErrors = false;
+  }
+
   // eslint-disable-next-line require-jsdoc
   verbose(message, ...args) {
     logger.trace('otel: '+message, args);
@@ -136,10 +143,13 @@ class DiagToBunyanLogger {
   }
   // eslint-disable-next-line require-jsdoc
   error(message, ...args) {
-    logger.error('otel: '+message, args);
+    if ( ! this.suppressErrors ) {
+      logger.error('otel: '+message, args);
+    }
   }
 };
 
+const DIAG_BUNYAN_LOGGER = new DiagToBunyanLogger();
 
 /**
  * Number of errors reported by OpenTelemetry. Used by tryFlush() to detect
@@ -166,7 +176,7 @@ function openTelemetryGlobalErrorHandler(err) {
 
 // Setup OpenTelemetry client libraries logging.
 OpenTelemetryApi.default.diag.setLogger(
-    new DiagToBunyanLogger(),
+    DIAG_BUNYAN_LOGGER,
     {
       logLevel: OpenTelemetryApi.DiagLogLevel.INFO,
       suppressOverrideMessage: true,
@@ -352,13 +362,21 @@ async function tryFlush() {
     // is reported during a flush, we wait a while and try again.
     // Not perfect, but the best we can do.
     //
+    // To avoid end-users seeing these errors, we supress error messages
+    // until the very last flush attempt.
+    //
     // Note that if the OpenTelemetry metrics are exported to Google Cloud
     // Monitoring, the first time a counter is used, it will fail to be
     // exported and will need to be retried.
     let attempts = EXPORTER_PARAMETERS[exporterMode].FLUSH_MAX_ATTEMPTS;
     while (attempts > 0) {
       const oldOpenTelemetryErrorCount = openTelemetryErrorCount;
+
+      // Suppress OTEL Diag error messages on all but the last flush attempt.
+      DIAG_BUNYAN_LOGGER.suppressErrors = (attempts > 1);
       await meterProvider.forceFlush();
+      DIAG_BUNYAN_LOGGER.suppressErrors = false;
+
       lastForceFlushTime = Date.now();
 
       if (oldOpenTelemetryErrorCount === openTelemetryErrorCount) {
