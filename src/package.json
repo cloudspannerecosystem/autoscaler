@@ -4,6 +4,8 @@
   "license": "Apache-2.0",
   "author": "Google Inc.",
   "dependencies": {
+    "@google-cloud/pubsub": "^4.3.2",
+    "express": "^4.18.3",
     "js-yaml": "^4.1.0",
     "poller-core": "file:poller/poller-core",
     "scaler-core": "file:scaler/scaler-core"
