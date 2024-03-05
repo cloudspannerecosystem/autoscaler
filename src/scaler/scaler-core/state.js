@@ -28,6 +28,7 @@
 
 const firestore = require('@google-cloud/firestore');
 const {Spanner} = require('@google-cloud/spanner');
+const {logger} = require('../../autoscaler-common/logger');
 /**
  * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
  * } AutoscalerSpanner
@@ -179,12 +180,14 @@ class StateSpanner extends State {
       keySet: {keys: [{values: [{stringValue: this.getSpannerId()}]}]},
     };
     const [rows] = await this.table.read(query);
+
+    let data;
     if (rows.length == 0) {
-      this.data = await this.init();
+      data = await this.init();
     } else {
-      this.data = rows[0].toJSON();
+      data = rows[0].toJSON();
     }
-    return this.toMillis(this.data);
+    return this.toMillis(data);
   }
 
   /** @inheritdoc */
@@ -263,9 +266,8 @@ class StateFirestore extends State {
    */
   get docRef() {
     if (this._docRef == null) {
-      this.firestore = new firestore.Firestore({projectId: this.projectId});
-      this._docRef =
-          this.firestore.collection('spannerAutoscaler').doc(this.instanceId);
+      this._docRef = this.firestore
+          .doc(`spannerAutoscaler/state/${this.getSpannerId()}`);
     }
     return this._docRef;
   }
@@ -299,18 +301,49 @@ class StateFirestore extends State {
 
   /** @inheritdoc */
   async get() {
-    const snapshot = await this.docRef.get(); // returns QueryDocumentSnapshot
+    let snapshot = await this.docRef.get(); // returns QueryDocumentSnapshot
 
     if (!snapshot.exists) {
-      this.data = await this.init();
-    } else {
-      this.data = snapshot.data();
+      // It is possible that an old state doc exists in an old docref path...
+      snapshot = await this.checkAndReplaceOldDocRef();
     }
 
-    return this.toMillis(this.data);
+    let data;
+    if (!snapshot?.exists) {
+      data = await this.init();
+    } else {
+      data = snapshot.data();
+    }
+
+    return this.toMillis(data);
   }
 
-  /** @inheritdoc */
+  /**
+   * Due to [issue 213](https://github.com/cloudspannerecosystem/autoscaler/issues/213)
+   * the docRef had to be changed, so check for an old doc at the old docref
+   * If it exists, copy it to the new docref, delete it and return it.
+   */
+  async checkAndReplaceOldDocRef() {
+    try {
+      const oldDocRef =
+          this.firestore.doc(`spannerAutoscaler/${this.instanceId}`);
+      const snapshot = await oldDocRef.get();
+      if (snapshot.exists) {
+        logger.info(`Migrating firestore doc path from spannerAutoscaler/${
+          this.instanceId} to spannerAutoscaler/state/${this.getSpannerId()}`);
+        await this.docRef.set(snapshot.data());
+        await oldDocRef.delete();
+      }
+      return snapshot;
+    } catch (e) {
+      logger.error(e, `Failed to migrate docpaths`);
+    }
+    return null;
+  }
+
+  /**
+   * Update scaling timestamp in storage
+   */
   async set() {
     await this.get(); // make sure doc exists
 
