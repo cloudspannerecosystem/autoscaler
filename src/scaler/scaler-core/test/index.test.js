@@ -21,6 +21,7 @@ const referee = require('@sinonjs/referee');
 // @ts-ignore
 const assert = referee.assert;
 // @ts-ignore
+// eslint-disable-next-line no-unused-vars
 const refute = referee.refute;
 const {createSpannerParameters, createStubState} = require('./test-utils.js');
 
