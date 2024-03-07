@@ -29,7 +29,7 @@ const {OTLPMetricExporter} =
   require('@opentelemetry/exporter-metrics-otlp-grpc');
 const {GcpDetectorSync} =
    require('@google-cloud/opentelemetry-resource-util');
-const {SemanticResourceAttributes} =
+const {SemanticResourceAttributes: Semconv} =
   require('@opentelemetry/semantic-conventions');
 const OpenTelemetryApi = require('@opentelemetry/api');
 const OpenTelemetryCore = require('@opentelemetry/core');
@@ -50,10 +50,10 @@ const {logger} = require('./logger.js');
 */
 
 
-const AUTOSCALER_RESOURCE_ATTRIBUTES = {
-  [SemanticResourceAttributes.SERVICE_NAMESPACE]: 'cloudspannerecosystem',
-  [SemanticResourceAttributes.SERVICE_NAME]: 'autoscaler',
-  [SemanticResourceAttributes.SERVICE_VERSION]: '1.0',
+const RESOURCE_ATTRIBUTES = {
+  [Semconv.SERVICE_NAMESPACE]: 'cloudspannerecosystem',
+  [Semconv.SERVICE_NAME]: 'autoscaler',
+  [Semconv.SERVICE_VERSION]: '1.0',
 };
 
 const COUNTER_ATTRIBUTE_NAMES = {
@@ -65,9 +65,9 @@ const COUNTER_ATTRIBUTE_NAMES = {
  * The prefix to use for any autoscaler counters.
  */
 const COUNTERS_PREFIX =
-  AUTOSCALER_RESOURCE_ATTRIBUTES[SemanticResourceAttributes.SERVICE_NAMESPACE] +
+  RESOURCE_ATTRIBUTES[Semconv.SERVICE_NAMESPACE] +
   '/' +
-  AUTOSCALER_RESOURCE_ATTRIBUTES[SemanticResourceAttributes.SERVICE_NAME] +
+  RESOURCE_ATTRIBUTES[Semconv.SERVICE_NAME] +
   '/';
 
 
@@ -77,14 +77,19 @@ const ExporterMode = {
   OTEL: 'OTEL',
 };
 
-// GCM requires minimum 5sec per push.
-// In OTEL Collector mode, we can push more frequently.
 const EXPORTER_PARAMETERS = {
+  // In GCM direct push mode, we never want to export automatically
+  // and we want to rely only on flushing.
+  // This is to avoid that the auto-push happens just after a flush
+  // and then raises 'points were written more frequently' errors.
+  //
+  // However the only Metrics pusher is a periodic one :/
   [ExporterMode.GCM]: {
-    PERIODIC_FLUSH_INTERVAL: 30_000,
+    PERIODIC_FLUSH_INTERVAL: 12*60*60*1_000, // 12hr
     FLUSH_MIN_INTERVAL: 10_000,
     FLUSH_MAX_ATTEMPTS: 6,
   },
+  // In OTEL Collector mode, we can push more frequently.
   [ExporterMode.OTEL]: {
     PERIODIC_FLUSH_INTERVAL: 10_000,
     FLUSH_MIN_INTERVAL: 2_000,
@@ -165,12 +170,8 @@ let openTelemetryErrorCount = 0;
  */
 function openTelemetryGlobalErrorHandler(err) {
   openTelemetryErrorCount++;
-  if (err instanceof Error) {
-    logger.error({message: 'otel: ' + err.message, err: err});
-  } else {
-    // delegate to Otel's own error handler for stringification
-    OpenTelemetryCore.loggingErrorHandler()(err);
-  }
+  // delegate to Otel's own error handler for stringification
+  OpenTelemetryCore.loggingErrorHandler()(err);
 }
 
 
@@ -212,22 +213,45 @@ async function initMetrics() {
     logger.debug('initializing metrics');
 
     if (process.env.KUBERNETES_SERVICE_HOST) {
+      // In K8s. We need to set the Pod Name to prevent duplicate
+      // timeseries errors.
       if (process.env.K8S_POD_NAME) {
-        AUTOSCALER_RESOURCE_ATTRIBUTES[
-            SemanticResourceAttributes.K8S_POD_NAME] =
+        RESOURCE_ATTRIBUTES[
+            Semconv.K8S_POD_NAME] =
             process.env.K8S_POD_NAME;
       } else {
         logger.warn('WARNING: running under Kubernetes, but K8S_POD_NAME ' +
         'environment variable is not set. ' +
-        'This may lead to duplicate TimeSeries errors');
+        'This may lead to Send TimeSeries errors');
       }
     }
 
-    const resources = new Resource(AUTOSCALER_RESOURCE_ATTRIBUTES)
-        .merge(new GcpDetectorSync().detect());
+    const gcpResources = new GcpDetectorSync().detect();
+    await gcpResources.waitForAsyncAttributes();
+    logger.debug('Got gcpResources attrs:1 %o', gcpResources.attributes);
+
+    if (process.env.FUNCTION_TARGET) {
+      // In cloud functions.
+      // We need to set the platform to generic_task so that the
+      // function instance ID gets set in the  counter resource attributes.
+      // For details, see
+      // https://github.com/GoogleCloudPlatform/opentelemetry-operations-js/issues/679
+      RESOURCE_ATTRIBUTES[Semconv.CLOUD_PLATFORM] = 'generic_task';
+
+      if (gcpResources.attributes[Semconv.FAAS_ID]?.toString()) {
+        RESOURCE_ATTRIBUTES[Semconv.SERVICE_INSTANCE_ID] =
+            gcpResources.attributes[Semconv.FAAS_ID].toString();
+      } else {
+        logger.warn('WARNING: running under Cloud Functions, but FAAS_ID ' +
+        'resource attribute is not set. ' +
+        'This may lead to Send TimeSeries errors');
+      }
+    }
+
+    const resources = gcpResources.merge(new Resource(RESOURCE_ATTRIBUTES));
     await resources.waitForAsyncAttributes();
 
-    logger.debug('Got metrics resource attrs: %o', resources.attributes);
+    logger.debug('Got metrics resource attrs2: %o', resources.attributes);
 
     let exporter;
     if (process.env.OTLP_COLLECTOR_URL) {
@@ -238,7 +262,7 @@ async function initMetrics() {
     } else {
       exporterMode = ExporterMode.GCM;
       logger.info('Counters sent directly to GCP monitoring');
-      exporter = new GcpMetricExporter();
+      exporter = new GcpMetricExporter({prefix: 'custom.googleapis.com'});
     }
 
     meterProvider = new MeterProvider({

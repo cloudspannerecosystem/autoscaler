@@ -16,17 +16,12 @@
 const express = require('express');
 const scalerCore = require('./scaler-core');
 const {logger} = require('../autoscaler-common/logger');
-const CountersBase = require('../autoscaler-common/counters_base');
 
 /**
  * Setup autoscaler.
  */
 function main() {
   logger.info(`Autoscaler Scaler started`);
-
-  // This is long running process, so rely on OpenTelemetry's
-  // automatic flushing of counters.
-  CountersBase.setTryFlushEnabled(false);
 
   const app = express();
   const port = process.env.PORT || 3000;
