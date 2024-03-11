@@ -110,7 +110,7 @@ used to monitor the behavior of the autoscaler, and to configure alerts.
 *   Message processing counters:
     *   `cloudspannerecosystem/autoscaler/poller/requests-success` - the number
         of polling request messages recieved and processed successfully.
-    *   `cloudspannerecosystem/autoscaler/poller/requests-success` - the number
+    *   `cloudspannerecosystem/autoscaler/poller/requests-failed` - the number
         of polling request messages which failed processing.
 
 *   Spanner Instance polling counters:
@@ -126,7 +126,7 @@ used to monitor the behavior of the autoscaler, and to configure alerts.
 *   Message processing counters:
     *   `cloudspannerecosystem/autoscaler/scaler/requests-success` - the number
         of scaling request messages recieved and processed successfully.
-    *   `cloudspannerecosystem/autoscaler/scaler/requests-success` - the number
+    *   `cloudspannerecosystem/autoscaler/scaler/requests-failed` - the number
         of scaling request messages which failed processing.
 *   Spanner Instance scaling counters:
     *   `cloudspannerecosystem/autoscaler/scaler/scaling-success` - the number
