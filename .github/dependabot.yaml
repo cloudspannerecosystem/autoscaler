@@ -90,16 +90,6 @@ updates:
     commit-message:
       prefix: "build(npm)"
 
-  - directory: "/src/autoscaler-common"
-    package-ecosystem: "npm"
-    schedule:
-      interval: "weekly"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-    commit-message:
-      prefix: "build(npm)"
-
   # Docker dependencies
   - directory: "/src"
     package-ecosystem: "docker"
