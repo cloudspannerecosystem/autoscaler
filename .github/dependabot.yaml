@@ -5,6 +5,9 @@ updates:
     package-ecosystem: "github-actions"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "build(npm)"
+
 
   # NPM dependancies -- only prompt to update minor versions.
   - directory: "/"
@@ -14,6 +17,8 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "build(npm)"
 
   - directory: "/src"
     package-ecosystem: "npm"
@@ -22,6 +27,8 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "build(npm)"
 
   - directory: "/src/autoscaler-common"
     package-ecosystem: "npm"
@@ -30,6 +37,8 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "build(npm)"
 
   - directory: "/src/forwarder"
     package-ecosystem: "npm"
@@ -38,6 +47,8 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "build(npm)"
 
   - directory: "/src/poller"
     package-ecosystem: "npm"
@@ -46,6 +57,8 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "build(npm)"
 
   - directory: "/src/poller/poller-core"
     package-ecosystem: "npm"
@@ -54,6 +67,8 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "build(npm)"
 
   - directory: "/src/scaler"
     package-ecosystem: "npm"
@@ -62,6 +77,8 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "build(npm)"
 
   - directory: "/src/scaler/scaler-core"
     package-ecosystem: "npm"
@@ -70,35 +87,37 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-
-  - directory: "/src/autoscaler-common"
-    package-ecosystem: "npm"
-    schedule:
-      interval: "weekly"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "build(npm)"
 
   # Docker dependencies
   - directory: "/src"
     package-ecosystem: "docker"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "build(docker)"
 
   - directory: "/src/poller"
     package-ecosystem: "docker"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "build(docker)"
 
   - directory: "/src/scaler"
     package-ecosystem: "docker"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "build(docker)"
 
   - directory: "/src/forwarder"
     package-ecosystem: "docker"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "build(docker)"
 
 version: 2
 ...
