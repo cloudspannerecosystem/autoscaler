@@ -228,7 +228,6 @@ async function initMetrics() {
 
     const gcpResources = new GcpDetectorSync().detect();
     await gcpResources.waitForAsyncAttributes();
-    logger.debug('Got gcpResources attrs:1 %o', gcpResources.attributes);
 
     if (process.env.FUNCTION_TARGET) {
       // In cloud functions.
@@ -250,8 +249,6 @@ async function initMetrics() {
 
     const resources = gcpResources.merge(new Resource(RESOURCE_ATTRIBUTES));
     await resources.waitForAsyncAttributes();
-
-    logger.debug('Got metrics resource attrs2: %o', resources.attributes);
 
     let exporter;
     if (process.env.OTLP_COLLECTOR_URL) {

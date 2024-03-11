@@ -95,7 +95,7 @@ infrastructure and configuration of their own Autoscalers on Kubernetes.
     Spanner Instance to scale out or in.
 
 9.  Both Poller and Scaler publish counters to an [OpenTelemetry Collector][otel-collector],
-    also running in Kubernetes, which is configure to forward these counters to
+    also running in Kubernetes, which is configured to forward these counters to
     [Google Cloud Monitoring][gcm-docs]. See section
     [Metrics in GKE deployment](#metrics-in-gke-deployment)
 
@@ -607,6 +607,18 @@ Metrics can be sent to other exporters by modifying the Collector ConfigMap.
 A [NetworkPolicy rule](../../kubernetes/decoupled/autoscaler-pkg/networkpolicy.yaml)
 is also configured to allow traffic from the `poller` and `scaler` workloads
 (labelled with `otel-submitter:true`) to the `otel-collector` service.
+
+If the environmental variable `OTLP_COLLECTOR_URL` is not specified, the metrics
+will be sent directly to Google Cloud Monitoring.
+
+To allow Google Cloud Monitoring to distinguish metrics from different instances
+of the poller and scaler, the Kubernetes Pod name is passed to the poller and
+scaler componnents via the environmental variable `K8S_POD_NAME`. If this
+variable is not specified, and if the Pod name attribute is not appended to the
+metrics by configuring the
+[Kubernetes Attributes Processor](https://opentelemetry.io/docs/kubernetes/collector/components/#kubernetes-attributes-processor)
+in the OpenTelemetry Collector, then there will be Send TimeSeries errors
+reported when the Collector exports the metrics to GCM.
 
 ## Troubleshooting
 
