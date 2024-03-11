@@ -608,7 +608,7 @@ A [NetworkPolicy rule](../../kubernetes/decoupled/autoscaler-pkg/networkpolicy.y
 is also configured to allow traffic from the `poller` and `scaler` workloads
 (labelled with `otel-submitter:true`) to the `otel-collector` service.
 
-If the environmental variable `OTLP_COLLECTOR_URL` is not specified, the metrics
+If the environment variable `OTLP_COLLECTOR_URL` is not specified, the metrics
 will be sent directly to Google Cloud Monitoring.
 
 To allow Google Cloud Monitoring to distinguish metrics from different instances
