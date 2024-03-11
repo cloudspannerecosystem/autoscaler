@@ -12,5 +12,8 @@
     "eslint-config-google": "^0.14.0",
     "markdownlint-cli": "^0.39.0",
     "typescript": "^5.4.2"
+  },
+  "dependencies": {
+    "release-please": "^16.10.0"
   }
 }
