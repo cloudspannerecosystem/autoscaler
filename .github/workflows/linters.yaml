@@ -27,5 +27,4 @@ jobs:
     - name: Run mdl
       uses: actionshub/markdownlint@main
       with:
-        filesToIgnoreRegex: code\-of\-conduct\.md
-        filesToIgnoreRegex: CHANGELOG.md
+        filesToIgnoreRegex: code\-of\-conduct\.md|CHANGELOG.md
