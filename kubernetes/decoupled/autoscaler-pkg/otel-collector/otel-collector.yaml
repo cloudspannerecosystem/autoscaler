@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: spanner-autoscaler # kpt-set: ${namespace}
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+      - name: otel-collector
+        image: otel/opentelemetry-collector-contrib:0.93.0
+        args:
+        - --config
+        - /etc/otel/config.yaml
+        volumeMounts:
+        - mountPath: /etc/otel/
+          name: otel-config
+      volumes:
+      - name: otel-config
+        configMap:
+          name: otel-config
+      nodeSelector:
+        iam.gke.io/gke-metadata-server-enabled: "true"
+      serviceAccountName: otel-collector-sa
+      automountServiceAccountToken: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: spanner-autoscaler # kpt-set: ${namespace}
+spec:
+  type: ClusterIP
+  selector:
+    app: otel-collector
+  ports:
+    - protocol: TCP
+      port: 4317
+      targetPort: 4317

@@ -19,15 +19,21 @@ const forwarder = require('./forwarder');
 const {logger} = require('./autoscaler-common/logger');
 const yaml = require('js-yaml');
 const fs = require('fs/promises');
+const CountersBase = require('./autoscaler-common/counters_base');
 
 /**
- * Startup function.
+ * Startup function for unified poller/scaler
  */
 async function main() {
   const DEFAULT_CONFIG_LOCATION =
       '/etc/autoscaler-config/autoscaler-config.yaml';
 
   logger.info(`Autoscaler unified poller+scaler job started`);
+
+  // This is not a long-running process, but we only want to flush the counters
+  // when it has completed. So disable flushing here, and enable and flush in
+  // the finally {} block
+  CountersBase.setTryFlushEnabled(false);
 
   let configLocation = DEFAULT_CONFIG_LOCATION;
 
@@ -56,6 +62,9 @@ async function main() {
     logger.error({
       message: 'Error in unified poller/scaler wrapper:',
       err: err});
+  } finally {
+    CountersBase.setTryFlushEnabled(true);
+    await CountersBase.tryFlush();
   }
 }
 

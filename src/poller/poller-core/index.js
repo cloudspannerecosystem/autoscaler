@@ -27,6 +27,7 @@ const monitoring = require('@google-cloud/monitoring');
 const {PubSub} = require('@google-cloud/pubsub');
 const {Spanner} = require('@google-cloud/spanner');
 const {logger} = require('../../autoscaler-common/logger');
+const Counters = require('./counters.js');
 const {AutoscalerUnits} = require('../../autoscaler-common/types');
 
 /**
@@ -546,6 +547,7 @@ async function forwardMetrics(forwarderFunction, spanners) {
     try {
       const metrics = await getMetrics(spanner);
       await forwarderFunction(spanner, metrics); // Handles exceptions
+      await Counters.incPollingSuccessCounter(spanner);
     } catch (err) {
       logger.error({
         message: `Unable to retrieve metrics for ${spanner.projectId}/${
@@ -554,6 +556,7 @@ async function forwardMetrics(forwarderFunction, spanners) {
         instanceId: spanner.instanceId,
         err: err,
       });
+      await Counters.incPollingFailedCounter(spanner);
     }
   }
 };
@@ -570,6 +573,7 @@ async function aggregateMetrics(spanners) {
     try {
       spanner.metrics = await getMetrics(spanner);
       aggregatedMetrics.push(spanner);
+      await Counters.incPollingSuccessCounter(spanner);
     } catch (err) {
       logger.error({
         message: `Unable to retrieve metrics for ${spanner.projectId}/${
@@ -578,6 +582,7 @@ async function aggregateMetrics(spanners) {
         instanceId: spanner.instanceId,
         err: err,
       });
+      await Counters.incPollingFailedCounter(spanner);
     }
   }
   return aggregatedMetrics;
@@ -599,17 +604,22 @@ async function checkSpannerScaleMetricsPubSub(pubSubEvent, context) {
         message: 'Autoscaler poller started (PubSub).',
         payload: spanners});
       await forwardMetrics(postPubSubMessage, spanners);
+      await Counters.incRequestsSuccessCounter();
     } catch (err) {
       logger.error({
         message: `An error occurred in the Autoscaler poller function (PubSub)`,
         err: err});
       logger.error({message: `JSON payload`, payload: payload});
+      await Counters.incRequestsFailedCounter();
     }
   } catch (err) {
     logger.error({
       message: `An error occurred in the Autoscaler poller function (PubSub)`,
       err: err});
     logger.error({message: `Pubsub data`, payload: pubSubEvent.data});
+    await Counters.incRequestsFailedCounter();
+  } finally {
+    await Counters.tryFlush();
   }
 };
 
@@ -633,12 +643,17 @@ async function checkSpannerScaleMetricsHTTP(req, res) {
     const spanners = await parseAndEnrichPayload(payload);
     await forwardMetrics(postPubSubMessage, spanners);
     res.status(200).end();
+    await Counters.incRequestsSuccessCounter();
   } catch (err) {
     logger.error({
       message: `An error occurred in the Autoscaler poller function (HTTP)`,
       err: err});
     logger.error({message: `JSON payload`, payload: payload});
     res.status(500).end(err.toString());
+    res.end(err.toString());
+    await Counters.incRequestsFailedCounter();
+  } finally {
+    await Counters.tryFlush();
   }
 };
 
@@ -654,17 +669,21 @@ async function checkSpannerScaleMetricsJSON(payload) {
       message: 'Autoscaler poller started (JSON/HTTP).',
       payload: spanners});
     await forwardMetrics(callScalerHTTP, spanners);
+    await Counters.incRequestsSuccessCounter();
   } catch (err) {
     logger.error({
       message:
         `An error occurred in the Autoscaler poller function (JSON/HTTP)`,
       err: err});
     logger.error({message: `JSON payload`, payload: payload});
+    await Counters.incRequestsFailedCounter();
+  } finally {
+    await Counters.tryFlush();
   }
 };
 
 /**
- * Local test
+ * Entrypoint for Local config.
  *
  * @param {string} payload
  * @return {Promise<AutoscalerSpanner[]>}
@@ -675,13 +694,18 @@ async function checkSpannerScaleMetricsLocal(payload) {
     logger.debug({
       message: 'Autoscaler poller started (JSON/local).',
       payload: spanners});
-    return await aggregateMetrics(spanners);
+    const metrics = await aggregateMetrics(spanners);
+    await Counters.incRequestsSuccessCounter();
+    return metrics;
   } catch (err) {
     logger.error({
       message:
         `An error occurred in the Autoscaler poller function (JSON/Local)`,
       err: err});
     logger.error({message: `JSON payload`, payload: payload});
+    await Counters.incRequestsFailedCounter();
+  } finally {
+    await Counters.tryFlush();
   }
 };
 
