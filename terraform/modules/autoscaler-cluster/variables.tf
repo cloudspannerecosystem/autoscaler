@@ -69,6 +69,12 @@ variable "scaler_sa_email" {
   type = string
 }
 
+variable "otel_collector_sa_name" {
+  type = string
+  description = "The name of the service account and workload identity to be created and used by the OpenTelemetry Collector workload"
+  default = "otel-collector-sa"
+}
+
 variable "unified_components" {
   description = "Whether Poller and Scaler are unified"
   type        = bool

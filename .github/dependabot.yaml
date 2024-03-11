@@ -71,6 +71,13 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
 
+  - directory: "/src/autoscaler-common"
+    package-ecosystem: "npm"
+    schedule:
+      interval: "weekly"
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
   # Docker dependencies
   - directory: "/src"
     package-ecosystem: "docker"
