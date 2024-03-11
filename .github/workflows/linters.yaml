@@ -28,3 +28,4 @@ jobs:
       uses: actionshub/markdownlint@main
       with:
         filesToIgnoreRegex: code\-of\-conduct\.md
+        filesToIgnoreRegex: CHANGELOG.md
