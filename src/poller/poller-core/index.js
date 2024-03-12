@@ -29,6 +29,7 @@ const {Spanner} = require('@google-cloud/spanner');
 const {logger} = require('../../autoscaler-common/logger');
 const Counters = require('./counters.js');
 const {AutoscalerUnits} = require('../../autoscaler-common/types');
+const {version: packageVersion} = require('../../../package.json');
 
 /**
  * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
@@ -265,7 +266,7 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
   const spanner = new Spanner({
     projectId: projectId,
     // @ts-ignore -- hidden property of ServiceOptions.
-    userAgent: 'cloud-solutions/spanner-autoscaler-poller-usage-v1.0',
+    userAgent: `cloud-solutions/spanner-autoscaler-poller-usage-v${packageVersion}`,
   });
   const spannerInstance = spanner.instance(spannerInstanceId);
 

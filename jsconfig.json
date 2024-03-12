@@ -4,7 +4,8 @@
     "target": "ES6",
     "checkJs": true,
     "allowJs": true,
-    "noEmit": true
+    "noEmit": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"],
   "exclude": ["src/**/node_modules"]

@@ -34,6 +34,7 @@ const {publishProtoMsgDownstream} = require('./utils.js');
 const State = require('./state.js');
 const fs = require('fs');
 const {AutoscalerUnits} = require('../../autoscaler-common/types');
+const {version: packageVersion} = require('../../../package.json');
 
 /**
  * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
@@ -117,7 +118,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
   const spannerClient = new Spanner({
     projectId: spanner.projectId,
     // @ts-ignore -- hidden property of ServiceOptions.
-    userAgent: 'cloud-solutions/spanner-autoscaler-scaler-usage-v1.0',
+    userAgent: `cloud-solutions/spanner-autoscaler-scaler-usage-v${packageVersion}`,
   });
 
   return spannerClient

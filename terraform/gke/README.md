@@ -420,7 +420,7 @@ similar process.
 1.  Change to the directory that contains the Autoscaler source code:
 
     ```sh
-    cd ${AUTOSCALER_ROOT}/src
+    cd ${AUTOSCALER_ROOT}
     ```
 
 2.  Build the Autoscaler components by following the instructions in the

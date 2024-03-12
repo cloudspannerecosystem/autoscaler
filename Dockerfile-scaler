@@ -16,18 +16,14 @@ ARG NODE_VERSION=20
 FROM node:${NODE_VERSION}-alpine AS build-env
 
 WORKDIR /usr/src/app
-COPY autoscaler-common/ autoscaler-common/
-COPY scaler/ scaler/
-
-WORKDIR /usr/src/app/autoscaler-common
+COPY src/autoscaler-common/ src/autoscaler-common/
+COPY src/scaler/scaler-core/ src/scaler/scaler-core/
+COPY package*.json .
 RUN npm config set update-notifier false
-RUN npm install  --omit=dev
-
-WORKDIR /usr/src/app/scaler
-RUN npm install  --omit=dev
+RUN npm install --omit=dev
 
 FROM gcr.io/distroless/nodejs${NODE_VERSION}:latest
 COPY --from=build-env /usr/src/app /usr/src/app
-WORKDIR /usr/src/app/scaler/scaler-core
+WORKDIR /usr/src/app/
 
-CMD ["-e", "require('../index').main()"]
+CMD ["-e", "require('./src/scaler/scaler-core/index').main()"]

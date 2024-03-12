@@ -37,6 +37,7 @@ const OpenTelemetryApi = require('@opentelemetry/api');
 const OpenTelemetryCore = require('@opentelemetry/core');
 const {setTimeout} = require('timers/promises');
 const {logger} = require('./logger.js');
+const {version: packageVersion} = require('../../package.json');
 
 /**
  * @typedef {{
@@ -54,7 +55,7 @@ const {logger} = require('./logger.js');
 const RESOURCE_ATTRIBUTES = {
   [Semconv.SEMRESATTRS_SERVICE_NAMESPACE]: 'cloudspannerecosystem',
   [Semconv.SEMRESATTRS_SERVICE_NAME]: 'autoscaler',
-  [Semconv.SEMRESATTRS_SERVICE_VERSION]: '1.0',
+  [Semconv.SEMRESATTRS_SERVICE_VERSION]: packageVersion,
 };
 
 const COUNTER_ATTRIBUTE_NAMES = {

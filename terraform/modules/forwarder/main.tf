@@ -47,8 +47,16 @@ resource "google_storage_bucket" "bucket_gcf_source" {
 
 data "archive_file" "local_forwarder_source" {
   type        = "zip"
-  source_dir  = abspath("${path.module}/../../../src")
+  source_dir  = abspath("${path.module}/../../..")
   output_path = "${var.local_output_path}/forwarder.zip"
+  excludes = [
+    "node_modules",
+    "terraform",
+    "resources",
+    ".github",
+    "kubernetes",
+    "gke"
+  ]
 }
 
 resource "google_storage_bucket_object" "gcs_functions_forwarder_source" {
