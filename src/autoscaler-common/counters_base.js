@@ -32,9 +32,7 @@ const {
   OTLPMetricExporter,
 } = require('@opentelemetry/exporter-metrics-otlp-grpc');
 const {GcpDetectorSync} = require('@google-cloud/opentelemetry-resource-util');
-const {
-  SemanticResourceAttributes: Semconv,
-} = require('@opentelemetry/semantic-conventions');
+const Semconv = require('@opentelemetry/semantic-conventions');
 const OpenTelemetryApi = require('@opentelemetry/api');
 const OpenTelemetryCore = require('@opentelemetry/core');
 const {setTimeout} = require('timers/promises');
@@ -54,9 +52,9 @@ const {logger} = require('./logger.js');
  */
 
 const RESOURCE_ATTRIBUTES = {
-  [Semconv.SERVICE_NAMESPACE]: 'cloudspannerecosystem',
-  [Semconv.SERVICE_NAME]: 'autoscaler',
-  [Semconv.SERVICE_VERSION]: '1.0',
+  [Semconv.SEMRESATTRS_SERVICE_NAMESPACE]: 'cloudspannerecosystem',
+  [Semconv.SEMRESATTRS_SERVICE_NAME]: 'autoscaler',
+  [Semconv.SEMRESATTRS_SERVICE_VERSION]: '1.0',
 };
 
 const COUNTER_ATTRIBUTE_NAMES = {
@@ -68,9 +66,9 @@ const COUNTER_ATTRIBUTE_NAMES = {
  * The prefix to use for any autoscaler counters.
  */
 const COUNTERS_PREFIX =
-  RESOURCE_ATTRIBUTES[Semconv.SERVICE_NAMESPACE] +
+  RESOURCE_ATTRIBUTES[Semconv.SEMRESATTRS_SERVICE_NAMESPACE] +
   '/' +
-  RESOURCE_ATTRIBUTES[Semconv.SERVICE_NAME] +
+  RESOURCE_ATTRIBUTES[Semconv.SEMRESATTRS_SERVICE_NAME] +
   '/';
 
 /** @enum{String} */
@@ -213,7 +211,8 @@ async function initMetrics() {
       // In K8s. We need to set the Pod Name to prevent duplicate
       // timeseries errors.
       if (process.env.K8S_POD_NAME) {
-        RESOURCE_ATTRIBUTES[Semconv.K8S_POD_NAME] = process.env.K8S_POD_NAME;
+        RESOURCE_ATTRIBUTES[Semconv.SEMRESATTRS_K8S_POD_NAME] =
+          process.env.K8S_POD_NAME;
       } else {
         logger.warn(
           'WARNING: running under Kubernetes, but K8S_POD_NAME ' +
@@ -232,11 +231,11 @@ async function initMetrics() {
       // function instance ID gets set in the  counter resource attributes.
       // For details, see
       // https://github.com/GoogleCloudPlatform/opentelemetry-operations-js/issues/679
-      RESOURCE_ATTRIBUTES[Semconv.CLOUD_PLATFORM] = 'generic_task';
+      RESOURCE_ATTRIBUTES[Semconv.SEMRESATTRS_CLOUD_PLATFORM] = 'generic_task';
 
-      if (gcpResources.attributes[Semconv.FAAS_ID]?.toString()) {
-        RESOURCE_ATTRIBUTES[Semconv.SERVICE_INSTANCE_ID] =
-          gcpResources.attributes[Semconv.FAAS_ID].toString();
+      if (gcpResources.attributes[Semconv.SEMRESATTRS_FAAS_ID]?.toString()) {
+        RESOURCE_ATTRIBUTES[Semconv.SEMRESATTRS_SERVICE_INSTANCE_ID] =
+          gcpResources.attributes[Semconv.SEMRESATTRS_FAAS_ID].toString();
       } else {
         logger.warn(
           'WARNING: running under Cloud Functions, but FAAS_ID ' +
