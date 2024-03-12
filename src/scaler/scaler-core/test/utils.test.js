@@ -13,11 +13,13 @@
  * limitations under the License
  */
 
+const {Topic} = require('@google-cloud/pubsub');
 const rewire = require('rewire');
 // eslint-disable-next-line no-unused-vars
 const should = require('should');
 const sinon = require('sinon');
 const referee = require('@sinonjs/referee');
+// @ts-ignore
 const assert = referee.assert;
 const {createDownstreamMsg} = require('./test-utils.js');
 
@@ -58,15 +60,10 @@ describe('#publishProtoMsgDownstream', () => {
   });
 
   it('should publish downstream message', async function () {
-    const mockTopic = {
-      publishMessage: async function () {
-        return Promise.resolve();
-      },
-    };
-    const spyTopic = sinon.spy(mockTopic);
-
+    const stubTopic = sinon.createStubInstance(Topic);
+    stubTopic.publishMessage.resolves();
     const stubPubSub = sinon.stub(pubsub);
-    stubPubSub.topic.returns(spyTopic);
+    stubPubSub.topic.returns(stubTopic);
 
     app.__set__('pubsub', stubPubSub);
     app.__set__(
@@ -75,7 +72,7 @@ describe('#publishProtoMsgDownstream', () => {
     );
 
     await publishProtoMsgDownstream('EVENT', '', 'the/topic');
-    assert(spyTopic.publishMessage.calledOnce);
+    assert(stubTopic.publishMessage.calledOnce);
   });
 });
 
