@@ -16,12 +16,13 @@
 const express = require('express');
 const scalerCore = require('./scaler-core');
 const {logger} = require('../autoscaler-common/logger');
+const {version: packageVersion} = require('../../package.json');
 
 /**
- * Setup autoscaler.
+ * Entrypoint for GKE Scaler HTTP service.
  */
 function main() {
-  logger.info(`Autoscaler Scaler started`);
+  logger.info(`Autoscaler Scaler v${packageVersion} service started`);
 
   const app = express();
   const port = process.env.PORT || 3000;

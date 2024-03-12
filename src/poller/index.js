@@ -17,15 +17,16 @@ const pollerCore = require('./poller-core');
 const yaml = require('js-yaml');
 const fs = require('fs/promises');
 const {logger} = require('../autoscaler-common/logger');
+const {version: packageVersion} = require('../../package.json');
 
 /**
- * Startup function
+ * Entrypoint for GKE poller task.
  */
 async function main() {
   const DEFAULT_CONFIG_LOCATION =
     '/etc/autoscaler-config/autoscaler-config.yaml';
 
-  logger.info(`Autoscaler Poller job started`);
+  logger.info(`Autoscaler Poller v${packageVersion} job started`);
 
   let configLocation = DEFAULT_CONFIG_LOCATION;
 

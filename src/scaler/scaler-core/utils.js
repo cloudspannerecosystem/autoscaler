@@ -80,7 +80,9 @@ function maybeRound(suggestedSize, units, label = '', projectId, instanceId) {
  * @return {Promise<protobuf.Message>}
  */
 async function createProtobufMessage(jsonData) {
-  const root = await protobuf.load('downstream.schema.proto');
+  const root = await protobuf.load(
+    'src/scaler/scaler-core/downstream.schema.proto',
+  );
   const DownstreamEvent = root.lookupType('DownstreamEvent');
   return DownstreamEvent.create(jsonData);
 }

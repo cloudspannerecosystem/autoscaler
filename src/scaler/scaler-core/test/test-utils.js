@@ -32,7 +32,11 @@ const DUMMY_TIMESTAMP = 1704110400000;
  */
 function createSpannerParameters(overrideParams) {
   return {
-    ...JSON.parse(fs.readFileSync('./test/samples/parameters.json').toString()),
+    ...JSON.parse(
+      fs
+        .readFileSync('src/scaler/scaler-core/test/samples/parameters.json')
+        .toString(),
+    ),
     ...overrideParams,
   };
 }
@@ -65,7 +69,9 @@ function createStateData() {
  */
 function createDownstreamMsg() {
   return JSON.parse(
-    fs.readFileSync('./test/samples/downstream-msg.json').toString(),
+    fs
+      .readFileSync('src/scaler/scaler-core/test/samples/downstream-msg.json')
+      .toString(),
   );
 }
 

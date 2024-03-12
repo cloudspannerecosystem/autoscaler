@@ -72,16 +72,9 @@ resource "google_storage_bucket" "bucket_gcf_source" {
 
 data "archive_file" "local_source" {
   type        = "zip"
-  source_dir  = abspath("${path.module}/../../../src")
+  source_dir  = abspath("${path.module}/../../..")
   output_path = "${var.local_output_path}/src.zip"
-  excludes = [
-    "node_modules",
-    "forwarder/node_modules",
-    "poller/node_modules",
-    "scaler/node_modules",
-    "poller/poller-core/node_modules",
-    "scaler/scaler-core/node_modules"
-  ]
+  excludes = [ ".git", ".github", ".nyc_output", ".vscode", "kubernetes", "node_modules", "resources", "scaler", "terraform"  ]
 }
 
 resource "google_storage_bucket_object" "gcs_functions_source" {

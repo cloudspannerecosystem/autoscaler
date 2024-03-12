@@ -36,6 +36,7 @@ const {publishProtoMsgDownstream} = require('./utils.js');
 const State = require('./state.js');
 const fs = require('fs');
 const {AutoscalerUnits} = require('../../autoscaler-common/types');
+const {version: packageVersion} = require('../../../package.json');
 
 /**
  * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
@@ -115,7 +116,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
   const spannerClient = new Spanner({
     projectId: spanner.projectId,
     // @ts-ignore -- hidden property of ServiceOptions.
-    userAgent: 'cloud-solutions/spanner-autoscaler-scaler-usage-v1.0',
+    userAgent: `cloud-solutions/spanner-autoscaler-scaler-usage-v${packageVersion}`,
   });
 
   const [operation] = await spannerClient
@@ -396,6 +397,8 @@ async function processScalingRequest(spanner, autoscalerState) {
 /**
  * Handle scale request from a PubSub event.
  *
+ * Called by Cloud Functions Scaler deployment.
+ *
  * @param {{data:string}} pubSubEvent -- a CloudEvent object.
  * @param {*} context
  */
@@ -444,7 +447,10 @@ async function scaleSpannerInstancePubSub(pubSubEvent, context) {
  */
 async function scaleSpannerInstanceHTTP(req, res) {
   try {
-    const payload = fs.readFileSync('./test/samples/parameters.json', 'utf-8');
+    const payload = fs.readFileSync(
+      'src/scaler/scaler-core/test/samples/parameters.json',
+      'utf-8',
+    );
     const spanner = JSON.parse(payload);
     try {
       const state = State.buildFor(spanner);
@@ -472,7 +478,9 @@ async function scaleSpannerInstanceHTTP(req, res) {
 
 /**
  * Handle scale request from a HTTP call with JSON payload
-
+ *
+ * Called by the Scaler service on GKE deployments
+ *
  * @param {express.Request} req
  * @param {express.Response} res
  */
@@ -509,6 +517,9 @@ async function scaleSpannerInstanceJSON(req, res) {
 
 /**
  * Handle scale request from local function call
+ *
+ * Called by unified poller/scaler on GKE deployments
+ *
  * @param {AutoscalerSpanner} spanner
  */
 async function scaleSpannerInstanceLocal(spanner) {

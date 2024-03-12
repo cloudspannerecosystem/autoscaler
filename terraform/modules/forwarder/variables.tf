@@ -24,7 +24,7 @@ variable "region" {
 
 variable "nodejs_version" {
   type    = string
-  default = "18"
+  default = "20"
 }
 
 variable "local_output_path" {

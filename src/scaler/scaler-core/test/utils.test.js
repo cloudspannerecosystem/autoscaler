@@ -81,7 +81,9 @@ describe('#createProtobufMessage', () => {
     const message = await createProtobufMessage(createDownstreamMsg());
     const result = message.toJSON();
 
-    const root = await protobuf.load('downstream.schema.proto');
+    const root = await protobuf.load(
+      'src/scaler/scaler-core/downstream.schema.proto',
+    );
     const DownstreamEvent = root.lookupType('DownstreamEvent');
     assert.equals(DownstreamEvent.verify(result), null);
   });
