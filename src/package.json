@@ -12,5 +12,9 @@
   },
   "scripts": {
     "start": "node -e \"require('./index').autoscalerMain()\""
+  },
+  "engines": {
+    "node": ">=18.0.0 || >=20.0.0",
+    "npm":  ">=10.0.0"
   }
 }

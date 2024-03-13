@@ -4,6 +4,7 @@
   "Description": "Autoscaling for Cloud Spanner based on CPU metrics",
   "homepage": "https://github.com/cloudspannerecosystem/autoscaler",
   "license": "Apache-2.0",
+  "author": "Google Inc.",
   "scripts": {
     "eslint": "eslint .",
     "eslint-fix": "eslint --fix .",
@@ -17,5 +18,9 @@
     "eslint-config-google": "^0.14.0",
     "markdownlint-cli": "^0.39.0",
     "typescript": "^5.4.2"
+  },
+  "engines": {
+    "node": ">=18.0.0 || >=20.0.0",
+    "npm":  ">=10.0.0"
   }
 }
