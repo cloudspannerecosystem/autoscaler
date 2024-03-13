@@ -8,6 +8,8 @@
   "scripts": {
     "eslint": "eslint .",
     "eslint-fix": "eslint --fix .",
+    "check-format": "prettier --check .",
+    "format": "prettier --write .",
     "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit",
     "mdlint": "markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md' --ignore 'CHANGELOG.md'",
     "install-all": "find . -name package.json -a ! -path '*/node_modules/*' -execdir pwd \\;  -execdir npm install --save \\;"
@@ -16,11 +18,14 @@
     "@types/mocha": "^10.0.6",
     "eslint": "^8.57.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
     "markdownlint-cli": "^0.39.0",
+    "prettier": "^3.2.5",
     "typescript": "^5.4.2"
   },
   "engines": {
     "node": ">=18.0.0 || >=20.0.0",
-    "npm":  ">=10.0.0"
+    "npm": ">=10.0.0"
   }
 }
