@@ -20,17 +20,21 @@
  * packages
  *
  */
-const {MeterProvider, PeriodicExportingMetricReader} =
-  require('@opentelemetry/sdk-metrics');
+const {
+  MeterProvider,
+  PeriodicExportingMetricReader,
+} = require('@opentelemetry/sdk-metrics');
 const {Resource} = require('@opentelemetry/resources');
-const {MetricExporter: GcpMetricExporter} =
-  require('@google-cloud/opentelemetry-cloud-monitoring-exporter');
-const {OTLPMetricExporter} =
-  require('@opentelemetry/exporter-metrics-otlp-grpc');
-const {GcpDetectorSync} =
-   require('@google-cloud/opentelemetry-resource-util');
-const {SemanticResourceAttributes: Semconv} =
-  require('@opentelemetry/semantic-conventions');
+const {
+  MetricExporter: GcpMetricExporter,
+} = require('@google-cloud/opentelemetry-cloud-monitoring-exporter');
+const {
+  OTLPMetricExporter,
+} = require('@opentelemetry/exporter-metrics-otlp-grpc');
+const {GcpDetectorSync} = require('@google-cloud/opentelemetry-resource-util');
+const {
+  SemanticResourceAttributes: Semconv,
+} = require('@opentelemetry/semantic-conventions');
 const OpenTelemetryApi = require('@opentelemetry/api');
 const OpenTelemetryCore = require('@opentelemetry/core');
 const {setTimeout} = require('timers/promises');
@@ -45,10 +49,9 @@ const {logger} = require('./logger.js');
 
 /**
  * @typedef {{
-*    [x: string]: string,
-* }} CounterAttributes
-*/
-
+ *    [x: string]: string,
+ * }} CounterAttributes
+ */
 
 const RESOURCE_ATTRIBUTES = {
   [Semconv.SERVICE_NAMESPACE]: 'cloudspannerecosystem',
@@ -70,7 +73,6 @@ const COUNTERS_PREFIX =
   RESOURCE_ATTRIBUTES[Semconv.SERVICE_NAME] +
   '/';
 
-
 /** @enum{String} */
 const ExporterMode = {
   GCM: 'GCM',
@@ -85,7 +87,7 @@ const EXPORTER_PARAMETERS = {
   //
   // However the only Metrics pusher is a periodic one :/
   [ExporterMode.GCM]: {
-    PERIODIC_FLUSH_INTERVAL: 12*60*60*1_000, // 12hr
+    PERIODIC_FLUSH_INTERVAL: 12 * 60 * 60 * 1_000, // 12hr
     FLUSH_MIN_INTERVAL: 10_000,
     FLUSH_MAX_ATTEMPTS: 6,
   },
@@ -132,27 +134,27 @@ class DiagToBunyanLogger {
 
   // eslint-disable-next-line require-jsdoc
   verbose(message, ...args) {
-    logger.trace('otel: '+message, args);
+    logger.trace('otel: ' + message, args);
   }
   // eslint-disable-next-line require-jsdoc
   debug(message, ...args) {
-    logger.debug('otel: '+message, args);
+    logger.debug('otel: ' + message, args);
   }
   // eslint-disable-next-line require-jsdoc
   info(message, ...args) {
-    logger.info('otel: '+message, args);
+    logger.info('otel: ' + message, args);
   }
   // eslint-disable-next-line require-jsdoc
   warn(message, ...args) {
-    logger.warn('otel: '+message, args);
+    logger.warn('otel: ' + message, args);
   }
   // eslint-disable-next-line require-jsdoc
   error(message, ...args) {
-    if ( ! this.suppressErrors ) {
-      logger.error('otel: '+message, args);
+    if (!this.suppressErrors) {
+      logger.error('otel: ' + message, args);
     }
   }
-};
+}
 
 const DIAG_BUNYAN_LOGGER = new DiagToBunyanLogger();
 
@@ -174,16 +176,12 @@ function openTelemetryGlobalErrorHandler(err) {
   OpenTelemetryCore.loggingErrorHandler()(err);
 }
 
-
 // Setup OpenTelemetry client libraries logging.
-OpenTelemetryApi.default.diag.setLogger(
-    DIAG_BUNYAN_LOGGER,
-    {
-      logLevel: OpenTelemetryApi.DiagLogLevel.INFO,
-      suppressOverrideMessage: true,
-    });
+OpenTelemetryApi.default.diag.setLogger(DIAG_BUNYAN_LOGGER, {
+  logLevel: OpenTelemetryApi.DiagLogLevel.INFO,
+  suppressOverrideMessage: true,
+});
 OpenTelemetryCore.setGlobalErrorHandler(openTelemetryGlobalErrorHandler);
-
 
 /**
  * Initialize the OpenTelemetry metrics, set up logging
@@ -208,7 +206,6 @@ async function initMetrics() {
     rejectPendingInit = rej;
   });
 
-
   try {
     logger.debug('initializing metrics');
 
@@ -216,13 +213,13 @@ async function initMetrics() {
       // In K8s. We need to set the Pod Name to prevent duplicate
       // timeseries errors.
       if (process.env.K8S_POD_NAME) {
-        RESOURCE_ATTRIBUTES[
-            Semconv.K8S_POD_NAME] =
-            process.env.K8S_POD_NAME;
+        RESOURCE_ATTRIBUTES[Semconv.K8S_POD_NAME] = process.env.K8S_POD_NAME;
       } else {
-        logger.warn('WARNING: running under Kubernetes, but K8S_POD_NAME ' +
-        'environment variable is not set. ' +
-        'This may lead to Send TimeSeries errors');
+        logger.warn(
+          'WARNING: running under Kubernetes, but K8S_POD_NAME ' +
+            'environment variable is not set. ' +
+            'This may lead to Send TimeSeries errors',
+        );
       }
     }
 
@@ -239,11 +236,13 @@ async function initMetrics() {
 
       if (gcpResources.attributes[Semconv.FAAS_ID]?.toString()) {
         RESOURCE_ATTRIBUTES[Semconv.SERVICE_INSTANCE_ID] =
-            gcpResources.attributes[Semconv.FAAS_ID].toString();
+          gcpResources.attributes[Semconv.FAAS_ID].toString();
       } else {
-        logger.warn('WARNING: running under Cloud Functions, but FAAS_ID ' +
-        'resource attribute is not set. ' +
-        'This may lead to Send TimeSeries errors');
+        logger.warn(
+          'WARNING: running under Cloud Functions, but FAAS_ID ' +
+            'resource attribute is not set. ' +
+            'This may lead to Send TimeSeries errors',
+        );
       }
     }
 
@@ -253,8 +252,9 @@ async function initMetrics() {
     let exporter;
     if (process.env.OTLP_COLLECTOR_URL) {
       exporterMode = ExporterMode.OTEL;
-      logger.info(`Counters sent using OTLP to ${
-        process.env.OTLP_COLLECTOR_URL}`);
+      logger.info(
+        `Counters sent using OTLP to ${process.env.OTLP_COLLECTOR_URL}`,
+      );
       exporter = new OTLPMetricExporter({url: process.env.OTLP_COLLECTOR_URL});
     } else {
       exporterMode = ExporterMode.GCM;
@@ -266,10 +266,10 @@ async function initMetrics() {
       resource: resources,
       readers: [
         new PeriodicExportingMetricReader({
-          exportIntervalMillis: EXPORTER_PARAMETERS[exporterMode]
-              .PERIODIC_FLUSH_INTERVAL,
-          exportTimeoutMillis: EXPORTER_PARAMETERS[exporterMode]
-              .PERIODIC_FLUSH_INTERVAL,
+          exportIntervalMillis:
+            EXPORTER_PARAMETERS[exporterMode].PERIODIC_FLUSH_INTERVAL,
+          exportTimeoutMillis:
+            EXPORTER_PARAMETERS[exporterMode].PERIODIC_FLUSH_INTERVAL,
           exporter: exporter,
         }),
       ],
@@ -277,11 +277,10 @@ async function initMetrics() {
   } catch (e) {
     // report failures to other waiters.
     rejectPendingInit(e);
-    throw (e);
+    throw e;
   }
   resolvePendingInit();
 }
-
 
 /**
  * Initialize metrics with cloud monitoring
@@ -299,15 +298,19 @@ async function createCounters(counterDefinitions) {
 
   for (const counterDef of counterDefinitions) {
     if (!counterDef.counterName || !counterDef.counterDesc) {
-      throw new Error('invalid counter definition: ' +
-        JSON.stringify(counterDef));
+      throw new Error(
+        'invalid counter definition: ' + JSON.stringify(counterDef),
+      );
     }
     if (COUNTERS.get(counterDef.counterName)) {
       throw new Error('Counter already created: ' + counterDef.counterName);
     }
-    COUNTERS.set(counterDef.counterName,
-        meter.createCounter(COUNTERS_PREFIX + counterDef.counterName,
-            {description: counterDef.counterDesc}));
+    COUNTERS.set(
+      counterDef.counterName,
+      meter.createCounter(COUNTERS_PREFIX + counterDef.counterName, {
+        description: counterDef.counterDesc,
+      }),
+    );
   }
 }
 
@@ -324,7 +327,6 @@ function incCounter(counterName, counterAttributes) {
   }
   counter.add(1, counterAttributes);
 }
-
 
 let lastForceFlushTime = 0;
 let flushInProgress;
@@ -364,7 +366,8 @@ async function tryFlush() {
 
   try {
     // If flushed recently, wait for the min interval to pass.
-    const millisUntilNextForceFlush = lastForceFlushTime +
+    const millisUntilNextForceFlush =
+      lastForceFlushTime +
       EXPORTER_PARAMETERS[exporterMode].FLUSH_MIN_INTERVAL -
       Date.now();
 
@@ -373,7 +376,6 @@ async function tryFlush() {
       logger.debug('Counters.tryFlush() waiting until flushing again');
       await setTimeout(millisUntilNextForceFlush);
     }
-
 
     // OpenTelemetry's forceFlush() will always succeed, even if the backend
     // fails and reports an error...
@@ -394,7 +396,7 @@ async function tryFlush() {
       const oldOpenTelemetryErrorCount = openTelemetryErrorCount;
 
       // Suppress OTEL Diag error messages on all but the last flush attempt.
-      DIAG_BUNYAN_LOGGER.suppressErrors = (attempts > 1);
+      DIAG_BUNYAN_LOGGER.suppressErrors = attempts > 1;
       await meterProvider.forceFlush();
       DIAG_BUNYAN_LOGGER.suppressErrors = false;
 
@@ -410,9 +412,9 @@ async function tryFlush() {
       attempts--;
     }
     if (attempts <= 0) {
-      logger.error(`Failed to flush counters after ${
-        EXPORTER_PARAMETERS[exporterMode].FLUSH_MAX_ATTEMPTS
-      } attempts - see OpenTelemetry logging`);
+      logger.error(
+        `Failed to flush counters after ${EXPORTER_PARAMETERS[exporterMode].FLUSH_MAX_ATTEMPTS} attempts - see OpenTelemetry logging`,
+      );
     }
   } catch (e) {
     logger.error('Error while flushing counters', e);
@@ -425,7 +427,7 @@ async function tryFlush() {
 
 /**
  * Specify whether the tryFlush function should try to flush or not.
-*
+ *
  * In long-running processes, disabling flushing will give better results
  * while in short-lived processes, without flushing, counters may not
  * be reported to cloud monitoring.

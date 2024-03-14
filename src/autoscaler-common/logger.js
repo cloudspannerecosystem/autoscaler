@@ -43,9 +43,7 @@ const loggingBunyan = new LoggingBunyan({
 
 const logger = bunyan.createLogger({
   name: 'cloud-spanner-autoscaler',
-  streams: [
-    loggingBunyan.stream(getLogLevel()),
-  ],
+  streams: [loggingBunyan.stream(getLogLevel())],
 });
 
 module.exports = {

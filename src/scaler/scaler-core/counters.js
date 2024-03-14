@@ -40,16 +40,16 @@ const ATTRIBUTE_NAMES = {
 
 /**
  * @typedef {import('../../autoscaler-common/types.js')
-*    .AutoscalerSpanner} AutoscalerSpanner
-*/
+ *    .AutoscalerSpanner} AutoscalerSpanner
+ */
 /**
  * @typedef {import('@opentelemetry/api').Attributes} Attributes
  */
 
 /**
-* @type {import('../../autoscaler-common/counters_base.js')
-*    .CounterDefinition[]}
-*/
+ * @type {import('../../autoscaler-common/counters_base.js')
+ *    .CounterDefinition[]}
+ */
 const COUNTERS = [
   {
     counterName: COUNTER_NAMES.SCALING_SUCCESS,
@@ -89,11 +89,13 @@ function _getCounterAttributes(spanner, requestedSize) {
     [ATTRIBUTE_NAMES.SPANNER_INSTANCE_ID]: spanner.instanceId,
     [ATTRIBUTE_NAMES.SCALING_METHOD]: spanner.scalingMethod,
     [ATTRIBUTE_NAMES.SCALING_DIRECTION]:
-        requestedSize > spanner.currentSize ? 'SCALE_UP' :
-        requestedSize < spanner.currentSize ? 'SCALE_DOWN' : 'SCALE_SAME',
+      requestedSize > spanner.currentSize
+        ? 'SCALE_UP'
+        : requestedSize < spanner.currentSize
+          ? 'SCALE_DOWN'
+          : 'SCALE_SAME',
   };
 }
-
 
 /**
  * Increment scaling success counter
@@ -103,8 +105,10 @@ function _getCounterAttributes(spanner, requestedSize) {
  */
 async function incScalingSuccessCounter(spanner, requestedSize) {
   await pendingInit;
-  CountersBase.incCounter(COUNTER_NAMES.SCALING_SUCCESS,
-      _getCounterAttributes(spanner, requestedSize));
+  CountersBase.incCounter(
+    COUNTER_NAMES.SCALING_SUCCESS,
+    _getCounterAttributes(spanner, requestedSize),
+  );
 }
 
 /**
@@ -115,8 +119,10 @@ async function incScalingSuccessCounter(spanner, requestedSize) {
  */
 async function incScalingFailedCounter(spanner, requestedSize) {
   await pendingInit;
-  CountersBase.incCounter(COUNTER_NAMES.SCALING_FAILED,
-      _getCounterAttributes(spanner, requestedSize));
+  CountersBase.incCounter(
+    COUNTER_NAMES.SCALING_FAILED,
+    _getCounterAttributes(spanner, requestedSize),
+  );
 }
 
 /**
@@ -149,7 +155,6 @@ async function incRequestsFailedCounter() {
   await pendingInit;
   CountersBase.incCounter(COUNTER_NAMES.REQUESTS_FAILED);
 }
-
 
 module.exports = {
   incScalingSuccessCounter,

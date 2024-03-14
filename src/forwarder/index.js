@@ -60,7 +60,8 @@ async function forwardFromHTTP(req, res) {
   } catch (err) {
     logger.error({
       message: `An error occurred in the Autoscaler forwarder (HTTP)`,
-      err: err});
+      err: err,
+    });
     logger.error({message: `JSON payload`, payload: payloadString});
     res.status(500).end(err.toString());
   }
@@ -87,9 +88,9 @@ async function forwardFromPubSub(pubSubEvent, context) {
     });
   } catch (err) {
     logger.error({
-      message:
-        `An error occurred in the Autoscaler forwarder (PubSub)`,
-      err: err});
+      message: `An error occurred in the Autoscaler forwarder (PubSub)`,
+      err: err,
+    });
     logger.error({message: `JSON payload`, payload: payload});
   }
 }

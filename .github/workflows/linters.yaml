@@ -18,13 +18,12 @@ on: [push, pull_request]
 
 jobs:
   delivery:
-
     runs-on: ubuntu-latest
 
     steps:
-    - name: Check out code
-      uses: actions/checkout@v4
-    - name: Run mdl
-      uses: actionshub/markdownlint@main
-      with:
-        filesToIgnoreRegex: code\-of\-conduct\.md|CHANGELOG.md
+      - name: Check out code
+        uses: actions/checkout@v4
+      - name: Run mdl
+        uses: actionshub/markdownlint@main
+        with:
+          filesToIgnoreRegex: code\-of\-conduct\.md|CHANGELOG.md

@@ -1,14 +1,14 @@
 {
-    "name": "scaler",
-    "description": "Spanner instance scaler",
-    "license": "Apache-2.0",
-    "author": "Google Inc.",
-    "dependencies": {
-        "autoscaler-common": "file:../autoscaler-common",
-        "express": "^4.18.2",
-        "scaler-core": "file:scaler-core"
-    },
-    "scripts": {
-        "start": "node -e \"require('./index').main()\""
-    }
+  "name": "scaler",
+  "description": "Spanner instance scaler",
+  "license": "Apache-2.0",
+  "author": "Google Inc.",
+  "dependencies": {
+    "autoscaler-common": "file:../autoscaler-common",
+    "express": "^4.18.2",
+    "scaler-core": "file:scaler-core"
+  },
+  "scripts": {
+    "start": "node -e \"require('./index').main()\""
+  }
 }

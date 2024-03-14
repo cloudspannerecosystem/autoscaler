@@ -58,22 +58,18 @@ function getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange) {
   if (relativeToRange == RelativeToRange.WITHIN) {
     return `no change suggested`;
   } else if (
-    suggestedSize <= spanner.maxSize && suggestedSize >= spanner.minSize) {
+    suggestedSize <= spanner.maxSize &&
+    suggestedSize >= spanner.minSize
+  ) {
     if (suggestedSize == spanner.currentSize) {
-      return `the suggested size is equal to the current size: ${
-        spanner.currentSize} ${spanner.units}`;
+      return `the suggested size is equal to the current size: ${spanner.currentSize} ${spanner.units}`;
     } else {
-      return `suggesting to scale from ${spanner.currentSize} to ${
-        suggestedSize} ${spanner.units}.`;
+      return `suggesting to scale from ${spanner.currentSize} to ${suggestedSize} ${spanner.units}.`;
     }
   } else if (suggestedSize > spanner.maxSize) {
-    return `however, cannot scale to ${
-      suggestedSize} because it is higher than MAX ${spanner.maxSize} ${
-      spanner.units}`;
+    return `however, cannot scale to ${suggestedSize} because it is higher than MAX ${spanner.maxSize} ${spanner.units}`;
   } else if (suggestedSize < spanner.minSize) {
-    return `however, cannot scale to ${
-      suggestedSize} because it is lower than MIN ${spanner.minSize} ${
-      spanner.units}`;
+    return `however, cannot scale to ${suggestedSize} because it is lower than MIN ${spanner.minSize} ${spanner.units}`;
   }
 }
 
@@ -130,22 +126,28 @@ function logSuggestion(spanner, metric, suggestedSize) {
   const relativeToRange = compareMetricValueWithRange(metric);
 
   const range = getRange(metric.threshold, metric.margin);
-  const rangeDetails =
-      `${relativeToRange} the range [${range.min}%-${range.max}%]`;
+  const rangeDetails = `${relativeToRange} the range [${range.min}%-${range.max}%]`;
 
   if (metric.name === OVERLOAD_METRIC && spanner.isOverloaded) {
     logger.debug({
-      message: `${metricDetails} ABOVE the ${
-        OVERLOAD_THRESHOLD} overload threshold => ${
-        getScaleSuggestionMessage(
-            spanner, suggestedSize, RelativeToRange.ABOVE)}`,
-      projectId: spanner.projectId, instanceId: spanner.instanceId});
+      message: `${metricDetails} ABOVE the ${OVERLOAD_THRESHOLD} overload threshold => ${getScaleSuggestionMessage(
+        spanner,
+        suggestedSize,
+        RelativeToRange.ABOVE,
+      )}`,
+      projectId: spanner.projectId,
+      instanceId: spanner.instanceId,
+    });
   } else {
     logger.debug({
-      message: `${metricDetails} ${rangeDetails} => ${
-        getScaleSuggestionMessage(
-            spanner, suggestedSize, relativeToRange)}`,
-      projectId: spanner.projectId, instanceId: spanner.instanceId});
+      message: `${metricDetails} ${rangeDetails} => ${getScaleSuggestionMessage(
+        spanner,
+        suggestedSize,
+        relativeToRange,
+      )}`,
+      projectId: spanner.projectId,
+      instanceId: spanner.instanceId,
+    });
   }
 }
 
@@ -160,13 +162,15 @@ function logSuggestion(spanner, metric, suggestedSize) {
  */
 function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   logger.debug({
-    message: `---- ${spanner.projectId}/${spanner.instanceId}: ${
-      spanner.scalingMethod} size suggestions----`,
-    projectId: spanner.projectId, instanceId: spanner.instanceId});
+    message: `---- ${spanner.projectId}/${spanner.instanceId}: ${spanner.scalingMethod} size suggestions----`,
+    projectId: spanner.projectId,
+    instanceId: spanner.instanceId,
+  });
   logger.debug({
-    message: `\tMin=${spanner.minSize}, Current=${spanner.currentSize}, Max=${
-      spanner.maxSize} ${spanner.units}`,
-    projectId: spanner.projectId, instanceId: spanner.instanceId});
+    message: `\tMin=${spanner.minSize}, Current=${spanner.currentSize}, Max=${spanner.maxSize} ${spanner.units}`,
+    projectId: spanner.projectId,
+    instanceId: spanner.instanceId,
+  });
 
   let maxSuggestedSize = spanner.minSize;
   spanner.isOverloaded = false;
@@ -188,9 +192,10 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
 
   maxSuggestedSize = Math.min(maxSuggestedSize, spanner.maxSize);
   logger.debug({
-    message: `\t=> Final ${spanner.scalingMethod} suggestion: ${
-      maxSuggestedSize} ${spanner.units}`,
-    projectId: spanner.projectId, instanceId: spanner.instanceId});
+    message: `\t=> Final ${spanner.scalingMethod} suggestion: ${maxSuggestedSize} ${spanner.units}`,
+    projectId: spanner.projectId,
+    instanceId: spanner.instanceId,
+  });
   return maxSuggestedSize;
 }
 

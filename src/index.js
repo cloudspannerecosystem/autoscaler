@@ -26,7 +26,7 @@ const CountersBase = require('./autoscaler-common/counters_base');
  */
 async function main() {
   const DEFAULT_CONFIG_LOCATION =
-      '/etc/autoscaler-config/autoscaler-config.yaml';
+    '/etc/autoscaler-config/autoscaler-config.yaml';
 
   logger.info(`Autoscaler unified poller+scaler job started`);
 
@@ -54,14 +54,16 @@ async function main() {
   try {
     const config = await fs.readFile(configLocation, {encoding: 'utf8'});
     const spanners = await pollerCore.checkSpannerScaleMetricsLocal(
-        JSON.stringify(yaml.load(config)));
+      JSON.stringify(yaml.load(config)),
+    );
     for (const spanner of spanners) {
       await scalerCore.scaleSpannerInstanceLocal(spanner);
     }
   } catch (err) {
     logger.error({
       message: 'Error in unified poller/scaler wrapper:',
-      err: err});
+      err: err,
+    });
   } finally {
     CountersBase.setTryFlushEnabled(true);
     await CountersBase.tryFlush();

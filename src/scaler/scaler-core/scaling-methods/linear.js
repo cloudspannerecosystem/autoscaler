@@ -32,7 +32,6 @@ const {logger} = require('../../../autoscaler-common/logger');
  * } SpannerMetricValue
  */
 
-
 /**
  * Is suggested size less than current size
  *
@@ -54,39 +53,45 @@ function calculateSize(spanner) {
     if (baseModule.metricValueWithinRange(metric)) {
       return spanner.currentSize;
     } else {
-      let suggestedSize =
-          Math.ceil(spanner.currentSize * metric.value / metric.threshold);
+      let suggestedSize = Math.ceil(
+        (spanner.currentSize * metric.value) / metric.threshold,
+      );
 
-      if (isScaleIn(suggestedSize, spanner.currentSize) &&
-          spanner.scaleInLimit) {
+      if (
+        isScaleIn(suggestedSize, spanner.currentSize) &&
+        spanner.scaleInLimit
+      ) {
         const limit = spanner.currentSize * (spanner.scaleInLimit / 100);
 
         logger.debug({
-          message: `\tscaleInLimit = ${spanner.scaleInLimit}%, ` +
-        `so the maximum scale-in allowed for current size of ${
-          spanner.currentSize} is ${limit} ${spanner.units}.`,
+          message:
+            `\tscaleInLimit = ${spanner.scaleInLimit}%, ` +
+            `so the maximum scale-in allowed for current size of ${spanner.currentSize} is ${limit} ${spanner.units}.`,
           projectId: spanner.projectId,
           instanceId: spanner.instanceId,
         });
 
         const originalSuggestedSize = suggestedSize;
-        suggestedSize =
-            Math.max(suggestedSize, Math.ceil(spanner.currentSize - limit));
+        suggestedSize = Math.max(
+          suggestedSize,
+          Math.ceil(spanner.currentSize - limit),
+        );
 
         if (suggestedSize != originalSuggestedSize) {
           logger.debug({
-            message: `\tscaleInLimit exceeded. Original suggested size was ${
-              originalSuggestedSize} ${
-              spanner.units}, new suggested size is ${suggestedSize} ${
-              spanner.units}.`,
+            message: `\tscaleInLimit exceeded. Original suggested size was ${originalSuggestedSize} ${spanner.units}, new suggested size is ${suggestedSize} ${spanner.units}.`,
             projectId: spanner.projectId,
             instanceId: spanner.instanceId,
           });
         }
       }
       return maybeRound(
-          suggestedSize, spanner.units, metric.name, spanner.projectId,
-          spanner.instanceId);
+        suggestedSize,
+        spanner.units,
+        metric.name,
+        spanner.projectId,
+        spanner.instanceId,
+      );
     }
   });
 }

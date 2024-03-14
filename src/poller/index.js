@@ -23,7 +23,7 @@ const {logger} = require('../autoscaler-common/logger');
  */
 async function main() {
   const DEFAULT_CONFIG_LOCATION =
-      '/etc/autoscaler-config/autoscaler-config.yaml';
+    '/etc/autoscaler-config/autoscaler-config.yaml';
 
   logger.info(`Autoscaler Poller job started`);
 
@@ -46,11 +46,13 @@ async function main() {
   try {
     const config = await fs.readFile(configLocation, {encoding: 'utf8'});
     await pollerCore.checkSpannerScaleMetricsJSON(
-        JSON.stringify(yaml.load(config)));
+      JSON.stringify(yaml.load(config)),
+    );
   } catch (err) {
     logger.error({
       message: 'Error in Poller wrapper:',
-      err: err});
+      err: err,
+    });
   }
 }
 

@@ -24,8 +24,8 @@ const {logger} = require('../../../autoscaler-common/logger');
 
 /**
  * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
-* } AutoscalerSpanner
-*/
+ * } AutoscalerSpanner
+ */
 
 /**
  * Size calculation for Direct scaling method
@@ -34,13 +34,15 @@ const {logger} = require('../../../autoscaler-common/logger');
  */
 function calculateSize(spanner) {
   logger.debug({
-    message: `---- DIRECT size suggestions for ${spanner.projectId}/${
-      spanner.instanceId}----`,
-    projectId: spanner.projectId, instanceId: spanner.instanceId});
+    message: `---- DIRECT size suggestions for ${spanner.projectId}/${spanner.instanceId}----`,
+    projectId: spanner.projectId,
+    instanceId: spanner.instanceId,
+  });
   logger.debug({
-    message:
-      `\tFinal DIRECT suggestion: ${spanner.maxSize} + ${spanner.units}}`,
-    projectId: spanner.projectId, instanceId: spanner.instanceId});
+    message: `\tFinal DIRECT suggestion: ${spanner.maxSize} + ${spanner.units}}`,
+    projectId: spanner.projectId,
+    instanceId: spanner.instanceId,
+  });
   return spanner.maxSize;
 }
 

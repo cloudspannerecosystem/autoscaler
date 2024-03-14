@@ -47,27 +47,31 @@ function calculateSize(spanner) {
 
     let stepSize = spanner.stepSize;
     // After 1000 PUs, scaling can only be done in steps of 1000 PUs
-    if (spanner.units.toUpperCase() == 'PROCESSING_UNITS' &&
-        spanner.currentSize > 1000 && stepSize < 1000) {
+    if (
+      spanner.units.toUpperCase() == 'PROCESSING_UNITS' &&
+      spanner.currentSize > 1000 &&
+      stepSize < 1000
+    ) {
       stepSize = 1000;
       logger.debug({
-        message: `\tCurrent=${spanner.currentSize} ${
-          spanner.units} (> 1000) => overriding stepSize from ${
-          spanner.stepSize} to 1000`,
+        message: `\tCurrent=${spanner.currentSize} ${spanner.units} (> 1000) => overriding stepSize from ${spanner.stepSize} to 1000`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
       });
     }
 
-    let suggestedStep =
-        (metric.value > metric.threshold ? stepSize : -stepSize);
+    let suggestedStep = metric.value > metric.threshold ? stepSize : -stepSize;
     if (metric.name === baseModule.OVERLOAD_METRIC && spanner.isOverloaded) {
       suggestedStep = spanner.overloadStepSize;
     }
 
     return maybeRound(
-        Math.max(spanner.currentSize + suggestedStep, spanner.minSize),
-        spanner.units, metric.name, spanner.projectId, spanner.instanceId);
+      Math.max(spanner.currentSize + suggestedStep, spanner.minSize),
+      spanner.units,
+      metric.name,
+      spanner.projectId,
+      spanner.instanceId,
+    );
   });
 }
 

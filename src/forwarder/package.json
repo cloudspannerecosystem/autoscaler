@@ -1,16 +1,16 @@
 {
-    "name": "pubsub-fowarder",
-    "description": "Function to fowarder messages from one PubSub Topic to another PubSub Topic",
-    "license": "Apache-2.0",
-    "author": "Google Inc.",
-    "dependencies": {
-        "@google-cloud/functions-framework": "^3.3.0",
-        "@google-cloud/pubsub": "^4.3.3",
-        "express": "^4.18.3",
-        "autoscaler-common": "file:../autoscaler-common"
-    },
-    "scripts": {
-        "start": "functions-framework --target=forwardFromHTTP",
-        "debug": "node --inspect node_modules/@google-cloud/functions-framework --target=forwardFromHTTP"
-    }
+  "name": "pubsub-fowarder",
+  "description": "Function to fowarder messages from one PubSub Topic to another PubSub Topic",
+  "license": "Apache-2.0",
+  "author": "Google Inc.",
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.3.0",
+    "@google-cloud/pubsub": "^4.3.3",
+    "express": "^4.18.3",
+    "autoscaler-common": "file:../autoscaler-common"
+  },
+  "scripts": {
+    "start": "functions-framework --target=forwardFromHTTP",
+    "debug": "node --inspect node_modules/@google-cloud/functions-framework --target=forwardFromHTTP"
+  }
 }

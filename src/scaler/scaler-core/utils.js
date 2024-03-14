@@ -31,10 +31,10 @@ const {logger} = require('../../autoscaler-common/logger');
  */
 function convertMillisecToHumanReadable(millisec) {
   // By Nofi @ https://stackoverflow.com/a/32180863
-  const seconds = (millisec / 1000);
-  const minutes = (millisec / (1000 * 60));
-  const hours = (millisec / (1000 * 60 * 60));
-  const days = (millisec / (1000 * 60 * 60 * 24));
+  const seconds = millisec / 1000;
+  const minutes = millisec / (1000 * 60);
+  const hours = millisec / (1000 * 60 * 60);
+  const days = millisec / (1000 * 60 * 60 * 24);
 
   if (seconds < 60) {
     return seconds.toFixed(1) + ' Sec';
@@ -61,14 +61,14 @@ function maybeRound(suggestedSize, units, label = '', projectId, instanceId) {
   if (units == 'NODES') {
     return suggestedSize;
   } else {
-    const roundTo = (suggestedSize < 1000) ? 100 : 1000;
+    const roundTo = suggestedSize < 1000 ? 100 : 1000;
     const roundedSize = Math.ceil(suggestedSize / roundTo) * roundTo;
     if (roundedSize != suggestedSize) {
       logger.debug({
-        message: `\t${label}: Suggested ${suggestedSize}, rounded to ${
-          roundedSize} ${units}`,
+        message: `\t${label}: Suggested ${suggestedSize}, rounded to ${roundedSize} ${units}`,
         projectId: projectId,
-        instanceId: instanceId});
+        instanceId: instanceId,
+      });
     }
     return roundedSize;
   }
@@ -96,8 +96,9 @@ async function createProtobufMessage(jsonData) {
 async function publishProtoMsgDownstream(eventName, jsonData, topicId) {
   if (!topicId) {
     logger.debug(
-        `If you want ${eventName} messages published downstream then specify ` +
-        'downstreamPubSubTopic in your config.');
+      `If you want ${eventName} messages published downstream then specify ` +
+        'downstreamPubSubTopic in your config.',
+    );
     return Promise.resolve();
   }
 
@@ -106,15 +107,19 @@ async function publishProtoMsgDownstream(eventName, jsonData, topicId) {
   const data = Buffer.from(JSON.stringify(message.toJSON()));
   const attributes = {event: eventName};
 
-  return topic.publishMessage({data: data, attributes: attributes})
-      .then( () => logger.info(
-          `Published ${eventName} message downstream to topic: ${topicId}`))
-      .catch((err) => {
-        logger.error({
-          message: `An error occurred publishing ${
-            eventName} message downstream to topic: ${topicId}`,
-          err: err});
+  return topic
+    .publishMessage({data: data, attributes: attributes})
+    .then(() =>
+      logger.info(
+        `Published ${eventName} message downstream to topic: ${topicId}`,
+      ),
+    )
+    .catch((err) => {
+      logger.error({
+        message: `An error occurred publishing ${eventName} message downstream to topic: ${topicId}`,
+        err: err,
       });
+    });
 }
 
 module.exports = {

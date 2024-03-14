@@ -73,9 +73,9 @@ const pendingInit = CountersBase.createCounters(COUNTERS);
 function _getCounterAttributes(spanner) {
   return {
     [CountersBase.COUNTER_ATTRIBUTE_NAMES.SPANNER_PROJECT_ID]:
-        spanner.projectId,
+      spanner.projectId,
     [CountersBase.COUNTER_ATTRIBUTE_NAMES.SPANNER_INSTANCE_ID]:
-        spanner.instanceId,
+      spanner.instanceId,
   };
 }
 
@@ -86,8 +86,10 @@ function _getCounterAttributes(spanner) {
  */
 async function incPollingSuccessCounter(spanner) {
   await pendingInit;
-  CountersBase.incCounter(COUNTER_NAMES.POLLING_SUCCESS,
-      _getCounterAttributes(spanner));
+  CountersBase.incCounter(
+    COUNTER_NAMES.POLLING_SUCCESS,
+    _getCounterAttributes(spanner),
+  );
 }
 
 /**
@@ -97,8 +99,10 @@ async function incPollingSuccessCounter(spanner) {
  */
 async function incPollingFailedCounter(spanner) {
   await pendingInit;
-  CountersBase.incCounter(COUNTER_NAMES.POLLING_FAILED,
-      _getCounterAttributes(spanner));
+  CountersBase.incCounter(
+    COUNTER_NAMES.POLLING_FAILED,
+    _getCounterAttributes(spanner),
+  );
 }
 
 /**

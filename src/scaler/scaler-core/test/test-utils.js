@@ -54,8 +54,9 @@ function createStubState() {
  * @return {string} downstream message
  */
 function createDownstreamMsg() {
-  return JSON.parse(fs.readFileSync('./test/samples/downstream-msg.json')
-      .toString());
+  return JSON.parse(
+    fs.readFileSync('./test/samples/downstream-msg.json').toString(),
+  );
 }
 
 module.exports = {

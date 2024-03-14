@@ -41,7 +41,8 @@ function main() {
   } catch (err) {
     logger.error({
       message: 'Error in Scaler wrapper:',
-      err: err});
+      err: err,
+    });
   }
 }
 

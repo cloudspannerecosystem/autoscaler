@@ -34,8 +34,11 @@ describe('#direct.calculateSize', () => {
   });
 
   it('should ignore deprecated parameter maxNodes', () => {
-    const spanner = createSpannerParameters(
-        {units: 'NODES', maxSize: 8, maxNodes: 9});
+    const spanner = createSpannerParameters({
+      units: 'NODES',
+      maxSize: 8,
+      maxNodes: 9,
+    });
 
     calculateSize(spanner).should.equal(8);
   });

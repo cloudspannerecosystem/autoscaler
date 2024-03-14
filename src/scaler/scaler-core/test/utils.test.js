@@ -33,36 +33,33 @@ describe('#maybeRound', () => {
     maybeRound(7, 'NODES').should.equal(7);
   });
 
-  it('should round to nearest 100 processing units when suggestion < 1000 PU',
-      () => {
-        maybeRound(567, 'PROCESSING_UNITS').should.equal(600);
-      });
+  it('should round to nearest 100 processing units when suggestion < 1000 PU', () => {
+    maybeRound(567, 'PROCESSING_UNITS').should.equal(600);
+  });
 
-  it('should round to nearest 1000 processing units when suggestion > 1000 PU',
-      () => {
-        maybeRound(1001, 'PROCESSING_UNITS').should.equal(2000);
-      });
+  it('should round to nearest 1000 processing units when suggestion > 1000 PU', () => {
+    maybeRound(1001, 'PROCESSING_UNITS').should.equal(2000);
+  });
 });
 
 const publishProtoMsgDownstream = app.__get__('publishProtoMsgDownstream');
 describe('#publishProtoMsgDownstream', () => {
-  beforeEach(function() {
+  beforeEach(function () {
     sinon.restore();
   });
 
-  it('should not instantiate downstream topic if not defined in config',
-      async function() {
-        const stubPubSub = sinon.stub(pubsub);
-        app.__set__('pubsub', stubPubSub);
+  it('should not instantiate downstream topic if not defined in config', async function () {
+    const stubPubSub = sinon.stub(pubsub);
+    app.__set__('pubsub', stubPubSub);
 
-        await publishProtoMsgDownstream('EVENT', '', undefined);
+    await publishProtoMsgDownstream('EVENT', '', undefined);
 
-        assert(stubPubSub.topic.notCalled);
-      });
+    assert(stubPubSub.topic.notCalled);
+  });
 
-  it('should publish downstream message', async function() {
+  it('should publish downstream message', async function () {
     const mockTopic = {
-      publishMessage: async function() {
+      publishMessage: async function () {
         return Promise.resolve();
       },
     };
@@ -73,23 +70,23 @@ describe('#publishProtoMsgDownstream', () => {
 
     app.__set__('pubsub', stubPubSub);
     app.__set__(
-        'createProtobufMessage', sinon.stub().returns(Buffer.from('{}')));
+      'createProtobufMessage',
+      sinon.stub().returns(Buffer.from('{}')),
+    );
 
     await publishProtoMsgDownstream('EVENT', '', 'the/topic');
     assert(spyTopic.publishMessage.calledOnce);
   });
 });
 
-
 const createProtobufMessage = app.__get__('createProtobufMessage');
 describe('#createProtobufMessage', () => {
-  it('should create a Protobuf message that can be validated',
-      async function() {
-        const message = await createProtobufMessage(createDownstreamMsg());
-        const result = message.toJSON();
+  it('should create a Protobuf message that can be validated', async function () {
+    const message = await createProtobufMessage(createDownstreamMsg());
+    const result = message.toJSON();
 
-        const root = await protobuf.load('downstream.schema.proto');
-        const DownstreamEvent = root.lookupType('DownstreamEvent');
-        assert.equals(DownstreamEvent.verify(result), null);
-      });
+    const root = await protobuf.load('downstream.schema.proto');
+    const DownstreamEvent = root.lookupType('DownstreamEvent');
+    assert.equals(DownstreamEvent.verify(result), null);
+  });
 });

@@ -1,27 +1,27 @@
 {
-    "projectId":"my-spanner-project",
-    "instanceId":"autoscale-test",
-    "currentSize":100,
-    "suggestedSize":300,
-    "units":"PROCESSING_UNITS",
-    "metrics":[
-       {
-          "name":"high_priority_cpu",
-          "threshold":65,
-          "value":85.764282783144476,
-          "margin":15
-       },
-       {
-          "name":"rolling_24_hr",
-          "threshold":90,
-          "value":70.105833476200979,
-          "margin":5
-       },
-       {
-          "name":"storage",
-          "threshold":75,
-          "value":21.980773510634042,
-          "margin":5
-       }
-    ]
- }
+  "projectId": "my-spanner-project",
+  "instanceId": "autoscale-test",
+  "currentSize": 100,
+  "suggestedSize": 300,
+  "units": "PROCESSING_UNITS",
+  "metrics": [
+    {
+      "name": "high_priority_cpu",
+      "threshold": 65,
+      "value": 85.764282783144476,
+      "margin": 15
+    },
+    {
+      "name": "rolling_24_hr",
+      "threshold": 90,
+      "value": 70.105833476200979,
+      "margin": 5
+    },
+    {
+      "name": "storage",
+      "threshold": 75,
+      "value": 21.980773510634042,
+      "margin": 5
+    }
+  ]
+}

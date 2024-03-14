@@ -41,7 +41,6 @@ const {logger} = require('../../autoscaler-common/logger');
  * }} StateData
  */
 
-
 /**
  * Used to store state of a Spanner instance
  */
@@ -53,7 +52,7 @@ class State {
    * @return {State}
    */
   static buildFor(spanner) {
-    if (! spanner) {
+    if (!spanner) {
       throw new Error('spanner should not be null');
     }
     switch (spanner?.stateDatabase?.name) {
@@ -73,9 +72,10 @@ class State {
    */
   constructor(spanner) {
     /** @type {string} */
-    this.stateProjectId = (spanner.stateProjectId != null) ?
-        spanner.stateProjectId :
-        spanner.projectId;
+    this.stateProjectId =
+      spanner.stateProjectId != null
+        ? spanner.stateProjectId
+        : spanner.projectId;
     this.projectId = spanner.projectId;
     this.instanceId = spanner.instanceId;
   }
@@ -156,8 +156,9 @@ class StateSpanner extends State {
     if (!spanner.stateDatabase) {
       throw new Error('stateDatabase is not defined in Spanner config');
     }
-    this.db = this.client.instance(spanner.stateDatabase.instanceId)
-        .database(spanner.stateDatabase.databaseId);
+    this.db = this.client
+      .instance(spanner.stateDatabase.instanceId)
+      .database(spanner.stateDatabase.databaseId);
     this.table = this.db.table('spannerAutoscaler');
   }
 
@@ -266,8 +267,9 @@ class StateFirestore extends State {
    */
   get docRef() {
     if (this._docRef == null) {
-      this._docRef = this.firestore
-          .doc(`spannerAutoscaler/state/${this.getSpannerId()}`);
+      this._docRef = this.firestore.doc(
+        `spannerAutoscaler/state/${this.getSpannerId()}`,
+      );
     }
     return this._docRef;
   }
@@ -325,12 +327,16 @@ class StateFirestore extends State {
    */
   async checkAndReplaceOldDocRef() {
     try {
-      const oldDocRef =
-          this.firestore.doc(`spannerAutoscaler/${this.instanceId}`);
+      const oldDocRef = this.firestore.doc(
+        `spannerAutoscaler/${this.instanceId}`,
+      );
       const snapshot = await oldDocRef.get();
       if (snapshot.exists) {
-        logger.info(`Migrating firestore doc path from spannerAutoscaler/${
-          this.instanceId} to spannerAutoscaler/state/${this.getSpannerId()}`);
+        logger.info(
+          `Migrating firestore doc path from spannerAutoscaler/${
+            this.instanceId
+          } to spannerAutoscaler/state/${this.getSpannerId()}`,
+        );
         await this.docRef.set(snapshot.data());
         await oldDocRef.delete();
       }

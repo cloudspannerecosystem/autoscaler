@@ -87,10 +87,11 @@ function buildMetrics(projectId, instanceId) {
   const metrics = [
     {
       name: 'high_priority_cpu',
-      filter: createBaseFilter(projectId, instanceId) +
-          'metric.type=' +
-          '"spanner.googleapis.com/instance/cpu/utilization_by_priority" ' +
-          'AND metric.label.priority="high"',
+      filter:
+        createBaseFilter(projectId, instanceId) +
+        'metric.type=' +
+        '"spanner.googleapis.com/instance/cpu/utilization_by_priority" ' +
+        'AND metric.label.priority="high"',
       reducer: 'REDUCE_SUM',
       aligner: 'ALIGN_MAX',
       period: 60,
@@ -99,9 +100,10 @@ function buildMetrics(projectId, instanceId) {
     },
     {
       name: 'rolling_24_hr',
-      filter: createBaseFilter(projectId, instanceId) +
-          'metric.type='+
-          '"spanner.googleapis.com/instance/cpu/smoothed_utilization"',
+      filter:
+        createBaseFilter(projectId, instanceId) +
+        'metric.type=' +
+        '"spanner.googleapis.com/instance/cpu/smoothed_utilization"',
       reducer: 'REDUCE_SUM',
       aligner: 'ALIGN_MAX',
       period: 60,
@@ -110,8 +112,9 @@ function buildMetrics(projectId, instanceId) {
     },
     {
       name: 'storage',
-      filter: createBaseFilter(projectId, instanceId) +
-          'metric.type="spanner.googleapis.com/instance/storage/utilization"',
+      filter:
+        createBaseFilter(projectId, instanceId) +
+        'metric.type="spanner.googleapis.com/instance/storage/utilization"',
       reducer: 'REDUCE_SUM',
       aligner: 'ALIGN_MAX',
       period: 60,
@@ -130,9 +133,15 @@ function buildMetrics(projectId, instanceId) {
  * @return {string} filter
  */
 function createBaseFilter(projectId, instanceId) {
-  return 'resource.labels.instance_id="' + instanceId + '" AND ' +
-      'resource.type="spanner_instance" AND ' +
-      'project="' + projectId + '" AND ';
+  return (
+    'resource.labels.instance_id="' +
+    instanceId +
+    '" AND ' +
+    'resource.type="spanner_instance" AND ' +
+    'project="' +
+    projectId +
+    '" AND '
+  );
 }
 
 /**
@@ -147,22 +156,29 @@ function validateCustomMetric(metric, projectId, instanceId) {
   if (!metric.name) {
     logger.info({
       message: 'Missing name parameter for custom metric.',
-      projectId: projectId, instanceId: instanceId});
+      projectId: projectId,
+      instanceId: instanceId,
+    });
     return false;
   }
 
   if (!metric.filter) {
     logger.info({
       message: 'Missing filter parameter for custom metric.',
-      projectId: projectId, instanceId: instanceId});
+      projectId: projectId,
+      instanceId: instanceId,
+    });
     return false;
   }
 
   if (!(metric.regional_threshold > 0 || metric.multi_regional_threshold > 0)) {
     logger.info({
-      message: 'Missing regional_threshold or multi_multi_regional_threshold ' +
-            'parameter for custom metric.',
-      projectId: projectId, instanceId: instanceId});
+      message:
+        'Missing regional_threshold or multi_multi_regional_threshold ' +
+        'parameter for custom metric.',
+      projectId: projectId,
+      instanceId: instanceId,
+    });
     return false;
   }
 
@@ -180,9 +196,10 @@ function validateCustomMetric(metric, projectId, instanceId) {
 function getMaxMetricValue(projectId, spannerInstanceId, metric) {
   const metricWindow = 5;
   logger.debug({
-    message: `Get max ${metric.name} from ${projectId}/${
-      spannerInstanceId} over ${metricWindow} minutes.`,
-    projectId: projectId, instanceId: spannerInstanceId});
+    message: `Get max ${metric.name} from ${projectId}/${spannerInstanceId} over ${metricWindow} minutes.`,
+    projectId: projectId,
+    instanceId: spannerInstanceId,
+  });
 
   /** @type {monitoring.protos.google.monitoring.v3.IListTimeSeriesRequest} */
   const request = {
@@ -241,7 +258,9 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
 function getSpannerMetadata(projectId, spannerInstanceId, units) {
   logger.info({
     message: `----- ${projectId}/${spannerInstanceId}: Getting Metadata -----`,
-    projectId: projectId, instanceId: spannerInstanceId});
+    projectId: projectId,
+    instanceId: spannerInstanceId,
+  });
 
   const spanner = new Spanner({
     projectId: projectId,
@@ -254,20 +273,30 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
     const metadata = data[0];
     logger.debug({
       message: `DisplayName:     ${metadata['displayName']}`,
-      projectId: projectId, instanceId: spannerInstanceId});
+      projectId: projectId,
+      instanceId: spannerInstanceId,
+    });
     logger.debug({
       message: `NodeCount:       ${metadata['nodeCount']}`,
-      projectId: projectId, instanceId: spannerInstanceId});
+      projectId: projectId,
+      instanceId: spannerInstanceId,
+    });
     logger.debug({
       message: `ProcessingUnits: ${metadata['processingUnits']}`,
-      projectId: projectId, instanceId: spannerInstanceId});
+      projectId: projectId,
+      instanceId: spannerInstanceId,
+    });
     logger.debug({
       message: `Config:          ${metadata['config'].split('/').pop()}`,
-      projectId: projectId, instanceId: spannerInstanceId});
+      projectId: projectId,
+      instanceId: spannerInstanceId,
+    });
 
     const spannerMetadata = {
-      currentSize: (units === AutoscalerUnits.NODES) ? metadata['nodeCount'] :
-                                        metadata['processingUnits'],
+      currentSize:
+        units === AutoscalerUnits.NODES
+          ? metadata['nodeCount']
+          : metadata['processingUnits'],
       regional: metadata['config'].split('/').pop().startsWith('regional'),
       // DEPRECATED
       currentNodes: metadata['nodeCount'],
@@ -291,24 +320,25 @@ async function postPubSubMessage(spanner, metrics) {
   spanner.metrics = metrics;
   const messageBuffer = Buffer.from(JSON.stringify(spanner), 'utf8');
 
-  return topic.publishMessage({data: messageBuffer})
-      .then(() => logger.info({
-        message:
-          `----- Published message to topic: ${spanner.scalerPubSubTopic}`,
+  return topic
+    .publishMessage({data: messageBuffer})
+    .then(() =>
+      logger.info({
+        message: `----- Published message to topic: ${spanner.scalerPubSubTopic}`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
         payload: spanner,
-      }))
-      .catch((err) => {
-        logger.error({
-          message: `An error occurred when publishing the message to ${
-            spanner.scalerPubSubTopic}`,
-          projectId: spanner.projectId,
-          instanceId: spanner.instanceId,
-          payload: err,
-          err: err,
-        });
+      }),
+    )
+    .catch((err) => {
+      logger.error({
+        message: `An error occurred when publishing the message to ${spanner.scalerPubSubTopic}`,
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+        payload: err,
+        err: err,
       });
+    });
 }
 
 /**
@@ -324,26 +354,25 @@ async function callScalerHTTP(spanner, metrics) {
 
   spanner.metrics = metrics;
 
-  return axios.post(url.toString(), spanner)
-      .then(
-          (response) => {
-            logger.info({
-              message: `----- Published message to scaler, response ${
-                response.statusText}`,
-              projectId: spanner.projectId,
-              instanceId: spanner.instanceId,
-              payload: spanner,
-            });
-          })
-      .catch((err) => {
-        logger.error({
-          message: `An error occurred when calling the scaler`,
-          projectId: spanner.projectId,
-          instanceId: spanner.instanceId,
-          payload: err,
-          err: err,
-        });
+  return axios
+    .post(url.toString(), spanner)
+    .then((response) => {
+      logger.info({
+        message: `----- Published message to scaler, response ${response.statusText}`,
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+        payload: spanner,
       });
+    })
+    .catch((err) => {
+      logger.error({
+        message: `An error occurred when calling the scaler`,
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+        payload: err,
+        err: err,
+      });
+    });
 }
 
 /**
@@ -358,8 +387,9 @@ async function parseAndEnrichPayload(payload) {
   const spannersFound = [];
 
   for (let sIdx = 0; sIdx < spanners.length; sIdx++) {
-    const metricOverrides = /** @type {SpannerMetric[]} */
-        (spanners[sIdx].metrics);
+    const metricOverrides =
+      /** @type {SpannerMetric[]} */
+      (spanners[sIdx].metrics);
 
     // assemble the config
     // merge in the defaults
@@ -375,9 +405,10 @@ async function parseAndEnrichPayload(payload) {
       // they are set the config is invalid.
       if (spanners[sIdx].minNodes || spanners[sIdx].maxNodes) {
         throw new Error(
-            'INVALID CONFIG: units is set to PROCESSING_UNITS, ' +
+          'INVALID CONFIG: units is set to PROCESSING_UNITS, ' +
             'however, minNodes or maxNodes is set, ' +
-            'remove minNodes and maxNodes from your configuration.');
+            'remove minNodes and maxNodes from your configuration.',
+        );
       }
     } else if (spanners[sIdx].units.toUpperCase() == 'NODES') {
       spanners[sIdx].units = spanners[sIdx].units.toUpperCase();
@@ -394,11 +425,14 @@ async function parseAndEnrichPayload(payload) {
         });
         spanners[sIdx].minSize = spanners[sIdx].minNodes;
       } else if (
-        spanners[sIdx].minSize && spanners[sIdx].minNodes &&
-          spanners[sIdx].minSize != spanners[sIdx].minNodes) {
+        spanners[sIdx].minSize &&
+        spanners[sIdx].minNodes &&
+        spanners[sIdx].minSize != spanners[sIdx].minNodes
+      ) {
         throw new Error(
-            'INVALID CONFIG: minSize and minNodes are both set ' +
-            'but do not match, make them match or only set minSize');
+          'INVALID CONFIG: minSize and minNodes are both set ' +
+            'but do not match, make them match or only set minSize',
+        );
       }
 
       // if maxNodes or maxSize are provided set the other, and if both are set
@@ -413,30 +447,36 @@ async function parseAndEnrichPayload(payload) {
         });
         spanners[sIdx].maxSize = spanners[sIdx].maxNodes;
       } else if (
-        spanners[sIdx].maxSize && spanners[sIdx].maxNodes &&
-          spanners[sIdx].maxSize != spanners[sIdx].maxNodes) {
+        spanners[sIdx].maxSize &&
+        spanners[sIdx].maxNodes &&
+        spanners[sIdx].maxSize != spanners[sIdx].maxNodes
+      ) {
         throw new Error(
-            'INVALID CONFIG: maxSize and maxNodes are both set ' +
-            'but do not match, make them match or only set maxSize');
+          'INVALID CONFIG: maxSize and maxNodes are both set ' +
+            'but do not match, make them match or only set maxSize',
+        );
       }
 
       // at this point both minNodes/minSize and maxNodes/maxSize are matching
       // or are both not set so we can merge in defaults
       spanners[sIdx] = {...nodesDefaults, ...spanners[sIdx]};
     } else {
-      throw new Error(`INVALID CONFIG: ${
-        spanners[sIdx]
-            .units} is invalid. Valid values are NODES or PROCESSING_UNITS`);
+      throw new Error(
+        `INVALID CONFIG: ${spanners[sIdx].units} is invalid. Valid values are NODES or PROCESSING_UNITS`,
+      );
     }
 
     // assemble the metrics
-    spanners[sIdx].metrics =
-        buildMetrics(spanners[sIdx].projectId, spanners[sIdx].instanceId);
+    spanners[sIdx].metrics = buildMetrics(
+      spanners[sIdx].projectId,
+      spanners[sIdx].instanceId,
+    );
     // merge in custom thresholds
     if (metricOverrides != null) {
       for (let oIdx = 0; oIdx < metricOverrides.length; oIdx++) {
         const mIdx = spanners[sIdx].metrics.findIndex(
-            (x) => x.name === metricOverrides[oIdx].name);
+          (x) => x.name === metricOverrides[oIdx].name,
+        );
         if (mIdx != -1) {
           spanners[sIdx].metrics[mIdx] = {
             ...spanners[sIdx].metrics[mIdx],
@@ -445,13 +485,18 @@ async function parseAndEnrichPayload(payload) {
         } else {
           /** @type {SpannerMetric} */
           const metric = {...metricDefaults, ...metricOverrides[oIdx]};
-          if (validateCustomMetric(
-              metric, spanners[sIdx].projectId,
-              spanners[sIdx].instanceId)) {
+          if (
+            validateCustomMetric(
+              metric,
+              spanners[sIdx].projectId,
+              spanners[sIdx].instanceId,
+            )
+          ) {
             metric.filter =
-                createBaseFilter(
-                    spanners[sIdx].projectId, spanners[sIdx].instanceId) +
-                metric.filter;
+              createBaseFilter(
+                spanners[sIdx].projectId,
+                spanners[sIdx].instanceId,
+              ) + metric.filter;
             spanners[sIdx].metrics.push(metric);
           }
         }
@@ -462,15 +507,16 @@ async function parseAndEnrichPayload(payload) {
     try {
       spanners[sIdx] = {
         ...spanners[sIdx],
-        ...await getSpannerMetadata(
-            spanners[sIdx].projectId, spanners[sIdx].instanceId,
-            spanners[sIdx].units.toUpperCase()),
+        ...(await getSpannerMetadata(
+          spanners[sIdx].projectId,
+          spanners[sIdx].instanceId,
+          spanners[sIdx].units.toUpperCase(),
+        )),
       };
       spannersFound.push(spanners[sIdx]);
     } catch (err) {
       logger.error({
-        message: `Unable to retrieve Spanner metadata for ${
-          spanners[sIdx].projectId}/${spanners[sIdx].instanceId}`,
+        message: `Unable to retrieve Spanner metadata for ${spanners[sIdx].projectId}/${spanners[sIdx].instanceId}`,
         projectId: spanners[sIdx].projectId,
         instanceId: spanners[sIdx].instanceId,
         payload: err,
@@ -489,8 +535,7 @@ async function parseAndEnrichPayload(payload) {
  */
 async function getMetrics(spanner) {
   logger.info({
-    message:
-      `----- ${spanner.projectId}/${spanner.instanceId}: Getting Metrics -----`,
+    message: `----- ${spanner.projectId}/${spanner.instanceId}: Getting Metrics -----`,
     projectId: spanner.projectId,
     instanceId: spanner.instanceId,
   });
@@ -498,8 +543,11 @@ async function getMetrics(spanner) {
   const metrics = [];
   for (const m of spanner.metrics) {
     const metric = /** @type {SpannerMetric} */ (m);
-    const [maxMetricValue, maxLocation] =
-        await getMaxMetricValue(spanner.projectId, spanner.instanceId, metric);
+    const [maxMetricValue, maxLocation] = await getMaxMetricValue(
+      spanner.projectId,
+      spanner.instanceId,
+      metric,
+    );
 
     let threshold;
     let margin;
@@ -518,9 +566,10 @@ async function getMetrics(spanner) {
     }
 
     logger.debug({
-      message: `  ${metric.name} = ${maxMetricValue}, threshold = ${
-        threshold}, margin = ${margin}, location = ${maxLocation}`,
-      projectId: spanner.projectId, instanceId: spanner.instanceId});
+      message: `  ${metric.name} = ${maxMetricValue}, threshold = ${threshold}, margin = ${margin}, location = ${maxLocation}`,
+      projectId: spanner.projectId,
+      instanceId: spanner.instanceId,
+    });
 
     /** @type {SpannerMetricValue} */
     const metricsObject = {
@@ -550,8 +599,7 @@ async function forwardMetrics(forwarderFunction, spanners) {
       await Counters.incPollingSuccessCounter(spanner);
     } catch (err) {
       logger.error({
-        message: `Unable to retrieve metrics for ${spanner.projectId}/${
-          spanner.instanceId}`,
+        message: `Unable to retrieve metrics for ${spanner.projectId}/${spanner.instanceId}`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
         err: err,
@@ -559,7 +607,7 @@ async function forwardMetrics(forwarderFunction, spanners) {
       await Counters.incPollingFailedCounter(spanner);
     }
   }
-};
+}
 
 /**
  * Aggregate metrics for a List of spanner config
@@ -576,8 +624,7 @@ async function aggregateMetrics(spanners) {
       await Counters.incPollingSuccessCounter(spanner);
     } catch (err) {
       logger.error({
-        message: `Unable to retrieve metrics for ${spanner.projectId}/${
-          spanner.instanceId}`,
+        message: `Unable to retrieve metrics for ${spanner.projectId}/${spanner.instanceId}`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
         err: err,
@@ -586,8 +633,7 @@ async function aggregateMetrics(spanners) {
     }
   }
   return aggregatedMetrics;
-};
-
+}
 
 /**
  * Handle a PubSub message and check if scaling is required
@@ -602,26 +648,29 @@ async function checkSpannerScaleMetricsPubSub(pubSubEvent, context) {
       const spanners = await parseAndEnrichPayload(payload);
       logger.debug({
         message: 'Autoscaler poller started (PubSub).',
-        payload: spanners});
+        payload: spanners,
+      });
       await forwardMetrics(postPubSubMessage, spanners);
       await Counters.incRequestsSuccessCounter();
     } catch (err) {
       logger.error({
         message: `An error occurred in the Autoscaler poller function (PubSub)`,
-        err: err});
+        err: err,
+      });
       logger.error({message: `JSON payload`, payload: payload});
       await Counters.incRequestsFailedCounter();
     }
   } catch (err) {
     logger.error({
       message: `An error occurred in the Autoscaler poller function (PubSub)`,
-      err: err});
+      err: err,
+    });
     logger.error({message: `Pubsub data`, payload: pubSubEvent.data});
     await Counters.incRequestsFailedCounter();
   } finally {
     await Counters.tryFlush();
   }
-};
+}
 
 /**
  * For testing with: https://cloud.google.com/functions/docs/functions-framework
@@ -630,15 +679,15 @@ async function checkSpannerScaleMetricsPubSub(pubSubEvent, context) {
  */
 async function checkSpannerScaleMetricsHTTP(req, res) {
   const payload =
-  '[{ '+
-  '  "projectId": "spanner-scaler", '+
-  '  "instanceId": "autoscale-test", '+
-  '  "scalerPubSubTopic": '+
-  '     "projects/spanner-scaler/topics/test-scaling", '+
-  '  "minNodes": 1, '+
-  '  "maxNodes": 3, '+
-  '  "stateProjectId" : "spanner-scaler"'+
-  '}]';
+    '[{ ' +
+    '  "projectId": "spanner-scaler", ' +
+    '  "instanceId": "autoscale-test", ' +
+    '  "scalerPubSubTopic": ' +
+    '     "projects/spanner-scaler/topics/test-scaling", ' +
+    '  "minNodes": 1, ' +
+    '  "maxNodes": 3, ' +
+    '  "stateProjectId" : "spanner-scaler"' +
+    '}]';
   try {
     const spanners = await parseAndEnrichPayload(payload);
     await forwardMetrics(postPubSubMessage, spanners);
@@ -647,7 +696,8 @@ async function checkSpannerScaleMetricsHTTP(req, res) {
   } catch (err) {
     logger.error({
       message: `An error occurred in the Autoscaler poller function (HTTP)`,
-      err: err});
+      err: err,
+    });
     logger.error({message: `JSON payload`, payload: payload});
     res.status(500).end(err.toString());
     res.end(err.toString());
@@ -655,7 +705,7 @@ async function checkSpannerScaleMetricsHTTP(req, res) {
   } finally {
     await Counters.tryFlush();
   }
-};
+}
 
 /**
  * HTTP test
@@ -667,20 +717,21 @@ async function checkSpannerScaleMetricsJSON(payload) {
     const spanners = await parseAndEnrichPayload(payload);
     logger.debug({
       message: 'Autoscaler poller started (JSON/HTTP).',
-      payload: spanners});
+      payload: spanners,
+    });
     await forwardMetrics(callScalerHTTP, spanners);
     await Counters.incRequestsSuccessCounter();
   } catch (err) {
     logger.error({
-      message:
-        `An error occurred in the Autoscaler poller function (JSON/HTTP)`,
-      err: err});
+      message: `An error occurred in the Autoscaler poller function (JSON/HTTP)`,
+      err: err,
+    });
     logger.error({message: `JSON payload`, payload: payload});
     await Counters.incRequestsFailedCounter();
   } finally {
     await Counters.tryFlush();
   }
-};
+}
 
 /**
  * Entrypoint for Local config.
@@ -693,21 +744,22 @@ async function checkSpannerScaleMetricsLocal(payload) {
     const spanners = await parseAndEnrichPayload(payload);
     logger.debug({
       message: 'Autoscaler poller started (JSON/local).',
-      payload: spanners});
+      payload: spanners,
+    });
     const metrics = await aggregateMetrics(spanners);
     await Counters.incRequestsSuccessCounter();
     return metrics;
   } catch (err) {
     logger.error({
-      message:
-        `An error occurred in the Autoscaler poller function (JSON/Local)`,
-      err: err});
+      message: `An error occurred in the Autoscaler poller function (JSON/Local)`,
+      err: err,
+    });
     logger.error({message: `JSON payload`, payload: payload});
     await Counters.incRequestsFailedCounter();
   } finally {
     await Counters.tryFlush();
   }
-};
+}
 
 module.exports = {
   checkSpannerScaleMetricsPubSub,

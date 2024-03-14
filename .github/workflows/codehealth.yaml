@@ -14,55 +14,54 @@ jobs:
     strategy:
       fail-fast: false
 
-
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-        check-latest: true
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          check-latest: true
 
-    - name: Install eslint and typescript compiler
-      run: npm install
+      - name: Install eslint and typescript compiler
+        run: npm install
 
-    - name: Install node modules in src/
-      working-directory: src
-      run: npm install
+      - name: Install node modules in src/
+        working-directory: src
+        run: npm install
 
-    - name: Execute "npm run typecheck"
-      working-directory: .
-      run: npm run typecheck
+      - name: Execute "npm run typecheck"
+        working-directory: .
+        run: npm run typecheck
 
-    - name: Execute "npm run eslint"
-      run: npm run eslint
+      - name: Execute "npm run eslint"
+        run: npm run eslint
 
-    - name: NPM Audit src/
-      working-directory: src
-      run: npm audit
+      - name: NPM Audit src/
+        working-directory: src
+        run: npm audit
 
-    - name: NPM Audit src/forwarder
-      working-directory: src/forwarder
-      run: npm audit
+      - name: NPM Audit src/forwarder
+        working-directory: src/forwarder
+        run: npm audit
 
-    - name: NPM Audit src/poller
-      working-directory: src/poller
-      run: npm audit
+      - name: NPM Audit src/poller
+        working-directory: src/poller
+        run: npm audit
 
-    - name: NPM Audit src/poller/poller-core
-      working-directory: src/poller/poller-core
-      run: npm audit
+      - name: NPM Audit src/poller/poller-core
+        working-directory: src/poller/poller-core
+        run: npm audit
 
-    - name: NPM Audit src/scaler
-      working-directory: src/scaler
-      run: npm audit
+      - name: NPM Audit src/scaler
+        working-directory: src/scaler
+        run: npm audit
 
-    - name: NPM Audit src/scaler/scaler-core
-      working-directory: src/scaler/scaler-core
-      run: npm audit
+      - name: NPM Audit src/scaler/scaler-core
+        working-directory: src/scaler/scaler-core
+        run: npm audit
 
-    - name: NPM Audit root
-      working-directory: .
-      run: npm audit
+      - name: NPM Audit root
+        working-directory: .
+        run: npm audit

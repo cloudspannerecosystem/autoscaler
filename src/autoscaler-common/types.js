@@ -30,17 +30,17 @@ const AutoscalerUnits = {
 
 /**
  * @typedef {{
-*   name: string,
-*   filter: string,
-*   reducer: string,
-*   aligner: string,
-*   period: number,
-*   regional_threshold: number,
-*   regional_margin?: number,
-*   multi_regional_threshold: number,
-*   multi_regional_margin?: number,
-* }} SpannerMetric
-*/
+ *   name: string,
+ *   filter: string,
+ *   reducer: string,
+ *   aligner: string,
+ *   period: number,
+ *   regional_threshold: number,
+ *   regional_margin?: number,
+ *   multi_regional_threshold: number,
+ *   multi_regional_margin?: number,
+ * }} SpannerMetric
+ */
 
 /**
  * @typedef {{
@@ -78,19 +78,17 @@ const AutoscalerUnits = {
 
 /**
  * @typedef {{
-*    name: string,
-*    threshold: number,
-*    margin: number,
-*    value: number
-* }} SpannerMetricValue
-*/
-
+ *    name: string,
+ *    threshold: number,
+ *    margin: number,
+ *    value: number
+ * }} SpannerMetricValue
+ */
 
 /**
  * @typedef {SpannerConfig & SpannerMetadata & SpannerData
  * } AutoscalerSpanner
  */
-
 
 module.exports = {
   AutoscalerUnits,

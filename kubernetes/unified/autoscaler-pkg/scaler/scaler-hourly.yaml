@@ -28,30 +28,30 @@ spec:
             otel-submitter: "true"
         spec:
           containers:
-          - name: scaler
-            image: scaler-image # kpt-set: ${scaler_image}
-            resources:
-              requests:
-                memory: "256Mi"
-                cpu: "250m"
-              limits:
-                memory: "256Mi"
-            env:
-            - name: AUTOSCALER_CONFIG
-              value: "/etc/autoscaler-config/autoscaler-config-hourly.yaml"
-            - name: K8S_POD_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: OTLP_COLLECTOR_URL
-              value: "http://otel-collector:4317/"
-            volumeMounts:
-            - name: config-volume
-              mountPath: /etc/autoscaler-config
+            - name: scaler
+              image: scaler-image # kpt-set: ${scaler_image}
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "250m"
+                limits:
+                  memory: "256Mi"
+              env:
+                - name: AUTOSCALER_CONFIG
+                  value: "/etc/autoscaler-config/autoscaler-config-hourly.yaml"
+                - name: K8S_POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OTLP_COLLECTOR_URL
+                  value: "http://otel-collector:4317/"
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /etc/autoscaler-config
           volumes:
-          - name: config-volume
-            configMap:
-              name: autoscaler-config-hourly
+            - name: config-volume
+              configMap:
+                name: autoscaler-config-hourly
           nodeSelector:
             iam.gke.io/gke-metadata-server-enabled: "true"
           restartPolicy: Never
