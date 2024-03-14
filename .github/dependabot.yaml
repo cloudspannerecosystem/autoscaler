@@ -6,7 +6,7 @@ updates:
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "build(npm)"
+      prefix: "fix"
 
 
   # NPM dependancies -- only prompt to update minor versions.
@@ -18,7 +18,7 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     commit-message:
-      prefix: "build(npm)"
+      prefix: "fix"
 
   - directory: "/src"
     package-ecosystem: "npm"
@@ -28,7 +28,7 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     commit-message:
-      prefix: "build(npm)"
+      prefix: "fix"
 
   - directory: "/src/autoscaler-common"
     package-ecosystem: "npm"
@@ -38,7 +38,7 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     commit-message:
-      prefix: "build(npm)"
+      prefix: "fix"
 
   - directory: "/src/forwarder"
     package-ecosystem: "npm"
@@ -48,7 +48,7 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     commit-message:
-      prefix: "build(npm)"
+      prefix: "fix"
 
   - directory: "/src/poller"
     package-ecosystem: "npm"
@@ -58,7 +58,7 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     commit-message:
-      prefix: "build(npm)"
+      prefix: "fix"
 
   - directory: "/src/poller/poller-core"
     package-ecosystem: "npm"
@@ -68,7 +68,7 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     commit-message:
-      prefix: "build(npm)"
+      prefix: "fix"
 
   - directory: "/src/scaler"
     package-ecosystem: "npm"
@@ -78,7 +78,7 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     commit-message:
-      prefix: "build(npm)"
+      prefix: "fix"
 
   - directory: "/src/scaler/scaler-core"
     package-ecosystem: "npm"
@@ -88,7 +88,7 @@ updates:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     commit-message:
-      prefix: "build(npm)"
+      prefix: "fix"
 
   # Docker dependencies
   - directory: "/src"
@@ -96,28 +96,28 @@ updates:
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "build(docker)"
+      prefix: "fix"
 
   - directory: "/src/poller"
     package-ecosystem: "docker"
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "build(docker)"
+      prefix: "fix"
 
   - directory: "/src/scaler"
     package-ecosystem: "docker"
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "build(docker)"
+      prefix: "fix"
 
   - directory: "/src/forwarder"
     package-ecosystem: "docker"
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "build(docker)"
+      prefix: "fix"
 
 version: 2
 ...
