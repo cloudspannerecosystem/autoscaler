@@ -18,11 +18,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 4.63.0"
-    }
-    google-beta = {
-      source  = "hashicorp/google-beta"
-      version = "~> 4.63.0"
+      version = ">= 5.20.0"
     }
   }
 }
@@ -32,10 +28,6 @@ provider "google" {
   region  = var.region
 }
 
-provider "google-beta" {
-  project = var.project_id
-  region  = var.region
-}
 
 resource "google_service_account" "autoscaler_sa" {
   account_id   = "scaler-sa"
