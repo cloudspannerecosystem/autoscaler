@@ -7,7 +7,7 @@
     "@google-cloud/functions-framework": "^3.3.0",
     "@google-cloud/monitoring": "^4.0.0",
     "@google-cloud/pubsub": "^4.3.3",
-    "@google-cloud/spanner": "^6.16.0",
+    "@google-cloud/spanner": "^7.5.0",
     "autoscaler-common": "file:../../autoscaler-common",
     "axios": "^1.6.7",
     "express": "^4.18.3"
