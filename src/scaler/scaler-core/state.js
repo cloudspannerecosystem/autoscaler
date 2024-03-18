@@ -292,7 +292,7 @@ class StateSpanner extends State {
     // we never want to update createdOn
     delete row.createdOn;
 
-    this.writeToSpanner(row);
+    await this.writeToSpanner(row);
   }
 
   /**
