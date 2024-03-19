@@ -35,13 +35,12 @@ const {logger} = require('../../autoscaler-common/logger');
  */
 
 /**
- * @typedef {{
- *  lastScalingCompleteTimestamp? : number
- *  scalingOperationId?: string
- *  lastScalingTimestamp: number
- *  createdOn: number
- *  updatedOn: number
- * }} StateData
+ * @typedef StateData
+ * @property {number?} lastScalingCompleteTimestamp - when the last scaling operation completed.
+ * @property {string?} scalingOperationId - the ID of the currently in progress scaling operation.
+ * @property {number} lastScalingTimestamp - when the last scaling operation was started.
+ * @property {number} createdOn - the timestamp when this record was created
+ * @property {number} updatedOn - the timestamp when this record was updated.
  */
 
 /** @typedef {{name: string, type: string}} ColumnDef */

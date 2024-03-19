@@ -556,6 +556,11 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
   }
 
   // Check LRO status...
+  // The Node.JS spanner library has no way of getting an Operation status
+  // without an Operation object, and no way of getting an Operation object
+  // from just an Operation ID. So we use the REST api here to get the
+  // Operation status.
+  // https://github.com/googleapis/nodejs-spanner/issues/2022
   try {
     const auth = new GoogleApis.auth.GoogleAuth({
       scopes: ['https://www.googleapis.com/auth/spanner.admin'],
