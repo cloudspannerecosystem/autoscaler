@@ -22,6 +22,12 @@ data:
         # batch metrics before sending to reduce API usage
         send_batch_max_size: 200
         send_batch_size: 200
+        # NOTE: If batching timeout is greater than the frequency of which
+        # metrics from long running processes are pushed to the OTEL collector,
+        # Duplicate TimeSeries errors can occur as muliple metrics pushes
+        # are exported.
+        # NOTE: If using Google Cloud Monitoring exporter, then the minimum
+        # batching time is 5 seconds.
         timeout: 10s
 
       memory_limiter:
@@ -42,6 +48,7 @@ data:
         metrics:
           receivers: [otlp]
           processors: [resourcedetection, batch, memory_limiter]
+          # If using the debug exporter, add it to the following list
           exporters: [googlecloud]
       telemetry:
         logs:

@@ -46,6 +46,8 @@ spec:
               volumeMounts:
                 - name: config-volume
                   mountPath: /etc/autoscaler-config
+                - name: OLTP_IS_LONG_RUNNING_PROCESS
+                  value: "false"
           volumes:
             - name: config-volume
               configMap:
