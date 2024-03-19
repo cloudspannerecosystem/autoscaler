@@ -73,27 +73,46 @@ const COUNTERS_PREFIX =
 
 /** @enum{String} */
 const ExporterMode = {
-  GCM: 'GCM',
-  OTEL: 'OTEL',
+  GCM_ONLY_FLUSHING: 'GCM_ONLY_FLUSHING',
+  OTEL_PERIODIC: 'OTEL_PERIODIC',
+  OTEL_ONLY_FLUSHING: 'OTEL_ONLY_FLUSHING',
 };
 
+
 const EXPORTER_PARAMETERS = {
-  // In GCM direct push mode, we never want to export automatically
-  // and we want to rely only on flushing.
-  // This is to avoid that the auto-push happens just after a flush
-  // and then raises 'points were written more frequently' errors.
+  // GCM direct pushing is only done in Cloud functions deployments, where
+  // we only flush directly.
   //
-  // However the only Metrics pusher is a periodic one :/
-  [ExporterMode.GCM]: {
-    PERIODIC_FLUSH_INTERVAL: 12*60*60*1_000, // 12hr
+  [ExporterMode.GCM_ONLY_FLUSHING]: {
+    PERIODIC_FLUSH_INTERVAL: 0x7FFFFFFF, // approx 24 days in milliseconds
     FLUSH_MIN_INTERVAL: 10_000,
     FLUSH_MAX_ATTEMPTS: 6,
+    FLUSH_ENABLED: true,
   },
-  // In OTEL Collector mode, we can push more frequently.
-  [ExporterMode.OTEL]: {
-    PERIODIC_FLUSH_INTERVAL: 10_000,
-    FLUSH_MIN_INTERVAL: 2_000,
-    FLUSH_MAX_ATTEMPTS: 30,
+
+  // OTEL collector cannot handle receiving metrics from a single process
+  // more frequently than its batching timeout, as it does not aggregate
+  // them and reports the multiple metrics to the upstream metrics management
+  // interface (eg GCM) which will then cause Duplicate TimeSeries errors.
+  //
+  // So when using flushing, disable periodic export, and when using periodic
+  // export, disable flushing!
+  //
+  // OTEL collector mode is set by specifying the environment variable
+  // OTLP_COLLECTOR_URL which is the address of the collector,
+  // and whether to use flushing or periodic export is determined
+  // by the environment variable OLTP_IS_LONG_RUNNING_PROCESS
+  [ExporterMode.OTEL_ONLY_FLUSHING]: {
+    PERIODIC_FLUSH_INTERVAL: 0x7FFFFFFF, // approx 24 days in milliseconds
+    FLUSH_MIN_INTERVAL: 15_000,
+    FLUSH_MAX_ATTEMPTS: 6,
+    FLUSH_ENABLED: true,
+  },
+  [ExporterMode.OTEL_PERIODIC]: {
+    PERIODIC_FLUSH_INTERVAL: 20_000, // OTEL collector batches every 10s
+    FLUSH_MIN_INTERVAL: 0,
+    FLUSH_MAX_ATTEMPTS: 0,
+    FLUSH_ENABLED: false,
   },
 };
 
@@ -252,13 +271,24 @@ async function initMetrics() {
 
     let exporter;
     if (process.env.OTLP_COLLECTOR_URL) {
-      exporterMode = ExporterMode.OTEL;
-      logger.info(`Counters sent using OTLP to ${
+      switch (process.env.OLTP_IS_LONG_RUNNING_PROCESS) {
+        case 'true':
+          exporterMode = ExporterMode.OTEL_PERIODIC;
+          break;
+        case 'false':
+          exporterMode = ExporterMode.OTEL_ONLY_FLUSHING;
+          break;
+        default:
+          throw new Error(
+              `Invalid value for env var OLTP_IS_LONG_RUNNING_PROCESS: "${
+                process.env.OLTP_IS_LONG_RUNNING_PROCESS}"`);
+      }
+      logger.info(`Counters mode: ${exporterMode} OLTP collector: ${
         process.env.OTLP_COLLECTOR_URL}`);
       exporter = new OTLPMetricExporter({url: process.env.OTLP_COLLECTOR_URL});
     } else {
-      exporterMode = ExporterMode.GCM;
-      logger.info('Counters sent directly to GCP monitoring');
+      exporterMode = ExporterMode.GCM_ONLY_FLUSHING;
+      logger.info(`Counters mode: ${exporterMode} using GCP monitoring`);
       exporter = new GcpMetricExporter({prefix: 'custom.googleapis.com'});
     }
 
@@ -343,13 +373,12 @@ let tryFlushEnabled = true;
  * and retry)
  */
 async function tryFlush() {
-  if (!tryFlushEnabled) {
+  await pendingInit;
+
+  if (!tryFlushEnabled || !EXPORTER_PARAMETERS[exporterMode].FLUSH_ENABLED) {
     // flushing disabled, do nothing!
     return;
   }
-
-  // check for if we are initialised
-  await pendingInit;
 
   // Avoid simultaneous flushing!
   if (flushInProgress) {
