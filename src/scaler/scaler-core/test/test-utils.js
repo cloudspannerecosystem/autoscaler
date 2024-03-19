@@ -19,6 +19,7 @@ const State = require('../state.js');
 /**
  * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
  * } AutoscalerSpanner
+ * @typedef {import('../state.js').StateData} StateData
  */
 
 const DUMMY_TIMESTAMP = 1704110400000;
@@ -27,7 +28,7 @@ const DUMMY_TIMESTAMP = 1704110400000;
  * Read Spanner params from file
  *
  * @param {Object} [overrideParams]
- * @return {Object}
+ * @return {AutoscalerSpanner}
  */
 function createSpannerParameters(overrideParams) {
   return {
@@ -37,17 +38,26 @@ function createSpannerParameters(overrideParams) {
 }
 
 /**
- * @return {State} state class stub
+ * @return {sinon.SinonStubbedInstance<State>} state class stub
  */
 function createStubState() {
   const stubState = sinon.createStubInstance(State);
-  stubState.get.resolves({
-    lastScalingTimestamp: 0,
-    createdOn: 0,
-  });
-  stubState.set.resolves();
+  stubState.updateState.resolves();
   sinon.replaceGetter(stubState, 'now', () => DUMMY_TIMESTAMP);
   return stubState;
+}
+
+/**
+ * @return {StateData} StateData object
+ */
+function createStateData() {
+  return {
+    lastScalingTimestamp: 0,
+    createdOn: 0,
+    updatedOn: 0,
+    lastScalingCompleteTimestamp: 0,
+    scalingOperationId: null,
+  };
 }
 
 /**
@@ -62,5 +72,6 @@ function createDownstreamMsg() {
 module.exports = {
   createSpannerParameters,
   createStubState,
+  createStateData,
   createDownstreamMsg,
 };

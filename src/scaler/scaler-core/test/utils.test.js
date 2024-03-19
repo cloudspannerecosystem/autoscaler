@@ -15,8 +15,6 @@
 
 const {Topic} = require('@google-cloud/pubsub');
 const rewire = require('rewire');
-// eslint-disable-next-line no-unused-vars
-const should = require('should');
 const sinon = require('sinon');
 const referee = require('@sinonjs/referee');
 // @ts-ignore

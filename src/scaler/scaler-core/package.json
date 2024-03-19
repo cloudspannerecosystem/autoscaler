@@ -10,6 +10,7 @@
     "@google-cloud/spanner": "^7.5.0",
     "autoscaler-common": "file:../../autoscaler-common",
     "express": "^4.18.3",
+    "googleapis": "^134.0.0",
     "sanitize-filename": "^1.6.3"
   },
   "scripts": {
@@ -19,6 +20,8 @@
   },
   "devDependencies": {
     "@sinonjs/referee": "^11.0.1",
+    "@types/mocha": "^10.0.6",
+    "@types/sinon": "17.0.3",
     "mocha": "^10.3.0",
     "nyc": "^15.1.0",
     "rewire": "^7.0.0",

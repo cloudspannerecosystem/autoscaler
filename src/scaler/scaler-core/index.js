@@ -24,6 +24,8 @@
  */
 // eslint-disable-next-line no-unused-vars -- for type checking only.
 const express = require('express');
+// eslint-disable-next-line no-unused-vars -- for type checking only.
+const {google: GoogleApis, spanner_v1: spannerRest} = require('googleapis');
 // eslint-disable-next-line no-unused-vars -- spannerProtos used for type checks
 const {Spanner, protos: spannerProtos} = require('@google-cloud/spanner');
 const Counters = require('./counters.js');
@@ -93,10 +95,6 @@ function getNewMetadata(suggestedSize, units) {
     units === AutoscalerUnits.NODES
       ? {nodeCount: suggestedSize}
       : {processingUnits: suggestedSize};
-
-  // For testing:
-  // metadata = { displayName : 'a' + Math.floor(Math.random() * 100) + '_' +
-  // suggestedSize + '_' + units };
   return metadata;
 }
 
@@ -105,7 +103,7 @@ function getNewMetadata(suggestedSize, units) {
  *
  * @param {AutoscalerSpanner} spanner
  * @param {number} suggestedSize
- * @return {Promise}
+ * @return {Promise<string>} operationId
  */
 async function scaleSpannerInstance(spanner, suggestedSize) {
   logger.info({
@@ -120,17 +118,17 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
     userAgent: 'cloud-solutions/spanner-autoscaler-scaler-usage-v1.0',
   });
 
-  return spannerClient
+  const [operation] = await spannerClient
     .instance(spanner.instanceId)
-    .setMetadata(getNewMetadata(suggestedSize, spanner.units))
-    .then(function (data) {
-      const operation = data[0];
-      logger.debug({
-        message: `Cloud Spanner started the scaling operation: ${operation.name}`,
-        projectId: spanner.projectId,
-        instanceId: spanner.instanceId,
-      });
-    });
+    .setMetadata(getNewMetadata(suggestedSize, spanner.units));
+
+  logger.debug({
+    message: `Cloud Spanner started the scaling operation: ${operation.name}`,
+    projectId: spanner.projectId,
+    instanceId: spanner.instanceId,
+  });
+
+  return operation.name;
 }
 
 /**
@@ -178,15 +176,20 @@ function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
     projectId: spanner.projectId,
     instanceId: spanner.instanceId,
   });
+
+  // Use the operation completion time if present, else use the launch time
+  // of the scaling op.
+  const lastScalingMillisec = autoscalerState.lastScalingCompleteTimestamp
+    ? autoscalerState.lastScalingCompleteTimestamp
+    : autoscalerState.lastScalingTimestamp;
+
   const operation = scaleOutSuggested
     ? {
         description: 'scale out',
-        lastScalingMillisec: autoscalerState.lastScalingTimestamp,
         coolingMillisec: spanner.scaleOutCoolingMinutes * MS_IN_1_MIN,
       }
     : {
         description: 'scale in',
-        lastScalingMillisec: autoscalerState.lastScalingTimestamp,
         coolingMillisec: spanner.scaleInCoolingMinutes * MS_IN_1_MIN,
       };
 
@@ -205,7 +208,7 @@ function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
     duringOverload = ' during overload';
   }
 
-  if (operation.lastScalingMillisec == 0) {
+  if (lastScalingMillisec == 0) {
     cooldownPeriodOver = true;
     logger.debug({
       message: `\tNo previous scaling operation found for this Spanner instance`,
@@ -213,11 +216,11 @@ function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
       instanceId: spanner.instanceId,
     });
   } else {
-    const elapsedMillisec = now - operation.lastScalingMillisec;
+    const elapsedMillisec = now - lastScalingMillisec;
     cooldownPeriodOver = elapsedMillisec >= operation.coolingMillisec;
     logger.debug({
       message: `\tLast scaling operation was ${convertMillisecToHumanReadable(
-        now - operation.lastScalingMillisec,
+        now - lastScalingMillisec,
       )} ago.`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
@@ -230,7 +233,6 @@ function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
       instanceId: spanner.instanceId,
     });
   }
-
   if (cooldownPeriodOver) {
     logger.info({
       message: `\t=> Autoscale allowed`,
@@ -287,6 +289,9 @@ async function processScalingRequest(spanner, autoscalerState) {
     payload: spanner,
   });
 
+  // Check for ongoing LRO
+  const savedState = await readStateCheckOngoingLRO(spanner, autoscalerState);
+
   const suggestedSize = getSuggestedSize(spanner);
   if (
     suggestedSize === spanner.currentSize &&
@@ -315,49 +320,75 @@ async function processScalingRequest(spanner, autoscalerState) {
     return;
   }
 
-  if (
-    !withinCooldownPeriod(
-      spanner,
-      suggestedSize,
-      await autoscalerState.get(),
-      autoscalerState.now,
-    )
-  ) {
-    let eventType;
-    try {
-      await scaleSpannerInstance(spanner, suggestedSize);
-      await autoscalerState.set();
-      eventType = 'SCALING';
-      await Counters.incScalingSuccessCounter(spanner, suggestedSize);
-    } catch (err) {
-      logger.error({
-        message: `----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt.`,
-        projectId: spanner.projectId,
-        instanceId: spanner.instanceId,
-        payload: err,
-        err: err,
-      });
-      logger.error({
-        message: `----- ${spanner.projectId}/${spanner.instanceId}: Spanner payload:`,
+  if (!savedState.scalingOperationId) {
+    // no ongoing operation, check cooldown...
+    if (
+      !withinCooldownPeriod(
+        spanner,
+        suggestedSize,
+        savedState,
+        autoscalerState.now,
+      )
+    ) {
+      let eventType;
+      try {
+        const operationId = await scaleSpannerInstance(spanner, suggestedSize);
+        await autoscalerState.updateState({
+          ...savedState,
+          scalingOperationId: operationId,
+          lastScalingTimestamp: autoscalerState.now,
+          lastScalingCompleteTimestamp: null,
+        });
+        eventType = 'SCALING';
+
+        // TODO: When no longer handling backward compatibility in state
+        // this should be moved to the LRO check.
+        await Counters.incScalingSuccessCounter(spanner, suggestedSize);
+      } catch (err) {
+        logger.error({
+          message: `----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt.`,
+          projectId: spanner.projectId,
+          instanceId: spanner.instanceId,
+          payload: err,
+          err: err,
+        });
+        logger.error({
+          message: `----- ${spanner.projectId}/${spanner.instanceId}: Spanner payload:`,
+          projectId: spanner.projectId,
+          instanceId: spanner.instanceId,
+          payload: spanner,
+        });
+        eventType = 'SCALING_FAILURE';
+        await Counters.incScalingFailedCounter(spanner, suggestedSize);
+      }
+      await publishDownstreamEvent(eventType, spanner, suggestedSize);
+    } else {
+      logger.info({
+        message: `----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.currentSize} ${spanner.units}, no scaling possible - within cooldown period`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
         payload: spanner,
       });
-      eventType = 'SCALING_FAILURE';
-      await Counters.incScalingFailedCounter(spanner, suggestedSize);
+      await Counters.incScalingDeniedCounter(
+        spanner,
+        suggestedSize,
+        'WITHIN_COOLDOWN',
+      );
     }
-    await publishDownstreamEvent(eventType, spanner, suggestedSize);
   } else {
     logger.info({
-      message: `----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.currentSize} ${spanner.units}, no scaling possible - within cooldown period`,
+      message:
+        `----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.currentSize} ${spanner.units}, no scaling possible ` +
+        `- last scaling operation still in progress. Started: ${convertMillisecToHumanReadable(
+          autoscalerState.now - savedState.lastScalingTimestamp,
+        )} ago).`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
-      payload: spanner,
     });
     await Counters.incScalingDeniedCounter(
       spanner,
       suggestedSize,
-      'WITHIN_COOLDOWN',
+      'IN_PROGRESS',
     );
   }
 }
@@ -507,6 +538,132 @@ async function scaleSpannerInstanceLocal(spanner) {
   } finally {
     await Counters.tryFlush();
   }
+}
+
+/**
+ * Read state and check status of any LRO...
+ *
+ * @param {AutoscalerSpanner} spanner
+ * @param {State} autoscalerState
+ * @return {Promise<StateData>}
+ */
+async function readStateCheckOngoingLRO(spanner, autoscalerState) {
+  const savedState = await autoscalerState.get();
+
+  if (!savedState?.scalingOperationId) {
+    // no LRO ongoing.
+    return savedState;
+  }
+
+  // Check LRO status...
+  // The Node.JS spanner library has no way of getting an Operation status
+  // without an Operation object, and no way of getting an Operation object
+  // from just an Operation ID. So we use the REST api here to get the
+  // Operation status.
+  // https://github.com/googleapis/nodejs-spanner/issues/2022
+  try {
+    const auth = new GoogleApis.auth.GoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/spanner.admin'],
+    });
+    const spannerApi = GoogleApis.spanner({version: 'v1', auth: auth});
+    const {data: operationState} =
+      await spannerApi.projects.instances.operations.get({
+        name: savedState.scalingOperationId,
+      });
+
+    if (!operationState) {
+      throw new Error(
+        `GetOperation(${savedState.scalingOperationId}) returned no results`,
+      );
+    }
+    // Check metadata type
+    if (
+      !operationState.metadata ||
+      operationState.metadata['@type'] !==
+        spannerProtos.google.spanner.admin.instance.v1.UpdateInstanceMetadata.getTypeUrl()
+    ) {
+      throw new Error(
+        `GetOperation(${savedState.scalingOperationId}) contained no UpdateInstanceMetadata`,
+      );
+    }
+
+    const metadata = /** @type {spannerRest.Schema$UpdateInstanceMetadata} */ (
+      operationState.metadata
+    );
+
+    const requestedSize =
+      spanner.units === AutoscalerUnits.NODES
+        ? {nodeCount: metadata.instance.nodeCount}
+        : {processingUnits: metadata.instance.processingUnits};
+    const requestedSizeValue =
+      spanner.units === AutoscalerUnits.NODES
+        ? metadata.instance.nodeCount
+        : metadata.instance.processingUnits;
+    const displayedRequestedSize = JSON.stringify(requestedSize);
+
+    if (operationState.done) {
+      if (!operationState.error) {
+        // Completed successfully.
+        const endTimestamp = Date.parse(metadata.endTime);
+        logger.info({
+          message: `----- ${spanner.projectId}/${spanner.instanceId}: Last scaling request for ${displayedRequestedSize} SUCCEEDED. Started: ${metadata.startTime}, completed: ${metadata.endTime}`,
+          projectId: spanner.projectId,
+          instanceId: spanner.instanceId,
+          requestedSize: requestedSize,
+          payload: spanner,
+        });
+        // Clear last operation ID from savedState and set completion time.
+        savedState.scalingOperationId = null;
+        if (endTimestamp) {
+          savedState.lastScalingCompleteTimestamp = endTimestamp;
+        } else {
+          // invalid end date, assume start date...
+          logger.warn(
+            `Failed to parse operation endTime : ${metadata.endTime}`,
+          );
+          savedState.lastScalingCompleteTimestamp =
+            savedState.lastScalingTimestamp;
+        }
+      } else {
+        // Last operation failed with an error
+        logger.error({
+          message: `----- ${spanner.projectId}/${spanner.instanceId}: Last scaling request for ${displayedRequestedSize} FAILED: ${operationState.error?.message}. Started: ${metadata.startTime}, completed: ${metadata.endTime}`,
+          projectId: spanner.projectId,
+          instanceId: spanner.instanceId,
+          requestedSize: requestedSize,
+          error: operationState.error,
+          payload: spanner,
+        });
+        // Clear last scaling operation from savedState.
+        savedState.scalingOperationId = null;
+        savedState.lastScalingCompleteTimestamp = 0;
+        savedState.lastScalingTimestamp = 0;
+
+        await Counters.incScalingFailedCounter(spanner, requestedSizeValue);
+      }
+    } else {
+      // last scaling operation is still ongoing
+      logger.info({
+        message: `----- ${spanner.projectId}/${spanner.instanceId}: Last scaling request for ${displayedRequestedSize} IN PROGRESS. Started: ${metadata?.startTime}`,
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+        requestedSize: requestedSize,
+        payload: spanner,
+      });
+    }
+  } catch (e) {
+    // Fallback - LRO.get() API failed or returned invalid status.
+    // Assume complete.
+    logger.error({
+      message: `Failed to retrieve state of operation, assume completed. ID: ${savedState.scalingOperationId}: ${e.message}`,
+      err: e,
+    });
+    savedState.scalingOperationId = null;
+    savedState.lastScalingCompleteTimestamp = savedState.lastScalingTimestamp;
+  }
+  // Update saved state in storage.
+  await autoscalerState.updateState(savedState);
+  return savedState;
 }
 
 module.exports = {
