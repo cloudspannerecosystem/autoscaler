@@ -1,6 +1,6 @@
 {
   "name": "cloudspannerecosystem/autoscaler",
-  "version": "1.21.0",
+  "version": "1.21.1",
   "Description": "Autoscaling for Cloud Spanner based on CPU metrics",
   "homepage": "https://github.com/cloudspannerecosystem/autoscaler",
   "license": "Apache-2.0",
