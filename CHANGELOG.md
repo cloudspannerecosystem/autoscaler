@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.1](https://github.com/cloudspannerecosystem/autoscaler/compare/cloudspannerecosystem/autoscaler-v1.21.0...cloudspannerecosystem/autoscaler-v1.21.1) (2024-03-20)
+
+
+### Bug Fixes
+
+* Prevent metrics from being sent too frequently to OTEL collector ([#251](https://github.com/cloudspannerecosystem/autoscaler/issues/251)) ([960b393](https://github.com/cloudspannerecosystem/autoscaler/commit/960b393698cf29bdda82971a94d1c1225a1e1ba9))
+
 ## [1.21.0](https://github.com/cloudspannerecosystem/autoscaler/compare/cloudspannerecosystem/autoscaler-v1.20.0...cloudspannerecosystem/autoscaler-v1.21.0) (2024-03-18)
 
 
