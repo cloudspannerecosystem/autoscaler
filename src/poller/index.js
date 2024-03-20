@@ -13,7 +13,7 @@
  * limitations under the License
  */
 
-const pollerCore = require('poller-core');
+const pollerCore = require('./poller-core');
 const yaml = require('js-yaml');
 const fs = require('fs/promises');
 const {logger} = require('../autoscaler-common/logger');

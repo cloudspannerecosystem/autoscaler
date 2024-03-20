@@ -16,6 +16,7 @@
 const {Topic} = require('@google-cloud/pubsub');
 const rewire = require('rewire');
 const sinon = require('sinon');
+// @ts-ignore
 const referee = require('@sinonjs/referee');
 // @ts-ignore
 const assert = referee.assert;

@@ -57,20 +57,17 @@ const {logger} = require('../../../autoscaler-common/logger');
 function getScaleSuggestionMessage(spanner, suggestedSize, relativeToRange) {
   if (relativeToRange == RelativeToRange.WITHIN) {
     return `no change suggested`;
-  } else if (
-    suggestedSize <= spanner.maxSize &&
-    suggestedSize >= spanner.minSize
-  ) {
-    if (suggestedSize == spanner.currentSize) {
-      return `the suggested size is equal to the current size: ${spanner.currentSize} ${spanner.units}`;
-    } else {
-      return `suggesting to scale from ${spanner.currentSize} to ${suggestedSize} ${spanner.units}.`;
-    }
-  } else if (suggestedSize > spanner.maxSize) {
+  }
+  if (suggestedSize > spanner.maxSize) {
     return `however, cannot scale to ${suggestedSize} because it is higher than MAX ${spanner.maxSize} ${spanner.units}`;
-  } else if (suggestedSize < spanner.minSize) {
+  }
+  if (suggestedSize < spanner.minSize) {
     return `however, cannot scale to ${suggestedSize} because it is lower than MIN ${spanner.minSize} ${spanner.units}`;
   }
+  if (suggestedSize == spanner.currentSize) {
+    return `the suggested size is equal to the current size: ${spanner.currentSize} ${spanner.units}`;
+  }
+  return `suggesting to scale from ${spanner.currentSize} to ${suggestedSize} ${spanner.units}.`;
 }
 
 /**

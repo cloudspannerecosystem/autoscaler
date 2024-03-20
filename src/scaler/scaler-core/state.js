@@ -29,6 +29,7 @@
 const firestore = require('@google-cloud/firestore');
 const {Spanner} = require('@google-cloud/spanner');
 const {logger} = require('../../autoscaler-common/logger');
+const assertDefined = require('../../autoscaler-common/assertDefined');
 /**
  * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
  * } AutoscalerSpanner
@@ -169,8 +170,12 @@ class StateSpanner extends State {
     if (!spanner.stateDatabase) {
       throw new Error('stateDatabase is not defined in Spanner config');
     }
-    this.instance = this.client.instance(spanner.stateDatabase.instanceId);
-    this.db = this.instance.database(spanner.stateDatabase.databaseId);
+    this.instance = this.client.instance(
+      assertDefined(spanner.stateDatabase.instanceId),
+    );
+    this.db = this.instance.database(
+      assertDefined(spanner.stateDatabase.databaseId),
+    );
     this.table = this.db.table('spannerAutoscaler');
   }
 
@@ -210,7 +215,7 @@ class StateSpanner extends State {
       return StateSpanner.convertFromStorage(rows[0].toJSON());
     } catch (e) {
       logger.fatal({
-        message: `Failed to read from Spanner State storage: projects/${this.client.projectId}/instances/${this.instance.id}/databases/${this.db.id}/tables/${this.table.name}: ${e.message}`,
+        message: `Failed to read from Spanner State storage: projects/${this.client.projectId}/instances/${this.instance.id}/databases/${this.db.id}/tables/${this.table.name}: ${e}`,
         err: e,
       });
       throw e;
@@ -225,10 +230,11 @@ class StateSpanner extends State {
   /**
    * Converts row data from Spanner.timestamp (implementation detail)
    * to standard JS timestamps, which are number of milliseconds since Epoch
-   * @param {Object} rowData spanner data
+   * @param {*} rowData spanner data
    * @return {StateData} converted rowData
    */
   static convertFromStorage(rowData) {
+    /** @type {{[x:string] : any}} */
     const ret = {};
 
     const rowDataKeys = Object.keys(rowData);
@@ -260,6 +266,7 @@ class StateSpanner extends State {
    * @return {*} Spanner row
    */
   static convertToStorage(stateData) {
+    /** @type {{[x:string]: any}} */
     const row = {};
 
     const stateDataKeys = Object.keys(stateData);
@@ -268,6 +275,7 @@ class StateSpanner extends State {
     for (const colDef of STATE_KEY_DEFINITIONS) {
       if (stateDataKeys.includes(colDef.name)) {
         // copy value
+        // @ts-ignore
         row[colDef.name] = stateData[colDef.name];
 
         // convert timestamp
@@ -305,7 +313,7 @@ class StateSpanner extends State {
       await this.table.upsert(row);
     } catch (e) {
       logger.fatal({
-        msg: `Failed to write to Spanner State storage: projects/${this.client.projectId}/instances/${this.instance.id}/databases/${this.db.id}/tables/${this.table.name}: ${e.message}`,
+        msg: `Failed to write to Spanner State storage: projects/${this.client.projectId}/instances/${this.instance.id}/databases/${this.db.id}/tables/${this.table.name}: ${e}`,
         err: e,
       });
       throw e;
@@ -353,10 +361,11 @@ class StateFirestore extends State {
    * Converts document data from Firestore.Timestamp (implementation detail)
    * to standard JS timestamps, which are number of milliseconds since Epoch
    * https://googleapis.dev/nodejs/firestore/latest/Timestamp.html
-   * @param {Object} docData
+   * @param {any} docData
    * @return {StateData} converted docData
    */
   static convertFromStorage(docData) {
+    /** @type {{[x:string]: any}} */
     const ret = {};
 
     const docDataKeys = Object.keys(docData);
@@ -384,10 +393,11 @@ class StateFirestore extends State {
    * Convert StateData to an object only containing defined
    * columns, including converting timestamps from millis to Firestore.Timestamp
    *
-   * @param {StateData} stateData
+   * @param {*} stateData
    * @return {*}
    */
   static convertToStorage(stateData) {
+    /** @type {{[x:string]: any}} */
     const doc = {};
 
     const stateDataKeys = Object.keys(stateData);
@@ -432,7 +442,7 @@ class StateFirestore extends State {
 
     if (!snapshot.exists) {
       // It is possible that an old state doc exists in an old docref path...
-      snapshot = await this.checkAndReplaceOldDocRef();
+      snapshot = assertDefined(await this.checkAndReplaceOldDocRef());
     }
 
     let data;
@@ -462,7 +472,7 @@ class StateFirestore extends State {
             this.instanceId
           } to spannerAutoscaler/state/${this.getSpannerId()}`,
         );
-        await this.docRef.set(snapshot.data());
+        await this.docRef.set(assertDefined(snapshot.data()));
         await oldDocRef.delete();
       }
       return snapshot;
