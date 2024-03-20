@@ -12,7 +12,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit",
     "mdlint": "markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md' --ignore 'CHANGELOG.md'",
-    "install-all": "find . -name package.json -a ! -path '*/node_modules/*' -execdir pwd \\;  -execdir npm install --save \\;"
+    "install-all": "set -e ; root=\"$PWD\"; for x in . src/autoscaler-common src/scaler/scaler-core src/scaler src/forwarder src/poller/poller-core src/poller src ; do cd \"$root\" ; cd \"$x\" ; pwd ; npm install --save; done"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.6",

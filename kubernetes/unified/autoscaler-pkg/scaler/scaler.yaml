@@ -41,11 +41,13 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.name
-                - name: OTLP_COLLECTOR_URL
+                - name: OTEL_COLLECTOR_URL
                   value: "http://otel-collector:4317/"
               volumeMounts:
                 - name: config-volume
                   mountPath: /etc/autoscaler-config
+                - name: OTEL_IS_LONG_RUNNING_PROCESS
+                  value: "false"
           volumes:
             - name: config-volume
               configMap:
