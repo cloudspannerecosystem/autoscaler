@@ -84,7 +84,7 @@ const EXPORTER_PARAMETERS = {
   // we only flush directly.
   //
   [ExporterMode.GCM_ONLY_FLUSHING]: {
-    PERIODIC_FLUSH_INTERVAL: 0x7FFFFFFF, // approx 24 days in milliseconds
+    PERIODIC_EXPORT_INTERVAL: 0x7FFFFFFF, // approx 24 days in milliseconds
     FLUSH_MIN_INTERVAL: 10_000,
     FLUSH_MAX_ATTEMPTS: 6,
     FLUSH_ENABLED: true,
@@ -99,17 +99,17 @@ const EXPORTER_PARAMETERS = {
   // export, disable flushing!
   //
   // OTEL collector mode is set by specifying the environment variable
-  // OTLP_COLLECTOR_URL which is the address of the collector,
+  // OTEL_COLLECTOR_URL which is the address of the collector,
   // and whether to use flushing or periodic export is determined
-  // by the environment variable OLTP_IS_LONG_RUNNING_PROCESS
+  // by the environment variable OTEL_IS_LONG_RUNNING_PROCESS
   [ExporterMode.OTEL_ONLY_FLUSHING]: {
-    PERIODIC_FLUSH_INTERVAL: 0x7FFFFFFF, // approx 24 days in milliseconds
+    PERIODIC_EXPORT_INTERVAL: 0x7FFFFFFF, // approx 24 days in milliseconds
     FLUSH_MIN_INTERVAL: 15_000,
     FLUSH_MAX_ATTEMPTS: 6,
     FLUSH_ENABLED: true,
   },
   [ExporterMode.OTEL_PERIODIC]: {
-    PERIODIC_FLUSH_INTERVAL: 20_000, // OTEL collector batches every 10s
+    PERIODIC_EXPORT_INTERVAL: 20_000, // OTEL collector batches every 10s
     FLUSH_MIN_INTERVAL: 0,
     FLUSH_MAX_ATTEMPTS: 0,
     FLUSH_ENABLED: false,
@@ -270,8 +270,8 @@ async function initMetrics() {
     await resources.waitForAsyncAttributes();
 
     let exporter;
-    if (process.env.OTLP_COLLECTOR_URL) {
-      switch (process.env.OLTP_IS_LONG_RUNNING_PROCESS) {
+    if (process.env.OTEL_COLLECTOR_URL) {
+      switch (process.env.OTEL_IS_LONG_RUNNING_PROCESS) {
         case 'true':
           exporterMode = ExporterMode.OTEL_PERIODIC;
           break;
@@ -280,12 +280,12 @@ async function initMetrics() {
           break;
         default:
           throw new Error(
-              `Invalid value for env var OLTP_IS_LONG_RUNNING_PROCESS: "${
-                process.env.OLTP_IS_LONG_RUNNING_PROCESS}"`);
+              `Invalid value for env var OTEL_IS_LONG_RUNNING_PROCESS: "${
+                process.env.OTEL_IS_LONG_RUNNING_PROCESS}"`);
       }
-      logger.info(`Counters mode: ${exporterMode} OLTP collector: ${
-        process.env.OTLP_COLLECTOR_URL}`);
-      exporter = new OTLPMetricExporter({url: process.env.OTLP_COLLECTOR_URL});
+      logger.info(`Counters mode: ${exporterMode} OTEL collector: ${
+        process.env.OTEL_COLLECTOR_URL}`);
+      exporter = new OTLPMetricExporter({url: process.env.OTEL_COLLECTOR_URL});
     } else {
       exporterMode = ExporterMode.GCM_ONLY_FLUSHING;
       logger.info(`Counters mode: ${exporterMode} using GCP monitoring`);
@@ -297,9 +297,9 @@ async function initMetrics() {
       readers: [
         new PeriodicExportingMetricReader({
           exportIntervalMillis: EXPORTER_PARAMETERS[exporterMode]
-              .PERIODIC_FLUSH_INTERVAL,
+              .PERIODIC_EXPORT_INTERVAL,
           exportTimeoutMillis: EXPORTER_PARAMETERS[exporterMode]
-              .PERIODIC_FLUSH_INTERVAL,
+              .PERIODIC_EXPORT_INTERVAL,
           exporter: exporter,
         }),
       ],
