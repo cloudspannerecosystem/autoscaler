@@ -90,7 +90,7 @@ async function createProtobufMessage(jsonData) {
  *
  * @param {string} eventName
  * @param {Object} jsonData
- * @param {?string} topicId
+ * @param {string} [topicId]
  * @return {Promise<*>}
  */
 async function publishProtoMsgDownstream(eventName, jsonData, topicId) {

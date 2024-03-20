@@ -13,8 +13,7 @@
  * limitations under the License
  */
 const rewire = require('rewire');
-// eslint-disable-next-line no-unused-vars
-const should = require('should');
+require('should');
 const {createSpannerParameters} = require('../test-utils.js');
 
 const app = rewire('../../scaling-methods/direct.js');

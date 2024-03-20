@@ -20,9 +20,17 @@
 /* eslint max-len: ["error", { "ignorePattern": "^\\s*it\\(" }] */
 
 const rewire = require('rewire');
-// eslint-disable-next-line no-unused-vars
-const should = require('should');
+require('should');
 const sinon = require('sinon');
+
+/**
+ * @typedef {import('../../../../autoscaler-common/types').AutoscalerSpanner
+ * } AutoscalerSpanner
+ * @typedef {import('../../../../autoscaler-common/types').SpannerMetricValue
+ * } SpannerMetricValue
+ * @typedef {import('../../../../autoscaler-common/types').SpannerMetricValue
+ * } SpannerMetric
+ */
 
 const app = rewire('../../scaling-methods/base.js');
 
@@ -219,7 +227,7 @@ describe('#getScaleSuggestionMessage', () => {
 });
 
 /**
- * @return {Object} a test Spanner config
+ * @return {AutoscalerSpanner} a test Spanner config
  */
 function getSpannerJSON() {
   const spanner = {
@@ -230,9 +238,14 @@ function getSpannerJSON() {
       {name: 'rolling_24_hr', threshold: 90, value: 80},
     ],
   };
-  return spanner;
+  return /** @type {AutoscalerSpanner} */ (spanner);
 }
 
+/**
+ * @type {function (
+ *    AutoscalerSpanner,
+ *    function(AutoscalerSpanner,SpannerMetricValue): number) : number }
+ */
 const loopThroughSpannerMetrics = app.__get__('loopThroughSpannerMetrics');
 describe('#loopThroughSpannerMetrics', () => {
   it('should add a default margin to each metric', () => {
@@ -245,7 +258,8 @@ describe('#loopThroughSpannerMetrics', () => {
 
   it('should not overwrite an existing margin', () => {
     const spanner = getSpannerJSON();
-    spanner.metrics[1].margin = 99;
+
+    /** @type {SpannerMetric} */ (spanner.metrics[1]).margin = 99;
 
     loopThroughSpannerMetrics(spanner, sinon.stub().returns(1));
     spanner.metrics[0].should.have.property('margin');

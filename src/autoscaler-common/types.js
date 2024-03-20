@@ -44,6 +44,15 @@ const AutoscalerUnits = {
 
 /**
  * @typedef {{
+ *    name: string,
+ *    threshold: number,
+ *    margin: number,
+ *    value: number
+ * }} SpannerMetricValue
+ */
+
+/**
+ * @typedef {{
  *    scalingMethod: string,
  *    projectId: string,
  *    instanceId: string,
@@ -61,11 +70,11 @@ const AutoscalerUnits = {
  *      databaseId?: string},
  *    minNodes?: number,
  *    maxNodes?: number,
- *    minSize?: number,
- *    maxSize?: number,
+ *    minSize: number,
+ *    maxSize: number,
  *    scaleInLimit?: number,
- *    stepSize?: number,
- *    overloadStepSize?: number,
+ *    stepSize: number,
+ *    overloadStepSize: number,
  *    metrics: (SpannerMetric | SpannerMetricValue)[],
  * }} SpannerConfig;
  */
@@ -74,15 +83,6 @@ const AutoscalerUnits = {
  * @typedef {{
  *    isOverloaded: boolean,
  * }} SpannerData
- */
-
-/**
- * @typedef {{
- *    name: string,
- *    threshold: number,
- *    margin: number,
- *    value: number
- * }} SpannerMetricValue
  */
 
 /**

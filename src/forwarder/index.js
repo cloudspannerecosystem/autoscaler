@@ -22,9 +22,15 @@
 const express = require('express');
 const {PubSub} = require('@google-cloud/pubsub');
 const {logger} = require('../autoscaler-common/logger');
+const assertDefined = require('../autoscaler-common/assertDefined');
 
 // GCP service clients
 const pubSub = new PubSub();
+
+const pollerTopicName = assertDefined(
+  process.env.POLLER_TOPIC,
+  'POLLER_TOPIC environment variable',
+);
 
 /**
  * Handle the forwarder request from HTTP
@@ -50,7 +56,6 @@ async function forwardFromHTTP(req, res) {
     JSON.parse(payload.toString()); // Log exception in App project if payload
     // cannot be parsed
 
-    const pollerTopicName = process.env.POLLER_TOPIC;
     const pollerTopic = pubSub.topic(pollerTopicName);
     pollerTopic.publishMessage({data: payload});
     logger.debug({
@@ -63,14 +68,14 @@ async function forwardFromHTTP(req, res) {
       err: err,
     });
     logger.error({message: `JSON payload`, payload: payloadString});
-    res.status(500).end(err.toString());
+    res.status(500).end(err instanceof Object ? err.toString() : err);
   }
 }
 
 /**
  * Handle the Forwarder request from PubSub
  *
- * @param {Object} pubSubEvent
+ * @param {any} pubSubEvent
  * @param {*} context
  */
 async function forwardFromPubSub(pubSubEvent, context) {
@@ -80,7 +85,6 @@ async function forwardFromPubSub(pubSubEvent, context) {
     JSON.parse(payload.toString()); // Log exception in App project if payload
     // cannot be parsed
 
-    const pollerTopicName = process.env.POLLER_TOPIC;
     const pollerTopic = pubSub.topic(pollerTopicName);
     pollerTopic.publishMessage({data: payload});
     logger.debug({

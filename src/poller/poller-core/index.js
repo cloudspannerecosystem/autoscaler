@@ -29,6 +29,7 @@ const {Spanner} = require('@google-cloud/spanner');
 const {logger} = require('../../autoscaler-common/logger');
 const Counters = require('./counters.js');
 const {AutoscalerUnits} = require('../../autoscaler-common/types');
+const assertDefined = require('../../autoscaler-common/assertDefined');
 
 /**
  * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
@@ -232,11 +233,11 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
     let maxLocation = 'global';
 
     for (const resource of resources) {
-      for (const point of resource.points) {
-        const value = point.value.doubleValue * 100;
+      for (const point of assertDefined(resource.points)) {
+        const value = assertDefined(point.value?.doubleValue) * 100;
         if (value > maxValue) {
           maxValue = value;
-          if (resource.resource.labels.location) {
+          if (resource.resource?.labels?.location) {
             maxLocation = resource.resource.labels.location;
           }
         }
@@ -287,19 +288,20 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
       instanceId: spannerInstanceId,
     });
     logger.debug({
-      message: `Config:          ${metadata['config'].split('/').pop()}`,
+      message: `Config:          ${metadata['config']?.split('/')?.pop()}`,
       projectId: projectId,
       instanceId: spannerInstanceId,
     });
 
+    /** @type {SpannerMetadata}     */
     const spannerMetadata = {
       currentSize:
         units === AutoscalerUnits.NODES
-          ? metadata['nodeCount']
-          : metadata['processingUnits'],
-      regional: metadata['config'].split('/').pop().startsWith('regional'),
+          ? assertDefined(metadata['nodeCount'])
+          : assertDefined(metadata['processingUnits']),
+      regional: !!metadata['config']?.split('/')?.pop()?.startsWith('regional'),
       // DEPRECATED
-      currentNodes: metadata['nodeCount'],
+      currentNodes: assertDefined(metadata['nodeCount']),
     };
 
     spanner.close();
@@ -312,10 +314,10 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
  *
  * @param {AutoscalerSpanner} spanner
  * @param {SpannerMetricValue[]} metrics
- * @return {Promise}
+ * @return {Promise<Void>}
  */
 async function postPubSubMessage(spanner, metrics) {
-  const topic = pubSub.topic(spanner.scalerPubSubTopic);
+  const topic = pubSub.topic(assertDefined(spanner.scalerPubSubTopic));
 
   spanner.metrics = metrics;
   const messageBuffer = Buffer.from(JSON.stringify(spanner), 'utf8');
@@ -346,7 +348,7 @@ async function postPubSubMessage(spanner, metrics) {
  *
  * @param {SpannerConfig} spanner
  * @param {SpannerMetricValue[]} metrics
- * @return {Promise}
+ * @return {Promise<Void>}
  */
 async function callScalerHTTP(spanner, metrics) {
   spanner.scalerURL ||= 'http://scaler';
@@ -423,7 +425,7 @@ async function parseAndEnrichPayload(payload) {
           projectId: spanners[sIdx].projectId,
           instanceId: spanners[sIdx].instanceId,
         });
-        spanners[sIdx].minSize = spanners[sIdx].minNodes;
+        spanners[sIdx].minSize = assertDefined(spanners[sIdx].minNodes);
       } else if (
         spanners[sIdx].minSize &&
         spanners[sIdx].minNodes &&
@@ -445,7 +447,7 @@ async function parseAndEnrichPayload(payload) {
           projectId: spanners[sIdx].projectId,
           instanceId: spanners[sIdx].instanceId,
         });
-        spanners[sIdx].maxSize = spanners[sIdx].maxNodes;
+        spanners[sIdx].maxSize = assertDefined(spanners[sIdx].maxNodes);
       } else if (
         spanners[sIdx].maxSize &&
         spanners[sIdx].maxNodes &&
@@ -575,7 +577,7 @@ async function getMetrics(spanner) {
     const metricsObject = {
       name: metric.name,
       threshold: threshold,
-      margin: margin,
+      margin: assertDefined(margin),
       value: maxMetricValue,
     };
     metrics.push(metricsObject);
@@ -587,9 +589,9 @@ async function getMetrics(spanner) {
  * Forwards the metrics
  * @param {function(
  *    AutoscalerSpanner,
- *    SpannerMetricValue[]): Promise} forwarderFunction
+ *    SpannerMetricValue[]): Promise<Void>} forwarderFunction
  * @param {AutoscalerSpanner[]} spanners config objects
- * @return {Promise}
+ * @return {Promise<Void>}
  */
 async function forwardMetrics(forwarderFunction, spanners) {
   for (const spanner of spanners) {
@@ -699,8 +701,7 @@ async function checkSpannerScaleMetricsHTTP(req, res) {
       err: err,
     });
     logger.error({message: `JSON payload`, payload: payload});
-    res.status(500).end(err.toString());
-    res.end(err.toString());
+    res.status(500).contentType('text/plain').end('An Exception occurred');
     await Counters.incRequestsFailedCounter();
   } finally {
     await Counters.tryFlush();
@@ -756,6 +757,7 @@ async function checkSpannerScaleMetricsLocal(payload) {
     });
     logger.error({message: `JSON payload`, payload: payload});
     await Counters.incRequestsFailedCounter();
+    return [];
   } finally {
     await Counters.tryFlush();
   }

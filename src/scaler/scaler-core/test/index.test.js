@@ -15,6 +15,7 @@
 
 const rewire = require('rewire');
 const sinon = require('sinon');
+// @ts-ignore
 const referee = require('@sinonjs/referee');
 // @ts-ignore
 const assert = referee.assert;
@@ -29,6 +30,7 @@ const {afterEach} = require('mocha');
  * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
  * } AutoscalerSpanner
  * @typedef {import('../state.js').StateData} StateData
+ * @typedef {import('../state.js')} State
  */
 
 afterEach(() => {
@@ -409,8 +411,9 @@ describe('#readStateCheckOngoingLRO', () => {
   let originalAutoscalerState;
   /** @type {AutoscalerSpanner} */
   let spannerParams;
-  /** @tyoe {sinon.SinonStubbedInstance<State>} */
+  /** @type {sinon.SinonStubbedInstance<State>} */
   let stateStub;
+  /** @type {*} */
   let operation;
 
   /** Dummy class to simulate new GoogleApis.auth.GoogleAuth */
