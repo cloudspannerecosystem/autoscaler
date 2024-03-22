@@ -104,9 +104,6 @@ resource "google_compute_router_nat" "nat" {
 }
 
 resource "google_artifact_registry_repository" "autoscaler_artifact_repo" {
-
-  provider = google-beta
-
   location      = var.region
   repository_id = "spanner-autoscaler"
   description   = "Image registry for Spanner Autoscaler"
@@ -162,7 +159,7 @@ module "workload_identity_otel_collector" {
 
 module "cluster" {
   source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  version                = "26.1.1"
+  version                = ">= 30.2.0"
   project_id             = var.project_id
   name                   = var.name
   region                 = var.region
