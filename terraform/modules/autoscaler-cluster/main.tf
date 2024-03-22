@@ -180,6 +180,7 @@ module "cluster" {
 
   remove_default_node_pool = true
   initial_node_count       = 1
+  deletion_protection      = false
 
   master_authorized_networks = [
     {
