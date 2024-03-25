@@ -37,6 +37,8 @@ const OpenTelemetryApi = require('@opentelemetry/api');
 const OpenTelemetryCore = require('@opentelemetry/core');
 const {setTimeout} = require('timers/promises');
 const {logger} = require('./logger.js');
+const PromiseWithResolvers = require('./promiseWithResolvers.js');
+const {version: packageVersion} = require('../../package.json');
 
 /**
  * @typedef {{
@@ -50,11 +52,11 @@ const {logger} = require('./logger.js');
  *    [x: string]: string,
  * }} CounterAttributes
  */
-
+/** @type {CounterAttributes} */
 const RESOURCE_ATTRIBUTES = {
   [Semconv.SEMRESATTRS_SERVICE_NAMESPACE]: 'cloudspannerecosystem',
   [Semconv.SEMRESATTRS_SERVICE_NAME]: 'autoscaler',
-  [Semconv.SEMRESATTRS_SERVICE_VERSION]: '1.0',
+  [Semconv.SEMRESATTRS_SERVICE_VERSION]: packageVersion,
 };
 
 const COUNTER_ATTRIBUTE_NAMES = {
@@ -130,9 +132,7 @@ const COUNTERS = new Map();
  */
 let meterProvider;
 
-/**
- * @type {Promise<void>} that will be fulfilled when init is complete
- */
+/** @type {PromiseWithResolvers.PromiseWithResolvers?} */
 let pendingInit;
 
 /**
@@ -148,23 +148,40 @@ class DiagToBunyanLogger {
     this.suppressErrors = false;
   }
 
-  // eslint-disable-next-line require-jsdoc
+  /**
+   * @param {string} message
+   * @param {any[]} args
+   */
   verbose(message, ...args) {
     logger.trace('otel: ' + message, args);
   }
-  // eslint-disable-next-line require-jsdoc
+
+  /**
+   * @param {string} message
+   * @param {any[]} args
+   */
   debug(message, ...args) {
     logger.debug('otel: ' + message, args);
   }
-  // eslint-disable-next-line require-jsdoc
+  /**
+   * @param {string} message
+   * @param {any[]} args
+   */
   info(message, ...args) {
     logger.info('otel: ' + message, args);
   }
-  // eslint-disable-next-line require-jsdoc
+  /**
+   * @param {string} message
+   * @param {any[]} args
+   */
   warn(message, ...args) {
     logger.warn('otel: ' + message, args);
   }
   // eslint-disable-next-line require-jsdoc
+  /**
+   * @param {string} message
+   * @param {any[]} args
+   */
   error(message, ...args) {
     if (!this.suppressErrors) {
       logger.error('otel: ' + message, args);
@@ -180,11 +197,13 @@ const DIAG_BUNYAN_LOGGER = new DiagToBunyanLogger();
  */
 let openTelemetryErrorCount = 0;
 
+/** @typedef {import('@opentelemetry/api').Exception} Exception */
+
 /**
  * Global Error hander function for open Telemetry. Keeps a track of the
  * number of errors reported.
  *
- * @param {Object} err
+ * @param {Exception} err
  */
 function openTelemetryGlobalErrorHandler(err) {
   openTelemetryErrorCount++;
@@ -210,17 +229,9 @@ async function initMetrics() {
   // check to see if someone else has started to init counters before
   // so that this function only runs once.
   if (pendingInit) {
-    return await pendingInit;
+    return await pendingInit.promise;
   }
-
-  /** @type {?function():void} */
-  let resolvePendingInit = null;
-  /** @type {?function(?):void} */
-  let rejectPendingInit = null;
-  pendingInit = new Promise((res, rej) => {
-    resolvePendingInit = res;
-    rejectPendingInit = rej;
-  });
+  pendingInit = PromiseWithResolvers.create();
 
   try {
     logger.debug('initializing metrics');
@@ -241,7 +252,9 @@ async function initMetrics() {
     }
 
     const gcpResources = new GcpDetectorSync().detect();
-    await gcpResources.waitForAsyncAttributes();
+    if (gcpResources.waitForAsyncAttributes) {
+      await gcpResources.waitForAsyncAttributes();
+    }
 
     if (process.env.FUNCTION_TARGET) {
       // In cloud functions.
@@ -264,7 +277,9 @@ async function initMetrics() {
     }
 
     const resources = gcpResources.merge(new Resource(RESOURCE_ATTRIBUTES));
-    await resources.waitForAsyncAttributes();
+    if (resources.waitForAsyncAttributes) {
+      await resources.waitForAsyncAttributes();
+    }
 
     let exporter;
     if (process.env.OTEL_COLLECTOR_URL) {
@@ -304,10 +319,10 @@ async function initMetrics() {
     });
   } catch (e) {
     // report failures to other waiters.
-    rejectPendingInit(e);
+    pendingInit.reject(e);
     throw e;
   }
-  resolvePendingInit();
+  pendingInit.resolve(null);
 }
 
 /**
@@ -357,7 +372,8 @@ function incCounter(counterName, counterAttributes) {
 }
 
 let lastForceFlushTime = 0;
-let flushInProgress;
+/** @type {PromiseWithResolvers.PromiseWithResolvers?} */
+let flushInProgress = null;
 let tryFlushEnabled = true;
 
 /**
@@ -373,7 +389,8 @@ let tryFlushEnabled = true;
  * and retry)
  */
 async function tryFlush() {
-  await pendingInit;
+  // check for if we are initialised
+  await pendingInit?.promise;
 
   if (!tryFlushEnabled || !EXPORTER_PARAMETERS[exporterMode].FLUSH_ENABLED) {
     // flushing disabled, do nothing!
@@ -382,14 +399,10 @@ async function tryFlush() {
 
   // Avoid simultaneous flushing!
   if (flushInProgress) {
-    return await flushInProgress;
+    return await flushInProgress.promise;
   }
 
-  /** @type {function(Void):Void} */
-  let resolveFlushInProgress;
-  flushInProgress = new Promise((res) => {
-    resolveFlushInProgress = res;
-  });
+  flushInProgress = PromiseWithResolvers.create();
 
   try {
     // If flushed recently, wait for the min interval to pass.
@@ -447,7 +460,7 @@ async function tryFlush() {
     logger.error('Error while flushing counters', e);
   } finally {
     // Release any waiters...
-    resolveFlushInProgress();
+    flushInProgress.resolve(null);
     flushInProgress = null;
   }
 }

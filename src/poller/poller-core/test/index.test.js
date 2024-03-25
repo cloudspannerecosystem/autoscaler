@@ -26,7 +26,17 @@ const sinon = require('sinon');
 
 const app = rewire('../index.js');
 
+/**
+ * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
+ * } AutoscalerSpanner
+ * @typedef {import('../../../autoscaler-common/types').SpannerMetric
+ * } SpannerMetric
+ * @typedef {import('../../../autoscaler-common/types').SpannerMetricValue
+ * } SpannerMetricValue
+ */
+
 const buildMetrics = app.__get__('buildMetrics');
+/** @type {function(string): Promise<AutoscalerSpanner[]>} */
 const parseAndEnrichPayload = app.__get__('parseAndEnrichPayload');
 const validateCustomMetric = app.__get__('validateCustomMetric');
 
@@ -102,7 +112,7 @@ describe('#parseAndEnrichPayload', () => {
     const unset = app.__set__('getSpannerMetadata', stub);
 
     const mergedConfig = await parseAndEnrichPayload(payload);
-    mergedConfig[0].stepSize.should.equal(2);
+    should(mergedConfig[0].stepSize).equal(2);
 
     unset();
   });
@@ -121,7 +131,7 @@ describe('#parseAndEnrichPayload', () => {
 
     const mergedConfig = await parseAndEnrichPayload(payload);
     mergedConfig[0].units.should.equal('NODES');
-    mergedConfig[0].minSize.should.equal(10);
+    should(mergedConfig[0].minSize).equal(10);
 
     unset();
   });
@@ -140,9 +150,9 @@ describe('#parseAndEnrichPayload', () => {
     const unset = app.__set__('getSpannerMetadata', stub);
 
     const mergedConfig = await parseAndEnrichPayload(payload);
-    mergedConfig[0].minSize.should.equal(200);
-    mergedConfig[0].maxSize.should.equal(2000);
-    mergedConfig[0].stepSize.should.equal(200);
+    should(mergedConfig[0].minSize).equal(200);
+    should(mergedConfig[0].maxSize).equal(2000);
+    should(mergedConfig[0].stepSize).equal(200);
     const idx = mergedConfig[0].metrics.findIndex((x) => x.name === 'minNodes');
     idx.should.equal(-1);
 
@@ -164,8 +174,8 @@ describe('#parseAndEnrichPayload', () => {
     const unset = app.__set__('getSpannerMetadata', stub);
 
     const mergedConfig = await parseAndEnrichPayload(payload);
-    mergedConfig[0].minSize.should.equal(20);
-    mergedConfig[0].maxSize.should.equal(50);
+    should(mergedConfig[0].minSize).equal(20);
+    should(mergedConfig[0].maxSize).equal(50);
 
     unset();
   });
@@ -183,12 +193,13 @@ describe('#parseAndEnrichPayload', () => {
     const stub = sinon.stub().resolves({currentSize: 500, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
 
-    await parseAndEnrichPayload(payload).should.be.rejectedWith(Error, {
-      message:
+    await parseAndEnrichPayload(payload).should.be.rejectedWith(
+      new Error(
         'INVALID CONFIG: units is set to PROCESSING_UNITS, ' +
-        'however, minNodes or maxNodes is set, ' +
-        'remove minNodes and maxNodes from your configuration.',
-    });
+          'however, minNodes or maxNodes is set, ' +
+          'remove minNodes and maxNodes from your configuration.',
+      ),
+    );
 
     unset();
   });
@@ -207,11 +218,12 @@ describe('#parseAndEnrichPayload', () => {
     const stub = sinon.stub().resolves({currentSize: 50, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
 
-    await parseAndEnrichPayload(payload).should.be.rejectedWith(Error, {
-      message:
+    await parseAndEnrichPayload(payload).should.be.rejectedWith(
+      new Error(
         'INVALID CONFIG: minSize and minNodes are both set ' +
-        'but do not match, make them match or only set minSize',
-    });
+          'but do not match, make them match or only set minSize',
+      ),
+    );
 
     unset();
   });
@@ -230,11 +242,12 @@ describe('#parseAndEnrichPayload', () => {
     const stub = sinon.stub().resolves({currentSize: 50, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
 
-    await parseAndEnrichPayload(payload).should.be.rejectedWith(Error, {
-      message:
+    await parseAndEnrichPayload(payload).should.be.rejectedWith(
+      new Error(
         'INVALID CONFIG: maxSize and maxNodes are both set ' +
-        'but do not match, make them match or only set maxSize',
-    });
+          'but do not match, make them match or only set maxSize',
+      ),
+    );
 
     unset();
   });
@@ -255,11 +268,14 @@ describe('#parseAndEnrichPayload', () => {
     const mergedConfig = await parseAndEnrichPayload(payload);
 
     let idx = mergedConfig[0].metrics.findIndex((x) => x.name === 'storage');
-    mergedConfig[0].metrics[idx].regional_threshold.should.equal(10);
+
+    let metric = /** @type {SpannerMetric} */ (mergedConfig[0].metrics[idx]);
+    metric.regional_threshold.should.equal(10);
     idx = mergedConfig[0].metrics.findIndex(
       (x) => x.name === 'high_priority_cpu',
     );
-    mergedConfig[0].metrics[idx].regional_threshold.should.equal(65);
+    metric = /** @type {SpannerMetric} */ (mergedConfig[0].metrics[idx]);
+    metric.regional_threshold.should.equal(65);
 
     unset();
   });
@@ -283,11 +299,13 @@ describe('#parseAndEnrichPayload', () => {
     const mergedConfig = await parseAndEnrichPayload(payload);
 
     let idx = mergedConfig[0].metrics.findIndex((x) => x.name === 'storage');
-    mergedConfig[0].metrics[idx].regional_threshold.should.equal(10);
+    let metric = /** @type {SpannerMetric} */ (mergedConfig[0].metrics[idx]);
+    metric.regional_threshold.should.equal(10);
     idx = mergedConfig[0].metrics.findIndex(
       (x) => x.name === 'high_priority_cpu',
     );
-    mergedConfig[0].metrics[idx].multi_regional_threshold.should.equal(20);
+    metric = /** @type {SpannerMetric} */ (mergedConfig[0].metrics[idx]);
+    metric.multi_regional_threshold.should.equal(20);
 
     unset();
   });
@@ -313,7 +331,8 @@ describe('#parseAndEnrichPayload', () => {
 
     const mergedConfig = await parseAndEnrichPayload(payload);
     const idx = mergedConfig[0].metrics.findIndex((x) => x.name === 'bogus');
-    mergedConfig[0].metrics[idx].multi_regional_threshold.should.equal(20);
+    const metric = /** @type {SpannerMetric} */ (mergedConfig[0].metrics[idx]);
+    metric.multi_regional_threshold.should.equal(20);
     unset();
   });
 
@@ -351,11 +370,12 @@ describe('#parseAndEnrichPayload', () => {
     const stub = sinon.stub().resolves({currentSize: 500, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
 
-    await parseAndEnrichPayload(payload).should.be.rejectedWith(Error, {
-      message:
+    await parseAndEnrichPayload(payload).should.be.rejectedWith(
+      new Error(
         'INVALID CONFIG: BOGUS is invalid. ' +
-        'Valid values are NODES or PROCESSING_UNITS',
-    });
+          'Valid values are NODES or PROCESSING_UNITS',
+      ),
+    );
 
     unset();
   });

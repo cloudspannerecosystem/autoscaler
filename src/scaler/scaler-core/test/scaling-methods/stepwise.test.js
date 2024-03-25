@@ -20,10 +20,11 @@
 /* eslint max-len: ["error", { "ignorePattern": "^\\s*it\\(" }] */
 
 const rewire = require('rewire');
-// eslint-disable-next-line no-unused-vars
-const should = require('should');
+require('should');
 const sinon = require('sinon');
+// @ts-ignore
 const referee = require('@sinonjs/referee');
+// @ts-ignore
 const assert = referee.assert;
 const {createSpannerParameters} = require('../test-utils.js');
 const {
@@ -43,7 +44,7 @@ afterEach(() => {
  * @param {Object} spanner
  * @param {Object} metric
  * @param {boolean} metricValueWithinRange
- * @return {Object} base module
+ * @return {sinon.SinonStub} base module
  */
 function stubBaseModule(spanner, metric, metricValueWithinRange) {
   const callbackStub = sinon.stub().callsArgWith(1, spanner, metric);

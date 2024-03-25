@@ -15,11 +15,11 @@
 
 const pollerCore = require('./poller/poller-core');
 const scalerCore = require('./scaler/scaler-core');
-const forwarder = require('./forwarder');
 const {logger} = require('./autoscaler-common/logger');
 const yaml = require('js-yaml');
 const fs = require('fs/promises');
 const CountersBase = require('./autoscaler-common/counters_base');
+const {version: packageVersion} = require('../package.json');
 
 /**
  * Startup function for unified poller/scaler
@@ -28,7 +28,9 @@ async function main() {
   const DEFAULT_CONFIG_LOCATION =
     '/etc/autoscaler-config/autoscaler-config.yaml';
 
-  logger.info(`Autoscaler unified poller+scaler job started`);
+  logger.info(
+    `Autoscaler unified poller+scaler v${packageVersion} job started`,
+  );
 
   // This is not a long-running process, but we only want to flush the counters
   // when it has completed. So disable flushing here, and enable and flush in
@@ -71,8 +73,5 @@ async function main() {
 }
 
 module.exports = {
-  ...scalerCore,
-  ...pollerCore,
-  ...forwarder,
   main,
 };

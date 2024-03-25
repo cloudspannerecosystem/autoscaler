@@ -80,7 +80,9 @@ function maybeRound(suggestedSize, units, label = '', projectId, instanceId) {
  * @return {Promise<protobuf.Message>}
  */
 async function createProtobufMessage(jsonData) {
-  const root = await protobuf.load('downstream.schema.proto');
+  const root = await protobuf.load(
+    'src/scaler/scaler-core/downstream.schema.proto',
+  );
   const DownstreamEvent = root.lookupType('DownstreamEvent');
   return DownstreamEvent.create(jsonData);
 }
@@ -90,7 +92,7 @@ async function createProtobufMessage(jsonData) {
  *
  * @param {string} eventName
  * @param {Object} jsonData
- * @param {?string} topicId
+ * @param {string} [topicId]
  * @return {Promise<*>}
  */
 async function publishProtoMsgDownstream(eventName, jsonData, topicId) {

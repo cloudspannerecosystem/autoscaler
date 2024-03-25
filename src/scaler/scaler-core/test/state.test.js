@@ -18,6 +18,7 @@ const spanner = require('@google-cloud/spanner');
 const {AutoscalerUnits} = require('../../../autoscaler-common/types');
 const rewire = require('rewire');
 const sinon = require('sinon');
+// @ts-ignore
 const referee = require('@sinonjs/referee');
 // @ts-ignore
 const assert = referee.assert;
@@ -50,6 +51,7 @@ class DummySpannerClass {
   constructor(arg) {
     return stubSpannerConstructor(arg);
   }
+  // @ts-ignore
   // eslint-disable-next-line require-jsdoc
   static timestamp(arg) {
     return spanner.Spanner.timestamp(arg);
@@ -91,10 +93,14 @@ const BASE_CONFIG = {
   regional: true,
   isOverloaded: false,
   metrics: [],
+  minSize: 1,
+  maxSize: 200,
+  stepSize: 10,
+  overloadStepSize: 10,
 };
 
 describe('stateFirestoreTests', () => {
-  /** @tyoe {sinon.SinonStubbedInstance<firestore.Firestore>} */
+  /** @type {sinon.SinonStubbedInstance<firestore.Firestore>} */
   let stubFirestoreInstance;
   /** @type {sinon.SinonStubbedInstance<firestore.DocumentReference<any>>} */
   let newDocRef;
@@ -150,8 +156,8 @@ describe('stateFirestoreTests', () => {
   it('should create a StateFirestore object on spanner projectId', function () {
     const config = {
       ...autoscalerConfig,
-      stateProjectId: null,
     };
+    delete config.stateProjectId;
     const state = State.buildFor(config);
     assert.equals(state.constructor.name, 'StateFirestore');
     sinon.assert.calledWith(stubFirestoreConstructor, {projectId: 'myProject'});
@@ -373,8 +379,8 @@ describe('stateSpannerTests', () => {
   it('should create a StateSpanner object connecting to spanner projectId', function () {
     const config = {
       ...autoscalerConfig,
-      stateProjectId: null,
     };
+    delete config.stateProjectId;
     const state = State.buildFor(config);
     assert.equals(state.constructor.name, 'StateSpanner');
     sinon.assert.calledWith(stubSpannerConstructor, {

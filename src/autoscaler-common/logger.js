@@ -25,7 +25,11 @@ const {LoggingBunyan} = require('@google-cloud/logging-bunyan');
  */
 function getLogLevel() {
   if (process.env.LOG_LEVEL) {
-    return bunyan.levelFromName[process.env.LOG_LEVEL.toLowerCase()];
+    return bunyan.resolveLevel(
+      /** @type {bunyan.LogLevelString} */ (
+        process.env.LOG_LEVEL.toLowerCase()
+      ),
+    );
   } else if (process.env.NODE_ENV?.toLowerCase() === 'test') {
     return bunyan.FATAL;
   } else {

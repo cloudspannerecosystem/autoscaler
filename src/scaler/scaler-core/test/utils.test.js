@@ -16,6 +16,7 @@
 const {Topic} = require('@google-cloud/pubsub');
 const rewire = require('rewire');
 const sinon = require('sinon');
+// @ts-ignore
 const referee = require('@sinonjs/referee');
 // @ts-ignore
 const assert = referee.assert;
@@ -80,7 +81,9 @@ describe('#createProtobufMessage', () => {
     const message = await createProtobufMessage(createDownstreamMsg());
     const result = message.toJSON();
 
-    const root = await protobuf.load('downstream.schema.proto');
+    const root = await protobuf.load(
+      'src/scaler/scaler-core/downstream.schema.proto',
+    );
     const DownstreamEvent = root.lookupType('DownstreamEvent');
     assert.equals(DownstreamEvent.verify(result), null);
   });

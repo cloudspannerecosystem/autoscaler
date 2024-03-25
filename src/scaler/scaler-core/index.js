@@ -36,6 +36,7 @@ const {publishProtoMsgDownstream} = require('./utils.js');
 const State = require('./state.js');
 const fs = require('fs');
 const {AutoscalerUnits} = require('../../autoscaler-common/types');
+const {version: packageVersion} = require('../../../package.json');
 
 /**
  * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
@@ -103,7 +104,7 @@ function getNewMetadata(suggestedSize, units) {
  *
  * @param {AutoscalerSpanner} spanner
  * @param {number} suggestedSize
- * @return {Promise<string>} operationId
+ * @return {Promise<string?>} operationId
  */
 async function scaleSpannerInstance(spanner, suggestedSize) {
   logger.info({
@@ -115,7 +116,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
   const spannerClient = new Spanner({
     projectId: spanner.projectId,
     // @ts-ignore -- hidden property of ServiceOptions.
-    userAgent: 'cloud-solutions/spanner-autoscaler-scaler-usage-v1.0',
+    userAgent: `cloud-solutions/spanner-autoscaler-scaler-usage-v${packageVersion}`,
   });
 
   const [operation] = await spannerClient
@@ -128,7 +129,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
     instanceId: spanner.instanceId,
   });
 
-  return operation.name;
+  return operation.name || null;
 }
 
 /**
@@ -137,7 +138,7 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
  * @param {string} eventName
  * @param {AutoscalerSpanner} spanner
  * @param {number} suggestedSize
- * @return {Promise}
+ * @return {Promise<Void>}
  */
 async function publishDownstreamEvent(eventName, spanner, suggestedSize) {
   const message = {
@@ -396,6 +397,8 @@ async function processScalingRequest(spanner, autoscalerState) {
 /**
  * Handle scale request from a PubSub event.
  *
+ * Called by Cloud Functions Scaler deployment.
+ *
  * @param {{data:string}} pubSubEvent -- a CloudEvent object.
  * @param {*} context
  */
@@ -444,7 +447,10 @@ async function scaleSpannerInstancePubSub(pubSubEvent, context) {
  */
 async function scaleSpannerInstanceHTTP(req, res) {
   try {
-    const payload = fs.readFileSync('./test/samples/parameters.json', 'utf-8');
+    const payload = fs.readFileSync(
+      'src/scaler/scaler-core/test/samples/parameters.json',
+      'utf-8',
+    );
     const spanner = JSON.parse(payload);
     try {
       const state = State.buildFor(spanner);
@@ -456,7 +462,7 @@ async function scaleSpannerInstanceHTTP(req, res) {
       await Counters.incRequestsSuccessCounter();
     } catch (err) {
       console.error(err);
-      res.status(500).end(err.toString());
+      res.status(500).contentType('text/plain').end('An Exception occurred');
       await Counters.incRequestsFailedCounter();
     }
   } catch (err) {
@@ -472,7 +478,9 @@ async function scaleSpannerInstanceHTTP(req, res) {
 
 /**
  * Handle scale request from a HTTP call with JSON payload
-
+ *
+ * Called by the Scaler service on GKE deployments
+ *
  * @param {express.Request} req
  * @param {express.Response} res
  */
@@ -500,10 +508,7 @@ async function scaleSpannerInstanceJSON(req, res) {
       payload: err,
       err: err,
     });
-    res.writeHead(500, {
-      'Content-Type': 'text/plain',
-    });
-    res.end(err.toString());
+    res.status(500).contentType('text/plain').end('An Exception occurred');
     await Counters.incRequestsFailedCounter();
   } finally {
     await Counters.tryFlush();
@@ -512,6 +517,9 @@ async function scaleSpannerInstanceJSON(req, res) {
 
 /**
  * Handle scale request from local function call
+ *
+ * Called by unified poller/scaler on GKE deployments
+ *
  * @param {AutoscalerSpanner} spanner
  */
 async function scaleSpannerInstanceLocal(spanner) {
@@ -593,18 +601,19 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
 
     const requestedSize =
       spanner.units === AutoscalerUnits.NODES
-        ? {nodeCount: metadata.instance.nodeCount}
-        : {processingUnits: metadata.instance.processingUnits};
+        ? {nodeCount: metadata.instance?.nodeCount}
+        : {processingUnits: metadata.instance?.processingUnits};
     const requestedSizeValue =
       spanner.units === AutoscalerUnits.NODES
-        ? metadata.instance.nodeCount
-        : metadata.instance.processingUnits;
+        ? metadata.instance?.nodeCount
+        : metadata.instance?.processingUnits;
     const displayedRequestedSize = JSON.stringify(requestedSize);
 
     if (operationState.done) {
       if (!operationState.error) {
         // Completed successfully.
-        const endTimestamp = Date.parse(metadata.endTime);
+        const endTimestamp =
+          metadata.endTime == null ? 0 : Date.parse(metadata.endTime);
         logger.info({
           message: `----- ${spanner.projectId}/${spanner.instanceId}: Last scaling request for ${displayedRequestedSize} SUCCEEDED. Started: ${metadata.startTime}, completed: ${metadata.endTime}`,
           projectId: spanner.projectId,
@@ -639,7 +648,10 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
         savedState.lastScalingCompleteTimestamp = 0;
         savedState.lastScalingTimestamp = 0;
 
-        await Counters.incScalingFailedCounter(spanner, requestedSizeValue);
+        await Counters.incScalingFailedCounter(
+          spanner,
+          requestedSizeValue == null ? 0 : requestedSizeValue,
+        );
       }
     } else {
       // last scaling operation is still ongoing
@@ -651,12 +663,12 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
         payload: spanner,
       });
     }
-  } catch (e) {
+  } catch (err) {
     // Fallback - LRO.get() API failed or returned invalid status.
     // Assume complete.
     logger.error({
-      message: `Failed to retrieve state of operation, assume completed. ID: ${savedState.scalingOperationId}: ${e.message}`,
-      err: e,
+      message: `Failed to retrieve state of operation, assume completed. ID: ${savedState.scalingOperationId}: ${err}`,
+      err: err,
     });
     savedState.scalingOperationId = null;
     savedState.lastScalingCompleteTimestamp = savedState.lastScalingTimestamp;

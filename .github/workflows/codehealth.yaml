@@ -24,44 +24,14 @@ jobs:
           node-version: 20
           check-latest: true
 
-      - name: Install eslint and typescript compiler
-        run: npm install
-
-      - name: Install node modules in src/
-        working-directory: src
+      - name: Install node modules
         run: npm install
 
       - name: Execute "npm run typecheck"
-        working-directory: .
         run: npm run typecheck
 
       - name: Execute "npm run eslint"
         run: npm run eslint
 
-      - name: NPM Audit src/
-        working-directory: src
-        run: npm audit
-
-      - name: NPM Audit src/forwarder
-        working-directory: src/forwarder
-        run: npm audit
-
-      - name: NPM Audit src/poller
-        working-directory: src/poller
-        run: npm audit
-
-      - name: NPM Audit src/poller/poller-core
-        working-directory: src/poller/poller-core
-        run: npm audit
-
-      - name: NPM Audit src/scaler
-        working-directory: src/scaler
-        run: npm audit
-
-      - name: NPM Audit src/scaler/scaler-core
-        working-directory: src/scaler/scaler-core
-        run: npm audit
-
-      - name: NPM Audit root
-        working-directory: .
+      - name: NPM Audit
         run: npm audit
