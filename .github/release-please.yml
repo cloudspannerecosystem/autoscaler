@@ -1,6 +1,6 @@
 handleGHRelease: true
 manifest: true
 branches:
-  - branch: version_2
+  - branch: version_1
     handleGHRelease: true
     manifest: true
