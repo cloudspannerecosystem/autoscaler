@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.21.2](https://github.com/cloudspannerecosystem/autoscaler/compare/v1.21.1...v1.21.2) (2024-03-26)
+
+
+### Bug Fixes
+
+* bump express from 4.18.3 to 4.19.1 in /src/forwarder ([#260](https://github.com/cloudspannerecosystem/autoscaler/issues/260)) ([75ab4e9](https://github.com/cloudspannerecosystem/autoscaler/commit/75ab4e9e2eed511cfee98491aeb5e3dbebfe2965))
+* bump express from 4.18.3 to 4.19.1 in /src/poller/poller-core ([#259](https://github.com/cloudspannerecosystem/autoscaler/issues/259)) ([0e08295](https://github.com/cloudspannerecosystem/autoscaler/commit/0e082953bc6a1bc05d25e2acddcf6d52956ad2c9))
+* bump express from 4.18.3 to 4.19.1 in /src/scaler/scaler-core ([#258](https://github.com/cloudspannerecosystem/autoscaler/issues/258)) ([310a676](https://github.com/cloudspannerecosystem/autoscaler/commit/310a676050696ff305fe957efb995019bebd435f))
+* bump typescript from 5.4.2 to 5.4.3 ([#257](https://github.com/cloudspannerecosystem/autoscaler/issues/257)) ([c1ceaf3](https://github.com/cloudspannerecosystem/autoscaler/commit/c1ceaf31fd4eb4633b27c9cb1ebf147af8ac929b))
+* **deps:** Update express to 4.19.2 ([#263](https://github.com/cloudspannerecosystem/autoscaler/issues/263)) ([095b1d6](https://github.com/cloudspannerecosystem/autoscaler/commit/095b1d6296587f4986e9e3ad9778caed125fb630))
+
 ## [1.21.1](https://github.com/cloudspannerecosystem/autoscaler/compare/cloudspannerecosystem/autoscaler-v1.21.0...cloudspannerecosystem/autoscaler-v1.21.1) (2024-03-20)
 
 
