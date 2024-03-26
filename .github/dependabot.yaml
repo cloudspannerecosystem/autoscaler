@@ -27,4 +27,12 @@ updates:
     commit-message:
       prefix: "fix"
 
+  # Docker dependencies
+  - directory: "/terraform"
+    package-ecosystem: "terraform"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "fix"
+
 version: 2
