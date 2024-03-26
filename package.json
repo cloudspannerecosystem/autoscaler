@@ -13,7 +13,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit",
     "mdlint": "markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md' --ignore 'CHANGELOG.md'",
-    "install-all": "set -e ; root=\"$PWD\"; for x in . src/autoscaler-common src/scaler/scaler-core src/scaler src/forwarder src/poller/poller-core src/poller src ; do cd \"$root\" ; cd \"$x\" ; pwd ; npm install --save; done",
+    "install-all": "npm install --save",
     "test": "NODE_ENV=test nyc --reporter=text mocha --recursive src --extension=.test.js",
     "unified-job": "node -e \"require('./src/unifiedScaler').main()\"",
     "poller-job": "node -e \"require('./src/poller/index').main()\"",
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@google-cloud/pubsub": "^4.3.3",
-    "express": "^4.18.3",
+    "express": "^4.19.2",
     "js-yaml": "^4.1.0",
     "@google-cloud/firestore": "^7.3.1",
     "@google-cloud/functions-framework": "^3.3.0",
