@@ -40,8 +40,9 @@ function main() {
     app.listen(port);
   } catch (err) {
     logger.error({
-      message: 'Error in Scaler wrapper:',
-      err: err});
+      message: 'Error startting Scaler: ${err}',
+      err: err,
+    });
   }
 }
 

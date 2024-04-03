@@ -60,8 +60,9 @@ async function main() {
     }
   } catch (err) {
     logger.error({
-      message: 'Error in unified poller/scaler wrapper:',
-      err: err});
+      message: 'Error in unified poller/scaler wrapper: ${err}',
+      err: err,
+    });
   } finally {
     CountersBase.setTryFlushEnabled(true);
     await CountersBase.tryFlush();
