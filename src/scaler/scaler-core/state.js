@@ -476,8 +476,11 @@ class StateFirestore extends State {
         await oldDocRef.delete();
       }
       return snapshot;
-    } catch (e) {
-      logger.error(e, `Failed to migrate docpaths`);
+    } catch (err) {
+      logger.error({
+        message: `Failed to migrate docpaths: ${err}`,
+        err: err,
+      });
     }
     return null;
   }

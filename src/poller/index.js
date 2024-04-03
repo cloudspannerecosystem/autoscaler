@@ -51,7 +51,7 @@ async function main() {
     );
   } catch (err) {
     logger.error({
-      message: 'Error in Poller wrapper:',
+      message: `Error in Poller: ${err}`,
       err: err,
     });
   }

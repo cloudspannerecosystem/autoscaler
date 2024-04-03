@@ -63,7 +63,7 @@ async function main() {
     }
   } catch (err) {
     logger.error({
-      message: 'Error in unified poller/scaler wrapper:',
+      message: 'Error in unified poller/scaler wrapper: ${err}',
       err: err,
     });
   } finally {
