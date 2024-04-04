@@ -302,10 +302,10 @@ async function postPubSubMessage(spanner, metrics) {
       .catch((err) => {
         logger.error({
           message: `An error occurred when publishing the message to ${
-            spanner.scalerPubSubTopic}`,
+            spanner.scalerPubSubTopic}: $[err}]`,
           projectId: spanner.projectId,
           instanceId: spanner.instanceId,
-          payload: err,
+          payload: spanner,
           err: err,
         });
       });
@@ -337,7 +337,7 @@ async function callScalerHTTP(spanner, metrics) {
           })
       .catch((err) => {
         logger.error({
-          message: `An error occurred when calling the scaler`,
+          message: `An error occurred when calling the scaler: ${err}`,
           projectId: spanner.projectId,
           instanceId: spanner.instanceId,
           payload: err,
@@ -469,11 +469,13 @@ async function parseAndEnrichPayload(payload) {
       spannersFound.push(spanners[sIdx]);
     } catch (err) {
       logger.error({
-        message: `Unable to retrieve Spanner metadata for ${
-          spanners[sIdx].projectId}/${spanners[sIdx].instanceId}`,
+        message:
+            `Unable to retrieve Spanner metadata for ${
+              spanners[sIdx].projectId}/${spanners[sIdx].instanceId}: ${err}`,
         projectId: spanners[sIdx].projectId,
         instanceId: spanners[sIdx].instanceId,
-        payload: err,
+        err: err,
+        payload: spanners[sIdx],
       });
     }
   }
@@ -550,10 +552,11 @@ async function forwardMetrics(forwarderFunction, spanners) {
       await Counters.incPollingSuccessCounter(spanner);
     } catch (err) {
       logger.error({
-        message: `Unable to retrieve metrics for ${spanner.projectId}/${
-          spanner.instanceId}`,
+        message: `Unable to retrieve metrics for ${
+          spanner.projectId}/${spanner.instanceId}: ${err}`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
+        payload: spanner,
         err: err,
       });
       await Counters.incPollingFailedCounter(spanner);
@@ -576,10 +579,11 @@ async function aggregateMetrics(spanners) {
       await Counters.incPollingSuccessCounter(spanner);
     } catch (err) {
       logger.error({
-        message: `Unable to retrieve metrics for ${spanner.projectId}/${
-          spanner.instanceId}`,
+        message: `Unable to retrieve metrics for ${
+          spanner.projectId}/${spanner.instanceId}: ${err}`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
+        spanner: spanner,
         err: err,
       });
       await Counters.incPollingFailedCounter(spanner);
@@ -607,16 +611,20 @@ async function checkSpannerScaleMetricsPubSub(pubSubEvent, context) {
       await Counters.incRequestsSuccessCounter();
     } catch (err) {
       logger.error({
-        message: `An error occurred in the Autoscaler poller function (PubSub)`,
-        err: err});
-      logger.error({message: `JSON payload`, payload: payload});
+        message:
+            `An error occurred in the Autoscaler poller function (PubSub): ${
+              err}`,
+        payload: payload,
+        err: err,
+      });
       await Counters.incRequestsFailedCounter();
     }
   } catch (err) {
     logger.error({
-      message: `An error occurred in the Autoscaler poller function (PubSub)`,
-      err: err});
-    logger.error({message: `Pubsub data`, payload: pubSubEvent.data});
+      message: `An error occurred parsing pubsub payload: ${err}`,
+      payload: pubSubEvent.data,
+      err: err,
+    });
     await Counters.incRequestsFailedCounter();
   } finally {
     await Counters.tryFlush();
@@ -646,11 +654,12 @@ async function checkSpannerScaleMetricsHTTP(req, res) {
     await Counters.incRequestsSuccessCounter();
   } catch (err) {
     logger.error({
-      message: `An error occurred in the Autoscaler poller function (HTTP)`,
-      err: err});
-    logger.error({message: `JSON payload`, payload: payload});
-    res.status(500).end(err.toString());
-    res.end(err.toString());
+      message: `An error occurred in the Autoscaler poller function (HTTP): ${
+        err}`,
+      payload: payload,
+      err: err,
+    });
+    res.status(500).contentType('text/plain').end('An Exception occurred');
     await Counters.incRequestsFailedCounter();
   } finally {
     await Counters.tryFlush();
@@ -673,9 +682,11 @@ async function checkSpannerScaleMetricsJSON(payload) {
   } catch (err) {
     logger.error({
       message:
-        `An error occurred in the Autoscaler poller function (JSON/HTTP)`,
-      err: err});
-    logger.error({message: `JSON payload`, payload: payload});
+          `An error occurred in the Autoscaler poller function (JSON/HTTP): ${
+            err}`,
+      payload: payload,
+      err: err,
+    });
     await Counters.incRequestsFailedCounter();
   } finally {
     await Counters.tryFlush();
@@ -700,9 +711,11 @@ async function checkSpannerScaleMetricsLocal(payload) {
   } catch (err) {
     logger.error({
       message:
-        `An error occurred in the Autoscaler poller function (JSON/Local)`,
-      err: err});
-    logger.error({message: `JSON payload`, payload: payload});
+          `An error occurred in the Autoscaler poller function (JSON/Local): ${
+            err}`,
+      payload: payload,
+      err: err,
+    });
     await Counters.incRequestsFailedCounter();
   } finally {
     await Counters.tryFlush();

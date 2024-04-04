@@ -106,14 +106,19 @@ async function publishProtoMsgDownstream(eventName, jsonData, topicId) {
   const data = Buffer.from(JSON.stringify(message.toJSON()));
   const attributes = {event: eventName};
 
-  return topic.publishMessage({data: data, attributes: attributes})
-      .then( () => logger.info(
-          `Published ${eventName} message downstream to topic: ${topicId}`))
+  return topic
+      .publishMessage({data: data, attributes: attributes})
+      .then(() =>
+        logger.info(
+            `Published ${eventName} message downstream to topic: ${topicId}`,
+        ),
+      )
       .catch((err) => {
         logger.error({
           message: `An error occurred publishing ${
-            eventName} message downstream to topic: ${topicId}`,
-          err: err});
+            eventName} message downstream to topic: ${topicId}: ${err}`,
+          err: err,
+        });
       });
 }
 

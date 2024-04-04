@@ -49,8 +49,9 @@ async function main() {
         JSON.stringify(yaml.load(config)));
   } catch (err) {
     logger.error({
-      message: 'Error in Poller wrapper:',
-      err: err});
+      message: `Error in Poller: ${err}`,
+      err: err,
+    });
   }
 }
 

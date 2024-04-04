@@ -46,6 +46,7 @@ const logger = bunyan.createLogger({
   streams: [
     loggingBunyan.stream(getLogLevel()),
   ],
+  serializers: bunyan.stdSerializers,
 });
 
 module.exports = {

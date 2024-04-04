@@ -443,8 +443,8 @@ async function tryFlush() {
         EXPORTER_PARAMETERS[exporterMode].FLUSH_MAX_ATTEMPTS
       } attempts - see OpenTelemetry logging`);
     }
-  } catch (e) {
-    logger.error('Error while flushing counters', e);
+  } catch (err) {
+    logger.error({err: err, message: `Error while flushing counters: ${err}`});
   } finally {
     // Release any waiters...
     resolveFlushInProgress();

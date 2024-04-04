@@ -319,18 +319,11 @@ async function processScalingRequest(spanner, autoscalerState) {
     } catch (err) {
       logger.error({
         message: `----- ${spanner.projectId}/${
-          spanner.instanceId}: Unsuccessful scaling attempt.`,
-        projectId: spanner.projectId,
-        instanceId: spanner.instanceId,
-        payload: err,
-        err: err,
-      });
-      logger.error({
-        message:
-          `----- ${spanner.projectId}/${spanner.instanceId}: Spanner payload:`,
+          spanner.instanceId}: Unsuccessful scaling attempt: ${err}.`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
         payload: spanner,
+        err: err,
       });
       eventType = 'SCALING_FAILURE';
       await Counters.incScalingFailedCounter(
@@ -372,22 +365,17 @@ async function scaleSpannerInstancePubSub(pubSubEvent, context) {
       await Counters.incRequestsSuccessCounter();
     } catch (err) {
       logger.error({
-        message: `Failed to process scaling request\n`,
+        message: `Failed to process scaling request: ${err}`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
         payload: spanner,
-      });
-      logger.error({
-        message: `Exception\n`,
-        projectId: spanner.projectId,
-        instanceId: spanner.instanceId,
         err: err,
       });
       await Counters.incRequestsFailedCounter();
     }
   } catch (err) {
     logger.error({
-      message: `Failed to parse pubSub scaling request\n`,
+      message: `Failed to parse pubSub scaling request: ${err}`,
       payload: pubSubEvent.data,
       err: err,
     });
@@ -416,13 +404,17 @@ async function scaleSpannerInstanceHTTP(req, res) {
       res.status(200).end();
       await Counters.incRequestsSuccessCounter();
     } catch (err) {
-      console.error(err);
-      res.status(500).end(err.toString());
+      logger.error({
+        message: `Failed to process scaling request: ${err}`,
+        payload: payload,
+        err: err,
+      });
+      res.status(500).contentType('text/plain').end('An Exception occurred');
       await Counters.incRequestsFailedCounter();
     }
   } catch (err) {
     logger.error({
-      message: `Failed to parse http scaling request\n`,
+      message: `Failed to parse http scaling request: ${err}`,
       err: err,
     });
     await Counters.incRequestsFailedCounter();
@@ -449,16 +441,10 @@ async function scaleSpannerInstanceJSON(req, res) {
     await Counters.incRequestsSuccessCounter();
   } catch (err) {
     logger.error({
-      message: `Failed to process scaling request\n`,
+      message: `Failed to process scaling request: ${err}`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: spanner,
-    });
-    logger.error({
-      message: `Exception\n`,
-      projectId: spanner.projectId,
-      instanceId: spanner.instanceId,
-      payload: err,
       err: err,
     });
     res.writeHead(500, {
@@ -484,16 +470,10 @@ async function scaleSpannerInstanceLocal(spanner) {
     await Counters.incRequestsSuccessCounter();
   } catch (err) {
     logger.error({
-      message: `Failed to process scaling request\n`,
+      message: `Failed to process scaling request: ${err}`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: spanner,
-    });
-    logger.error({
-      message: `Exception\n`,
-      projectId: spanner.projectId,
-      instanceId: spanner.instanceId,
-      payload: err,
       err: err,
     });
   } finally {
