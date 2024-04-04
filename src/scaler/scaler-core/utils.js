@@ -118,7 +118,7 @@ async function publishProtoMsgDownstream(eventName, jsonData, topicId) {
     )
     .catch((err) => {
       logger.error({
-        message: `An error occurred publishing ${eventName} message downstream to topic: ${topicId}`,
+        message: `An error occurred publishing ${eventName} message downstream to topic: ${topicId}: ${err}`,
         err: err,
       });
     });
