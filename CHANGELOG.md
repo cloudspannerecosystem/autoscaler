@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.21.3](https://github.com/cloudspannerecosystem/autoscaler/compare/v1.21.2...v1.21.3) (2024-04-19)
+
+
+### Bug Fixes
+
+* Correctly log Exceptions ([#268](https://github.com/cloudspannerecosystem/autoscaler/issues/268)) ([713969b](https://github.com/cloudspannerecosystem/autoscaler/commit/713969b618b63e9e4002e5fef4e1a3347dea21ca))
+* **deps:** Update golang.org/x/net and @google-cloud/spanner to fix vulnerabilities. ([#272](https://github.com/cloudspannerecosystem/autoscaler/issues/272)) ([f4e1158](https://github.com/cloudspannerecosystem/autoscaler/commit/f4e1158470f6058da59c7fe0d8d2153197caeebb))
+
 ## [1.21.2](https://github.com/cloudspannerecosystem/autoscaler/compare/v1.21.1...v1.21.2) (2024-03-26)
 
 
