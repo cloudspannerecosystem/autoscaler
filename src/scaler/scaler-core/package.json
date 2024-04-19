@@ -4,10 +4,10 @@
   "license": "Apache-2.0",
   "author": "Google Inc.",
   "dependencies": {
-    "@google-cloud/firestore": "^6.8.0",
+    "@google-cloud/firestore": "^7.6.0",
     "@google-cloud/functions-framework": "^3.3.0",
     "@google-cloud/pubsub": "^4.3.3",
-    "@google-cloud/spanner": "^6.16.0",
+    "@google-cloud/spanner": "^7.6.0",
     "autoscaler-common": "file:../../autoscaler-common",
     "express": "^4.19.2",
     "sanitize-filename": "^1.6.3"
