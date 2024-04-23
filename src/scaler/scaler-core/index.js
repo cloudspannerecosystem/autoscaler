@@ -44,6 +44,18 @@ const {version: packageVersion} = require('../../../package.json');
  * @typedef {import('./state.js').StateData} StateData
  */
 
+// The Node.JS spanner library has no way of getting an Operation status
+// without an Operation object, and no way of getting an Operation object
+// from just an Operation ID. So we use the Spanner REST api to get the
+// Operation status.
+// https://github.com/googleapis/nodejs-spanner/issues/2022
+const spannerRestApi = GoogleApis.spanner({
+  version: 'v1',
+  auth: new GoogleApis.auth.GoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/spanner.admin'],
+  }),
+});
+
 /**
  * Get scaling method function by name.
  *
@@ -119,17 +131,21 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
     userAgent: `cloud-solutions/spanner-autoscaler-scaler-usage-v${packageVersion}`,
   });
 
-  const [operation] = await spannerClient
-    .instance(spanner.instanceId)
-    .setMetadata(getNewMetadata(suggestedSize, spanner.units));
+  try {
+    const [operation] = await spannerClient
+      .instance(spanner.instanceId)
+      .setMetadata(getNewMetadata(suggestedSize, spanner.units));
 
-  logger.debug({
-    message: `Cloud Spanner started the scaling operation: ${operation.name}`,
-    projectId: spanner.projectId,
-    instanceId: spanner.instanceId,
-  });
+    logger.debug({
+      message: `Cloud Spanner started the scaling operation: ${operation.name}`,
+      projectId: spanner.projectId,
+      instanceId: spanner.instanceId,
+    });
 
-  return operation.name || null;
+    return operation.name || null;
+  } finally {
+    spannerClient.close();
+  }
 }
 
 /**
@@ -543,20 +559,10 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
     // no LRO ongoing.
     return savedState;
   }
-
-  // Check LRO status...
-  // The Node.JS spanner library has no way of getting an Operation status
-  // without an Operation object, and no way of getting an Operation object
-  // from just an Operation ID. So we use the REST api here to get the
-  // Operation status.
-  // https://github.com/googleapis/nodejs-spanner/issues/2022
   try {
-    const auth = new GoogleApis.auth.GoogleAuth({
-      scopes: ['https://www.googleapis.com/auth/spanner.admin'],
-    });
-    const spannerApi = GoogleApis.spanner({version: 'v1', auth: auth});
+    // Check LRO status using REST API.
     const {data: operationState} =
-      await spannerApi.projects.instances.operations.get({
+      await spannerRestApi.projects.instances.operations.get({
         name: savedState.scalingOperationId,
       });
 

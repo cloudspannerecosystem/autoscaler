@@ -57,6 +57,9 @@ class DummySpannerClass {
     return spanner.Spanner.timestamp(arg);
   }
 }
+const dummySpannerModule = {
+  Spanner: DummySpannerClass,
+};
 
 // import module to define State type for typechecking...
 let State = require('../state');
@@ -67,7 +70,11 @@ State = rewire('../state.js');
 // @ts-expect-error
 State.__set__('firestore', dummyFirestoreModule);
 // @ts-expect-error
-State.__set__('Spanner', DummySpannerClass);
+State.__set__('spanner', dummySpannerModule);
+// @ts-expect-error
+const StateFirestore = State.__get__('StateFirestore');
+// @ts-expect-error
+const StateSpanner = State.__get__('StateSpanner');
 
 afterEach(() => {
   // Restore the default sandbox here
@@ -146,11 +153,15 @@ describe('stateFirestoreTests', () => {
   beforeEach(() => {
     // stub instances need to be recreated before each test.
     stubFirestoreInstance = sinon.createStubInstance(firestore.Firestore);
+    stubFirestoreConstructor.reset();
     stubFirestoreConstructor.returns(stubFirestoreInstance);
     newDocRef = sinon.createStubInstance(firestore.DocumentReference);
     oldDocRef = sinon.createStubInstance(firestore.DocumentReference);
     stubFirestoreInstance.doc.withArgs(NEW_DOC_PATH).returns(newDocRef);
     stubFirestoreInstance.doc.withArgs(OLD_DOC_PATH).returns(oldDocRef);
+    // Clear cached Firestore instances from the memoized function in
+    // StateFirestore:
+    StateFirestore.getFirestoreClient.cache.clear();
   });
 
   it('should create a StateFirestore object on spanner projectId', function () {
@@ -168,6 +179,33 @@ describe('stateFirestoreTests', () => {
     assert.equals(state.constructor.name, 'StateFirestore');
     sinon.assert.calledWith(stubFirestoreConstructor, {
       projectId: 'stateProject',
+    });
+  });
+
+  it('should reuse the Firestore clients for each project', function () {
+    const config1 = {
+      ...autoscalerConfig,
+      stateProjectId: 'stateProject1',
+    };
+    const config2 = {
+      ...autoscalerConfig,
+      stateProjectId: 'stateProject2',
+    };
+
+    State.buildFor(config1);
+    State.buildFor(config2);
+    State.buildFor(config1);
+    State.buildFor(config2);
+    State.buildFor(config1);
+    State.buildFor(config2);
+
+    const calls = stubFirestoreConstructor.getCalls();
+    assert.equals(calls.length, 2);
+    assert.equals(calls[0].args[0], {
+      projectId: 'stateProject1',
+    });
+    assert.equals(calls[1].args[0], {
+      projectId: 'stateProject2',
     });
   });
 
@@ -364,16 +402,15 @@ describe('stateSpannerTests', () => {
     stubSpannerDatabase = sinon.createStubInstance(spanner.Database);
     stubSpannerTable = sinon.createStubInstance(spanner.Table);
 
+    stubSpannerConstructor.reset();
     stubSpannerConstructor.returns(stubSpannerClient);
-    stubSpannerClient.instance
-      .withArgs(autoscalerConfig.stateDatabase.instanceId)
-      .returns(stubSpannerInstance);
-    stubSpannerInstance.database
-      .withArgs(autoscalerConfig.stateDatabase.databaseId)
-      .returns(stubSpannerDatabase);
-    stubSpannerDatabase.table
-      .withArgs('spannerAutoscaler')
-      .returns(stubSpannerTable);
+    stubSpannerClient.instance.returns(stubSpannerInstance);
+    stubSpannerInstance.database.returns(stubSpannerDatabase);
+    stubSpannerDatabase.table.returns(stubSpannerTable);
+
+    // Clear cached Spanner DB instances from the memoized function in
+    // StateSpanner
+    StateSpanner.getSpannerDatabaseClient.cache.clear();
   });
 
   it('should create a StateSpanner object connecting to spanner projectId', function () {
@@ -412,6 +449,65 @@ describe('stateSpannerTests', () => {
       autoscalerConfig.stateDatabase.databaseId,
     );
     sinon.assert.calledWith(stubSpannerDatabase.table, 'spannerAutoscaler');
+  });
+
+  it('should reuse the Spanner clients for each database', function () {
+    const config1 = {
+      ...autoscalerConfig,
+      stateProjectId: 'stateProject1',
+      stateDatabase: {
+        name: 'spanner',
+        instanceId: 'stateInstanceId1',
+        databaseId: 'stateDatabaseId1',
+      },
+    };
+    const config2 = {
+      ...autoscalerConfig,
+      stateProjectId: 'stateProject2',
+      stateDatabase: {
+        name: 'spanner',
+        instanceId: 'stateInstanceId2',
+        databaseId: 'stateDatabaseId2',
+      },
+    };
+
+    State.buildFor(config1);
+    State.buildFor(config2);
+    State.buildFor(config1);
+    State.buildFor(config2);
+    State.buildFor(config1);
+    State.buildFor(config2);
+
+    // get client for project
+    assert.equals(stubSpannerConstructor.getCalls().length, 2);
+    assert.equals(stubSpannerConstructor.firstCall.args[0], {
+      projectId: 'stateProject1',
+    });
+    assert.equals(stubSpannerConstructor.secondCall.args[0], {
+      projectId: 'stateProject2',
+    });
+
+    // get instance for project
+    assert.equals(stubSpannerClient.instance.getCalls().length, 2);
+    assert.equals(
+      stubSpannerClient.instance.firstCall.args[0],
+      config1.stateDatabase.instanceId,
+    );
+    assert.equals(
+      stubSpannerClient.instance.secondCall.args[0],
+      config2.stateDatabase.instanceId,
+    );
+
+    // get database from instance
+    assert.equals(stubSpannerInstance.database.getCalls().length, 2);
+    assert.equals(
+      stubSpannerInstance.database.firstCall.args[0],
+      config1.stateDatabase.databaseId,
+    );
+    assert.equals(
+      stubSpannerInstance.database.secondCall.args[0],
+      config2.stateDatabase.databaseId,
+    );
   });
 
   it('get() should read document from table when exists', async function () {

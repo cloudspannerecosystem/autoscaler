@@ -27,12 +27,15 @@
  */
 
 const firestore = require('@google-cloud/firestore');
-const {Spanner} = require('@google-cloud/spanner');
+const spanner = require('@google-cloud/spanner');
 const {logger} = require('../../autoscaler-common/logger');
 const assertDefined = require('../../autoscaler-common/assertDefined');
+const {memoize} = require('lodash');
 /**
  * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
  * } AutoscalerSpanner
+ * @typedef {import('../../autoscaler-common/types').StateDatabaseConfig
+ * } StateDatabaseConfig
  */
 
 /**
@@ -161,22 +164,56 @@ module.exports = State;
  */
 class StateSpanner extends State {
   /**
+   * Builds a Spanner DatabaseClient from parameters in spanner.stateDatabase
+   * @param {string} stateProjectId
+   * @param {StateDatabaseConfig} stateDatabase
+   * @return {spanner.Database}
+   */
+  static createSpannerDatabaseClient(stateProjectId, stateDatabase) {
+    const spannerClient = new spanner.Spanner({projectId: stateProjectId});
+    const instance = spannerClient.instance(
+      assertDefined(stateDatabase.instanceId),
+    );
+    console.error('creating DB for %o', stateDatabase);
+    return instance.database(assertDefined(stateDatabase.databaseId));
+  }
+
+  /**
+   * Builds a Spanner database path - used as the key for memoize
+   * @param {string} stateProjectId
+   * @param {StateDatabaseConfig} stateDatabase
+   * @return {string}
+   */
+  static getStateDatabasePath(stateProjectId, stateDatabase) {
+    return `projects/${stateProjectId}/instances/${stateDatabase.instanceId}/databases/${stateDatabase.databaseId}`;
+  }
+
+  /**
+   * Memoize createSpannerDatabseClient() so that we only create one Spanner
+   * database client for each database ID.
+   */
+  static getSpannerDatabaseClient = memoize(
+    StateSpanner.createSpannerDatabaseClient,
+    StateSpanner.getStateDatabasePath,
+  );
+
+  /**
    * @param {AutoscalerSpanner} spanner
    */
   constructor(spanner) {
     super(spanner);
 
-    this.client = new Spanner({projectId: this.stateProjectId});
     if (!spanner.stateDatabase) {
       throw new Error('stateDatabase is not defined in Spanner config');
     }
-    this.instance = this.client.instance(
-      assertDefined(spanner.stateDatabase.instanceId),
+    this.stateDatabase = spanner.stateDatabase;
+
+    /** @type {spanner.Database} */
+    const databaseClient = StateSpanner.getSpannerDatabaseClient(
+      this.stateProjectId,
+      this.stateDatabase,
     );
-    this.db = this.instance.database(
-      assertDefined(spanner.stateDatabase.databaseId),
-    );
-    this.table = this.db.table('spannerAutoscaler');
+    this.table = databaseClient.table('spannerAutoscaler');
   }
 
   /** @inheritdoc */
@@ -215,7 +252,7 @@ class StateSpanner extends State {
       return StateSpanner.convertFromStorage(rows[0].toJSON());
     } catch (e) {
       logger.fatal({
-        message: `Failed to read from Spanner State storage: projects/${this.client.projectId}/instances/${this.instance.id}/databases/${this.db.id}/tables/${this.table.name}: ${e}`,
+        message: `Failed to read from Spanner State storage: ${StateSpanner.getStateDatabasePath(this.stateProjectId, this.stateDatabase)}/tables/${this.table.name}: ${e}`,
         err: e,
       });
       throw e;
@@ -223,9 +260,7 @@ class StateSpanner extends State {
   }
 
   /** @inheritdoc */
-  async close() {
-    await this.db.close();
-  }
+  async close() {}
 
   /**
    * Converts row data from Spanner.timestamp (implementation detail)
@@ -313,7 +348,7 @@ class StateSpanner extends State {
       await this.table.upsert(row);
     } catch (e) {
       logger.fatal({
-        msg: `Failed to write to Spanner State storage: projects/${this.client.projectId}/instances/${this.instance.id}/databases/${this.db.id}/tables/${this.table.name}: ${e}`,
+        msg: `Failed to write to Spanner State storage: ${StateSpanner.getStateDatabasePath(this.stateProjectId, this.stateDatabase)}/tables/${this.table.name}: ${e}`,
         err: e,
       });
       throw e;
@@ -337,11 +372,26 @@ class StateSpanner extends State {
  */
 class StateFirestore extends State {
   /**
+   * Builds a Firestore client for the given project ID
+   * @param {string} stateProjectId
+   * @return {firestore.Firestore}
+   */
+  static createFirestoreClient(stateProjectId) {
+    return new firestore.Firestore({projectId: stateProjectId});
+  }
+
+  /**
+   * Memoize createFirestoreClient() so that we only create one Firestore
+   * client for each stateProject
+   */
+  static getFirestoreClient = memoize(StateFirestore.createFirestoreClient);
+
+  /**
    * @param {AutoscalerSpanner} spanner
    */
   constructor(spanner) {
     super(spanner);
-    this.firestore = new firestore.Firestore({projectId: this.stateProjectId});
+    this.firestore = StateFirestore.getFirestoreClient(this.stateProjectId);
   }
 
   /**

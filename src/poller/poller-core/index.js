@@ -257,7 +257,7 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
  * @param {AutoscalerUnits} units NODES or PU
  * @return {Promise<SpannerMetadata>}
  */
-function getSpannerMetadata(projectId, spannerInstanceId, units) {
+async function getSpannerMetadata(projectId, spannerInstanceId, units) {
   logger.info({
     message: `----- ${projectId}/${spannerInstanceId}: Getting Metadata -----`,
     projectId: projectId,
@@ -269,9 +269,10 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
     // @ts-ignore -- hidden property of ServiceOptions.
     userAgent: `cloud-solutions/spanner-autoscaler-poller-usage-v${packageVersion}`,
   });
-  const spannerInstance = spanner.instance(spannerInstanceId);
 
-  return spannerInstance.getMetadata().then((data) => {
+  try {
+    const spannerInstance = spanner.instance(spannerInstanceId);
+    const data = await spannerInstance.getMetadata();
     const metadata = data[0];
     logger.debug({
       message: `DisplayName:     ${metadata['displayName']}`,
@@ -304,10 +305,10 @@ function getSpannerMetadata(projectId, spannerInstanceId, units) {
       // DEPRECATED
       currentNodes: assertDefined(metadata['nodeCount']),
     };
-
-    spanner.close();
     return spannerMetadata;
-  });
+  } finally {
+    spanner.close();
+  }
 }
 
 /**

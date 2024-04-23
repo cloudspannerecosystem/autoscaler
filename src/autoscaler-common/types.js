@@ -53,6 +53,14 @@ const AutoscalerUnits = {
 
 /**
  * @typedef {{
+ *      name: string,
+ *      instanceId?: string,
+ *      databaseId?: string
+ * }} StateDatabaseConfig
+ */
+
+/**
+ * @typedef {{
  *    scalingMethod: string,
  *    projectId: string,
  *    instanceId: string,
@@ -64,10 +72,7 @@ const AutoscalerUnits = {
  *    scaleInCoolingMinutes: number,
  *    overloadCoolingMinutes: number,
  *    stateProjectId?: string,
- *    stateDatabase?: {
- *      name: string,
- *      instanceId?: string,
- *      databaseId?: string},
+ *    stateDatabase?: StateDatabaseConfig,
  *    minNodes?: number,
  *    maxNodes?: number,
  *    minSize: number,

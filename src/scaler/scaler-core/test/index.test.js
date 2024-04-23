@@ -416,9 +416,6 @@ describe('#readStateCheckOngoingLRO', () => {
   /** @type {*} */
   let operation;
 
-  /** Dummy class to simulate new GoogleApis.auth.GoogleAuth */
-  class DummyAuthClass {}
-
   const getOperation = sinon.stub();
   const fakeSpannerAPI = {
     projects: {
@@ -429,13 +426,7 @@ describe('#readStateCheckOngoingLRO', () => {
       },
     },
   };
-  const fakeGoogleApis = {
-    auth: {
-      GoogleAuth: DummyAuthClass,
-    },
-    spanner: () => fakeSpannerAPI,
-  };
-  app.__set__('GoogleApis', fakeGoogleApis);
+  app.__set__('spannerRestApi', fakeSpannerAPI);
   app.__set__('Counters', countersStub);
 
   const lastScalingDate = new Date('2024-01-01T12:00:00Z');
