@@ -174,7 +174,6 @@ class StateSpanner extends State {
     const instance = spannerClient.instance(
       assertDefined(stateDatabase.instanceId),
     );
-    console.error('creating DB for %o', stateDatabase);
     return instance.database(assertDefined(stateDatabase.databaseId));
   }
 
