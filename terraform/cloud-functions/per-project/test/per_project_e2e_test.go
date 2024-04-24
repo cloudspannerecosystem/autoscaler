@@ -146,7 +146,6 @@ func TestPerProjectEndToEndDeployment(t *testing.T) {
 			Vars: map[string]interface{}{
 				"project_id":                    config.ProjectId,
 				"region":                        "us-central1",
-				"zone":                          "us-central1-a",
 				"spanner_name":                  spannerName,
 				"terraform_spanner_test":        true,
 				"spanner_test_processing_units": spannerTestProcessingUnits,
