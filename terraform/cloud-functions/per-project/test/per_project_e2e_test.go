@@ -150,6 +150,7 @@ func TestPerProjectEndToEndDeployment(t *testing.T) {
 				"terraform_spanner_test":        true,
 				"spanner_test_processing_units": spannerTestProcessingUnits,
 			},
+			NoColor: true,
 		}
 
 		test_structure.SaveTerraformOptions(t, terraformDir, terraformOptions)
