@@ -83,7 +83,7 @@ The per-project deployment has the following pros and cons:
 
 *   **Maintenance**: with each team being responsible for the Autoscaler
     configuration and infrastructure it may become difficult to make sure that
-    all Autoscalers across the organization follow the same update guidelines.
+    all Autoscalers across your organization follow the same update guidelines.
 *   **Audit**: because of the high level of control by each team, a centralized
     audit may become more complex.
 
