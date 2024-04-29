@@ -42,6 +42,8 @@ const {version: packageVersion} = require('../../../package.json');
  * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
  * } AutoscalerSpanner
  * @typedef {import('./state.js').StateData} StateData
+ * @typedef {spannerProtos.google.spanner.admin.instance.v1.UpdateInstanceMetadata
+ * } UpdateInstanceMetadata
  */
 
 // The Node.JS spanner library has no way of getting an Operation status
@@ -141,6 +143,22 @@ async function scaleSpannerInstance(spanner, suggestedSize) {
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
     });
+
+    const updateInstanceMetadata =
+      /** @type {spannerProtos.google.spanner.admin.instance.v1.IUpdateInstanceMetadata} */ (
+        operation.metadata
+      );
+    if (
+      updateInstanceMetadata.expectedFulfillmentPeriod ===
+      spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
+        .FULFILLMENT_PERIOD_EXTENDED
+    ) {
+      logger.warn({
+        message: `Cloud Spanner scaling operation returned FULFILLMENT_PERIOD_EXTENDED and may take up to 1hr (id: ${operation.name})`,
+        projectId: spanner.projectId,
+        instanceId: spanner.instanceId,
+      });
+    }
 
     return operation.name || null;
   } finally {
@@ -307,7 +325,11 @@ async function processScalingRequest(spanner, autoscalerState) {
   });
 
   // Check for ongoing LRO
-  const savedState = await readStateCheckOngoingLRO(spanner, autoscalerState);
+  const {
+    savedState,
+    expectedFulfillmentPeriod,
+    requestedSize: lroRequestedSize,
+  } = await readStateCheckOngoingLRO(spanner, autoscalerState);
 
   const suggestedSize = getSuggestedSize(spanner);
   if (
@@ -335,6 +357,25 @@ async function processScalingRequest(spanner, autoscalerState) {
       'CURRENT_SIZE',
     );
     return;
+  }
+
+  if (
+    savedState.scalingOperationId &&
+    expectedFulfillmentPeriod ===
+      spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
+        .FULFILLMENT_PERIOD_EXTENDED &&
+    lroRequestedSize !== suggestedSize
+  ) {
+    // There is an ongoing scaling operation with extended fulfulment period,
+    // but the scaling calculations have evaluated a different size to what
+    // was previously requested.
+    // TODO handle this better: https://github.com/cloudspannerecosystem/autoscaler/issues/283
+    logger.warn({
+      message: `----- ${spanner.projectId}/${spanner.instanceId}: has ongoing scaling operation to ${lroRequestedSize} ${spanner.units} with FULFILLMENT_PERIOD_EXTENDED`,
+      projectId: spanner.projectId,
+      instanceId: spanner.instanceId,
+      payload: spanner,
+    });
   }
 
   if (!savedState.scalingOperationId) {
@@ -390,11 +431,12 @@ async function processScalingRequest(spanner, autoscalerState) {
     logger.info({
       message:
         `----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.currentSize} ${spanner.units}, no scaling possible ` +
-        `- last scaling operation still in progress. Started: ${convertMillisecToHumanReadable(
+        `- last scaling operation to ${lroRequestedSize} ${spanner.units} still in progress. Started: ${convertMillisecToHumanReadable(
           autoscalerState.now - savedState.lastScalingTimestamp,
         )} ago).`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
+      payload: spanner,
     });
     await Counters.incScalingDeniedCounter(
       spanner,
@@ -546,19 +588,33 @@ async function scaleSpannerInstanceLocal(spanner) {
 }
 
 /**
+ * @typedef {{
+ *  savedState: StateData,
+ *  expectedFulfillmentPeriod: spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod | undefined,
+ *  requestedSize: number | undefined, // Either nodes or Processing Units.
+ * }} LroInfo
+ */
+
+/**
  * Read state and check status of any LRO...
+ *
  *
  * @param {AutoscalerSpanner} spanner
  * @param {State} autoscalerState
- * @return {Promise<StateData>}
+ * @return {Promise<LroInfo>}
  */
 async function readStateCheckOngoingLRO(spanner, autoscalerState) {
   const savedState = await autoscalerState.get();
 
   if (!savedState?.scalingOperationId) {
     // no LRO ongoing.
-    return savedState;
+    return {
+      savedState,
+      expectedFulfillmentPeriod: undefined,
+      requestedSize: undefined,
+    };
   }
+  /** @type {?spannerRest.Schema$UpdateInstanceMetadata} */
   try {
     // Check LRO status using REST API.
     const {data: operationState} =
@@ -592,8 +648,8 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
         : {processingUnits: metadata.instance?.processingUnits};
     const requestedSizeValue =
       spanner.units === AutoscalerUnits.NODES
-        ? metadata.instance?.nodeCount
-        : metadata.instance?.processingUnits;
+        ? metadata.instance?.nodeCount || undefined
+        : metadata.instance?.processingUnits || undefined;
     const displayedRequestedSize = JSON.stringify(requestedSize);
 
     if (operationState.done) {
@@ -640,15 +696,39 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
           requestedSizeValue == null ? 0 : requestedSizeValue,
         );
       }
+      return {
+        savedState,
+        expectedFulfillmentPeriod: undefined,
+        requestedSize: requestedSizeValue,
+      };
     } else {
+      const expectedFulfillmentPeriodString =
+        metadata.expectedFulfillmentPeriod || '';
+
       // last scaling operation is still ongoing
       logger.info({
-        message: `----- ${spanner.projectId}/${spanner.instanceId}: Last scaling request for ${displayedRequestedSize} IN PROGRESS. Started: ${metadata?.startTime}`,
+        message: `----- ${spanner.projectId}/${spanner.instanceId}: Last scaling request for ${displayedRequestedSize} IN PROGRESS. Started: ${metadata?.startTime} ${expectedFulfillmentPeriodString}`,
         projectId: spanner.projectId,
         instanceId: spanner.instanceId,
         requestedSize: requestedSize,
         payload: spanner,
       });
+
+      // convert metadata.expectedFulfillmentPeriod as string to an enum.
+      const expectedFulfillmentPeriod =
+        expectedFulfillmentPeriodString === 'FULFILLMENT_PERIOD_NORMAL'
+          ? spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
+              .FULFILLMENT_PERIOD_NORMAL
+          : expectedFulfillmentPeriodString === 'FULFILLMENT_PERIOD_EXTENDED'
+            ? spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
+                .FULFILLMENT_PERIOD_EXTENDED
+            : spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
+                .FULFILLMENT_PERIOD_UNSPECIFIED;
+      return {
+        savedState,
+        expectedFulfillmentPeriod,
+        requestedSize: requestedSizeValue,
+      };
     }
   } catch (err) {
     // Fallback - LRO.get() API failed or returned invalid status.
@@ -659,10 +739,15 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
     });
     savedState.scalingOperationId = null;
     savedState.lastScalingCompleteTimestamp = savedState.lastScalingTimestamp;
+    return {
+      savedState,
+      expectedFulfillmentPeriod: undefined,
+      requestedSize: undefined,
+    };
+  } finally {
+    // Update saved state in storage.
+    await autoscalerState.updateState(savedState);
   }
-  // Update saved state in storage.
-  await autoscalerState.updateState(savedState);
-  return savedState;
 }
 
 module.exports = {

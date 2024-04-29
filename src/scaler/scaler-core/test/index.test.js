@@ -25,12 +25,14 @@ const {
   createStateData,
 } = require('./test-utils.js');
 const {afterEach} = require('mocha');
+const {protos: spannerProtos} = require('@google-cloud/spanner');
 
 /**
  * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
  * } AutoscalerSpanner
  * @typedef {import('../state.js').StateData} StateData
  * @typedef {import('../state.js')} State
+ * @typedef {import('../index.js').LroInfo} LroInfo
  */
 
 afterEach(() => {
@@ -59,6 +61,7 @@ describe('#getNewMetadata', () => {
 
 describe('#processScalingRequest', () => {
   const app = rewire('../index.js');
+
   const processScalingRequest = app.__get__('processScalingRequest');
 
   const countersStub = {
@@ -80,7 +83,13 @@ describe('#processScalingRequest', () => {
     app.__set__('getSuggestedSize', getSuggestedSizeStub);
     app.__set__('readStateCheckOngoingLRO', readStateCheckOngoingLRO);
 
-    readStateCheckOngoingLRO.returns(createStateData());
+    readStateCheckOngoingLRO.returns(
+      /** @type {LroInfo} */ ({
+        savedState: createStateData(),
+        expectedFulfillmentPeriod: undefined,
+        requestedSize: undefined,
+      }),
+    );
   });
 
   afterEach(() => {
@@ -187,13 +196,21 @@ describe('#processScalingRequest', () => {
   it('should not autoscale if scalingOperationId is set', async () => {
     // set operation ongoing...
     const stubState = createStubState();
-    readStateCheckOngoingLRO.returns({
-      lastScalingTimestamp: stubState.now,
-      createdOn: 0,
-      updatedOn: 0,
-      lastScalingCompleteTimestamp: 0,
-      scalingOperationId: 'DummyOpID',
-    });
+    readStateCheckOngoingLRO.returns(
+      /** @type {LroInfo} */ ({
+        savedState: {
+          lastScalingTimestamp: stubState.now,
+          createdOn: 0,
+          updatedOn: 0,
+          lastScalingCompleteTimestamp: 0,
+          scalingOperationId: 'DummyOpID',
+        },
+        expectedFulfillmentPeriod:
+          spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
+            .FULFILLMENT_PERIOD_NORMAL,
+        requestedSize: 12,
+      }),
+    );
 
     const spanner = createSpannerParameters();
     const suggestedSize = spanner.currentSize + 100;
@@ -458,6 +475,7 @@ describe('#readStateCheckOngoingLRO', () => {
         },
         'endTime': null,
         'startTime': lastScalingDate.toISOString(),
+        expectedFulfillmentPeriod: 'FULFILLMENT_PERIOD_NORMAL',
       },
     };
   });
@@ -475,9 +493,14 @@ describe('#readStateCheckOngoingLRO', () => {
       ...originalAutoscalerState,
       scalingOperationId: null,
     };
+
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
-      expectedState,
+      /** @type {LroInfo} */ ({
+        savedState: expectedState,
+        expectedFulfillmentPeriod: undefined,
+        requestedSize: undefined,
+      }),
     );
     sinon.assert.notCalled(getOperation);
     sinon.assert.notCalled(stateStub.updateState);
@@ -494,7 +517,11 @@ describe('#readStateCheckOngoingLRO', () => {
     };
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
-      expectedState,
+      /** @type {LroInfo} */ ({
+        savedState: expectedState,
+        expectedFulfillmentPeriod: undefined,
+        requestedSize: undefined,
+      }),
     );
 
     sinon.assert.calledOnce(getOperation);
@@ -512,7 +539,11 @@ describe('#readStateCheckOngoingLRO', () => {
     };
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
-      expectedState,
+      /** @type {LroInfo} */ ({
+        savedState: expectedState,
+        expectedFulfillmentPeriod: undefined,
+        requestedSize: undefined,
+      }),
     );
 
     sinon.assert.calledOnce(getOperation);
@@ -535,7 +566,11 @@ describe('#readStateCheckOngoingLRO', () => {
     };
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
-      expectedState,
+      /** @type {LroInfo} */ ({
+        savedState: expectedState,
+        expectedFulfillmentPeriod: undefined,
+        requestedSize: 2000,
+      }),
     );
 
     sinon.assert.calledOnce(getOperation);
@@ -555,7 +590,11 @@ describe('#readStateCheckOngoingLRO', () => {
     };
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
-      expectedState,
+      /** @type {LroInfo} */ ({
+        savedState: expectedState,
+        expectedFulfillmentPeriod: undefined,
+        requestedSize: undefined,
+      }),
     );
 
     sinon.assert.calledOnce(getOperation);
@@ -569,7 +608,35 @@ describe('#readStateCheckOngoingLRO', () => {
 
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
-      originalAutoscalerState,
+      /** @type {LroInfo} */ ({
+        savedState: originalAutoscalerState,
+        expectedFulfillmentPeriod:
+          spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
+            .FULFILLMENT_PERIOD_NORMAL,
+        requestedSize: 2000,
+      }),
+    );
+
+    sinon.assert.calledOnce(getOperation);
+    sinon.assert.calledWith(stateStub.updateState, originalAutoscalerState);
+  });
+
+  it('should return fulfulment period extended when returned by API', async () => {
+    stateStub.get.resolves(autoscalerState);
+    operation.done = false;
+    operation.metadata.expectedFulfillmentPeriod =
+      'FULFILLMENT_PERIOD_EXTENDED';
+    getOperation.resolves({data: operation});
+
+    assert.equals(
+      await readStateCheckOngoingLRO(spannerParams, stateStub),
+      /** @type {LroInfo} */ ({
+        savedState: originalAutoscalerState,
+        expectedFulfillmentPeriod:
+          spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
+            .FULFILLMENT_PERIOD_EXTENDED,
+        requestedSize: 2000,
+      }),
     );
 
     sinon.assert.calledOnce(getOperation);
@@ -591,7 +658,11 @@ describe('#readStateCheckOngoingLRO', () => {
     };
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
-      expectedState,
+      /** @type {LroInfo} */ ({
+        savedState: expectedState,
+        expectedFulfillmentPeriod: undefined,
+        requestedSize: 2000,
+      }),
     );
 
     sinon.assert.calledOnce(getOperation);
