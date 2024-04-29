@@ -197,6 +197,7 @@ support channels.
 
 *   [Contributing guidelines][contributing-guidelines]
 *   [Code of conduct][code-of-conduct]
+*   [Niel's test][nielm-test]
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
@@ -216,3 +217,4 @@ support channels.
 [spanner-max-cpu]: https://cloud.google.com/spanner/docs/cpu-utilization#recommended-max
 [spanner-max-storage]: https://cloud.google.com/spanner/docs/monitoring-cloud#storage
 [spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
+[nielm-test]: http://example.org
