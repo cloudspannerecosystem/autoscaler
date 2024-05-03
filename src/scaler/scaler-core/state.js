@@ -42,19 +42,33 @@ const {memoize} = require('lodash');
  * @typedef StateData
  * @property {number?} lastScalingCompleteTimestamp - when the last scaling operation completed.
  * @property {string?} scalingOperationId - the ID of the currently in progress scaling operation.
+ * @property {number?} scalingRequestedSize - the requested size of the currently in progress scaling operation.
+ * @property {number?} scalingPreviousSize - the size of the cluster before the currently in progress scaling operation started.
+ * @property {string?} scalingMethod - the scaling method used to calculate the size for the currently in progress scaling operation.
  * @property {number} lastScalingTimestamp - when the last scaling operation was started.
  * @property {number} createdOn - the timestamp when this record was created
  * @property {number} updatedOn - the timestamp when this record was updated.
  */
 
-/** @typedef {{name: string, type: string}} ColumnDef */
-/** @type {Array<ColumnDef>} */
+/**
+ * @typedef ColumnDef
+ * @property {string} name
+ * @property {string} type
+ * @property {boolean=} newSchemaCol a column which has been added to the schema, and if not present, will be ignored.
+ */
+/**
+ * Column type definitions for State.
+ * @type {Array<ColumnDef>}
+ */
 const STATE_KEY_DEFINITIONS = [
   {name: 'lastScalingTimestamp', type: 'timestamp'},
   {name: 'createdOn', type: 'timestamp'},
   {name: 'updatedOn', type: 'timestamp'},
   {name: 'lastScalingCompleteTimestamp', type: 'timestamp'},
   {name: 'scalingOperationId', type: 'string'},
+  {name: 'scalingRequestedSize', type: 'number', newSchemaCol: true},
+  {name: 'scalingPreviousSize', type: 'number', newSchemaCol: true},
+  {name: 'scalingMethod', type: 'string', newSchemaCol: true},
 ];
 
 /**
@@ -224,8 +238,11 @@ class StateSpanner extends State {
       lastScalingTimestamp: 0,
       lastScalingCompleteTimestamp: 0,
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
     };
-    await this.writeToSpanner(StateSpanner.convertToStorage(data));
+    await this.writeToSpanner(StateSpanner.convertToStorage(data, true));
     // Need to return storage-format data which uses Date objects
     return {
       createdOn: new Date(data.createdOn),
@@ -233,22 +250,54 @@ class StateSpanner extends State {
       lastScalingTimestamp: new Date(0),
       lastScalingCompleteTimestamp: new Date(0),
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
     };
+  }
+
+  /**
+   * @param {boolean} includeNewSchemaCol - whether to query the cols in the new schema
+   */
+  async executeQuery(includeNewSchemaCol) {
+    // set up list of columns based on if newSchemaCols should be included.
+    const columns = STATE_KEY_DEFINITIONS.filter((c) =>
+      includeNewSchemaCol ? true : !c.newSchemaCol,
+    ).map((c) => c.name);
+
+    const query = {
+      columns: columns,
+      keySet: {keys: [{values: [{stringValue: this.getSpannerId()}]}]},
+    };
+
+    const [rows] = await this.table.read(query);
+    if (rows.length == 0) {
+      return StateSpanner.convertFromStorage(await this.init());
+    }
+    return StateSpanner.convertFromStorage(rows[0].toJSON());
   }
 
   /** @inheritdoc */
   async get() {
     try {
-      const query = {
-        columns: STATE_KEY_DEFINITIONS.map((c) => c.name),
-        keySet: {keys: [{values: [{stringValue: this.getSpannerId()}]}]},
-      };
-
-      const [rows] = await this.table.read(query);
-      if (rows.length == 0) {
-        return StateSpanner.convertFromStorage(await this.init());
+      try {
+        return await this.executeQuery(true);
+      } catch (e) {
+        const err = /** @type {Error} */ (e);
+        if (err.message.toLowerCase().includes('column not found')) {
+          logger.error({
+            message: `Missing columns in Spanner State database table ${StateSpanner.getStateDatabasePath(this.stateProjectId, this.stateDatabase)}/tables/${this.table.name}: ${err.message}`,
+            err: e,
+          });
+          logger.error({
+            message: `Table schema needs updating - retrying with older schema.`,
+            err: e,
+          });
+          return await this.executeQuery(false);
+        } else {
+          throw e;
+        }
       }
-      return StateSpanner.convertFromStorage(rows[0].toJSON());
     } catch (e) {
       logger.fatal({
         message: `Failed to read from Spanner State storage: ${StateSpanner.getStateDatabasePath(this.stateProjectId, this.stateDatabase)}/tables/${this.table.name}: ${e}`,
@@ -297,17 +346,22 @@ class StateSpanner extends State {
    * columns, including converting timestamps.
    *
    * @param {StateData} stateData
+   * @param {boolean} includeNewSchemaCol
    * @return {*} Spanner row
    */
-  static convertToStorage(stateData) {
+  static convertToStorage(stateData, includeNewSchemaCol) {
     /** @type {{[x:string]: any}} */
     const row = {};
 
     const stateDataKeys = Object.keys(stateData);
 
     // Only copy values into row that have defined column names.
+    // exclude newSchemaCol columns if requested.
     for (const colDef of STATE_KEY_DEFINITIONS) {
-      if (stateDataKeys.includes(colDef.name)) {
+      if (
+        stateDataKeys.includes(colDef.name) &&
+        (includeNewSchemaCol || !colDef.newSchemaCol)
+      ) {
         // copy value
         // @ts-ignore
         row[colDef.name] = stateData[colDef.name];
@@ -323,17 +377,43 @@ class StateSpanner extends State {
   }
 
   /**
+   * Try to write the data to Spanner.
+   *
+   * @param {StateData} stateData
+   * @param {boolean} includeNewSchemaCols
+   * @private
+   */
+  async tryWrite(stateData, includeNewSchemaCols) {
+    const row = StateSpanner.convertToStorage(stateData, includeNewSchemaCols);
+    // we never want to update createdOn
+    delete row.createdOn;
+    await this.writeToSpanner(row);
+  }
+
+  /**
    * Update state data in storage with the given values
    * @param {StateData} stateData
    */
   async updateState(stateData) {
     stateData.updatedOn = this.now;
-    const row = StateSpanner.convertToStorage(stateData);
-
-    // we never want to update createdOn
-    delete row.createdOn;
-
-    await this.writeToSpanner(row);
+    try {
+      await this.tryWrite(stateData, true);
+    } catch (e) {
+      const err = /** @type {Error} */ (e);
+      if (err.message.toLowerCase().includes('column not found')) {
+        logger.error({
+          message: `Missing columns in Spanner State database table ${StateSpanner.getStateDatabasePath(this.stateProjectId, this.stateDatabase)}/tables/${this.table.name}: ${err.message}`,
+          err: e,
+        });
+        logger.error({
+          message: `Table schema needs updating - retrying with older schema.`,
+          err: e,
+        });
+        await this.tryWrite(stateData, false);
+      } else {
+        throw e;
+      }
+    }
   }
 
   /**
@@ -479,6 +559,9 @@ class StateFirestore extends State {
       lastScalingTimestamp: firestore.Timestamp.fromMillis(0),
       lastScalingCompleteTimestamp: firestore.Timestamp.fromMillis(0),
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
     };
 
     await this.docRef.set(initData);

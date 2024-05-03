@@ -44,6 +44,9 @@ const {version: packageVersion} = require('../../package.json');
  * @typedef {{
  *    counterName: string,
  *    counterDesc: string,
+ *    counterType?: "CUMULATIVE" | "HISTOGRAM" // default=COUNTER
+ *    counterUnits?: string
+ *    counterHistogramBuckets?: number[]
  * }} CounterDefinition
  */
 
@@ -123,7 +126,13 @@ let exporterMode;
 /**
  * Global counters object, populated by createCounters.
  *
- * @type {Map<String,OpenTelemetryApi.Counter>} counter Name to counter instance
+ * @type {Map<
+ *    String,
+ *    {
+ *      cumulative?: OpenTelemetryApi.Counter,
+ *      histogram?: OpenTelemetryApi.Histogram
+ *    }
+ *  >} counter Name to counter instance
  */
 const COUNTERS = new Map();
 
@@ -348,27 +357,67 @@ async function createCounters(counterDefinitions) {
     if (COUNTERS.get(counterDef.counterName)) {
       throw new Error('Counter already created: ' + counterDef.counterName);
     }
-    COUNTERS.set(
-      counterDef.counterName,
-      meter.createCounter(COUNTERS_PREFIX + counterDef.counterName, {
-        description: counterDef.counterDesc,
-      }),
-    );
+    switch (counterDef.counterType || 'CUMULATIVE') {
+      case 'CUMULATIVE':
+        COUNTERS.set(counterDef.counterName, {
+          cumulative: meter.createCounter(
+            COUNTERS_PREFIX + counterDef.counterName,
+            {
+              description: counterDef.counterDesc,
+              unit: counterDef.counterUnits,
+            },
+          ),
+        });
+        break;
+      case 'HISTOGRAM':
+        COUNTERS.set(counterDef.counterName, {
+          histogram: meter.createHistogram(
+            COUNTERS_PREFIX + counterDef.counterName,
+            {
+              description: counterDef.counterDesc,
+              unit: counterDef.counterUnits,
+              advice: {
+                explicitBucketBoundaries: counterDef.counterHistogramBuckets,
+              },
+            },
+          ),
+        });
+        break;
+      default:
+        throw new Error(
+          `Invalid counter type for ${counterDef.counterName}: ${counterDef.counterType}`,
+        );
+    }
   }
 }
 
 /**
- * Increment a counter.
+ * Increment a cumulative counter.
  *
  * @param {string} counterName
  * @param {OpenTelemetryApi.Attributes} [counterAttributes]
  */
 function incCounter(counterName, counterAttributes) {
   const counter = COUNTERS.get(counterName);
-  if (!counter) {
+  if (!counter?.cumulative) {
     throw new Error('Unknown counter: ' + counterName);
   }
-  counter.add(1, counterAttributes);
+  counter.cumulative.add(1, counterAttributes);
+}
+
+/**
+ * Record a histogram counter value.
+ *
+ * @param {string} counterName
+ * @param {number} value
+ * @param {OpenTelemetryApi.Attributes} [counterAttributes]
+ */
+function recordValue(counterName, value, counterAttributes) {
+  const counter = COUNTERS.get(counterName);
+  if (!counter?.histogram) {
+    throw new Error('Unknown counter: ' + counterName);
+  }
+  counter.histogram.record(value, counterAttributes);
 }
 
 let lastForceFlushTime = 0;
@@ -482,6 +531,7 @@ module.exports = {
   COUNTER_ATTRIBUTE_NAMES,
   createCounters,
   incCounter,
+  recordValue,
   tryFlush,
   setTryFlushEnabled,
 };

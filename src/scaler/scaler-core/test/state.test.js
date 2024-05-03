@@ -139,6 +139,9 @@ describe('stateFirestoreTests', () => {
         lastScalingTimestamp: DUMMY_FIRESTORE_TIMESTAMP,
         lastScalingCompleteTimestamp: DUMMY_FIRESTORE_TIMESTAMP,
         scalingOperationId: null,
+        scalingRequestedSize: null,
+        scalingMethod: null,
+        scalingPreviousSize: null,
       };
     },
   };
@@ -226,6 +229,9 @@ describe('stateFirestoreTests', () => {
       lastScalingTimestamp: DUMMY_TIMESTAMP,
       lastScalingCompleteTimestamp: DUMMY_TIMESTAMP,
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
     });
   });
 
@@ -247,6 +253,9 @@ describe('stateFirestoreTests', () => {
       updatedOn: DUMMY_TIMESTAMP,
       lastScalingCompleteTimestamp: 0,
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
     };
 
     const expectedDoc = {
@@ -255,6 +264,9 @@ describe('stateFirestoreTests', () => {
       lastScalingTimestamp: firestore.Timestamp.fromMillis(0),
       lastScalingCompleteTimestamp: firestore.Timestamp.fromMillis(0),
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
     };
 
     sinon.assert.calledTwice(stubFirestoreInstance.doc);
@@ -291,6 +303,9 @@ describe('stateFirestoreTests', () => {
       updatedOn: DUMMY_TIMESTAMP,
       lastScalingCompleteTimestamp: DUMMY_TIMESTAMP,
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
     };
 
     sinon.assert.calledTwice(stubFirestoreInstance.doc);
@@ -335,6 +350,9 @@ describe('stateFirestoreTests', () => {
       lastScalingTimestamp: DUMMY_FIRESTORE_TIMESTAMP2,
       lastScalingCompleteTimestamp: DUMMY_FIRESTORE_TIMESTAMP,
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
     });
   });
 });
@@ -366,6 +384,9 @@ describe('stateSpannerTests', () => {
       'updatedOn',
       'lastScalingCompleteTimestamp',
       'scalingOperationId',
+      'scalingRequestedSize',
+      'scalingPreviousSize',
+      'scalingMethod',
     ],
     keySet: {
       keys: [
@@ -388,6 +409,9 @@ describe('stateSpannerTests', () => {
         updatedOn: new Date(DUMMY_TIMESTAMP),
         lastScalingCompleteTimestamp: new Date(DUMMY_TIMESTAMP),
         scalingOperationId: null,
+        scalingRequestedSize: null,
+        scalingMethod: null,
+        scalingPreviousSize: null,
       };
     },
   };
@@ -517,13 +541,17 @@ describe('stateSpannerTests', () => {
     const state = State.buildFor(autoscalerConfig);
     const data = await state.get();
 
-    sinon.assert.calledWith(stubSpannerTable.read, expectedQuery);
+    assert.equals(stubSpannerTable.read.callCount, 1);
+    assert.equals(stubSpannerTable.read.args[0][0], expectedQuery);
     assert.equals(data, {
       createdOn: DUMMY_TIMESTAMP,
       updatedOn: DUMMY_TIMESTAMP,
       lastScalingTimestamp: DUMMY_TIMESTAMP,
       lastScalingCompleteTimestamp: DUMMY_TIMESTAMP,
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingPreviousSize: null,
+      scalingMethod: null,
     });
   });
 
@@ -539,12 +567,16 @@ describe('stateSpannerTests', () => {
 
     const data = await state.get();
 
-    sinon.assert.calledWith(stubSpannerTable.upsert, {
+    assert.equals(stubSpannerTable.upsert.callCount, 1);
+    assert.equals(stubSpannerTable.upsert.args[0][0], {
       lastScalingTimestamp: SPANNER_EPOCH_ISO_TIME,
       createdOn: DUMMY_SPANNER_ISO_TIME,
       updatedOn: DUMMY_SPANNER_ISO_TIME,
       lastScalingCompleteTimestamp: SPANNER_EPOCH_ISO_TIME,
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingPreviousSize: null,
+      scalingMethod: null,
       id: expectedRowId,
     });
 
@@ -554,6 +586,9 @@ describe('stateSpannerTests', () => {
       createdOn: DUMMY_TIMESTAMP,
       updatedOn: DUMMY_TIMESTAMP,
       scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
     });
   });
 
@@ -575,6 +610,99 @@ describe('stateSpannerTests', () => {
     await state.updateState(doc);
 
     sinon.assert.calledWith(stubSpannerTable.upsert, {
+      updatedOn: DUMMY_SPANNER_ISO_TIME2,
+      lastScalingTimestamp: DUMMY_SPANNER_ISO_TIME2,
+      lastScalingCompleteTimestamp: DUMMY_SPANNER_ISO_TIME,
+      scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      id: expectedRowId,
+    });
+  });
+
+  it('get() should retry without newSchemaCols when ColumnNotFound', async function () {
+    const expectedQueryWithNoNewCols = {
+      ...expectedQuery,
+      columns: [
+        'lastScalingTimestamp',
+        'createdOn',
+        'updatedOn',
+        'lastScalingCompleteTimestamp',
+        'scalingOperationId',
+      ],
+    };
+
+    stubSpannerTable.read
+      .onCall(0)
+      // @ts-ignore
+      .rejects(
+        new Error('5 NOT_FOUND Column not found in table stateTable: someCol'),
+      );
+    // @ts-ignore
+    stubSpannerTable.read.onCall(1).resolves([[VALID_ROW]]);
+
+    const state = State.buildFor(autoscalerConfig);
+    // make state.now return a fixed value
+    const nowfunc = sinon.stub();
+    sinon.replaceGetter(state, 'now', nowfunc);
+    nowfunc.returns(DUMMY_TIMESTAMP);
+
+    const data = await state.get();
+
+    assert.equals(stubSpannerTable.read.callCount, 2);
+    assert.equals(stubSpannerTable.read.args[0][0], expectedQuery);
+    assert.equals(stubSpannerTable.read.args[1][0], expectedQueryWithNoNewCols);
+
+    assert.equals(data, {
+      createdOn: DUMMY_TIMESTAMP,
+      updatedOn: DUMMY_TIMESTAMP,
+      lastScalingTimestamp: DUMMY_TIMESTAMP,
+      lastScalingCompleteTimestamp: DUMMY_TIMESTAMP,
+      scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingPreviousSize: null,
+      scalingMethod: null,
+    });
+  });
+
+  it('updateState() should retry without newSchemaCols when ColumnNotFound', async function () {
+    // @ts-ignore
+    stubSpannerTable.read.returns(Promise.resolve([[VALID_ROW]]));
+    stubSpannerTable.upsert
+      .onCall(0)
+      // @ts-ignore
+      .rejects(
+        new Error('5 NOT_FOUND Column not found in table stateTable: someCol'),
+      );
+    // @ts-ignore
+    stubSpannerTable.upsert.onCall(1).resolves();
+
+    const state = State.buildFor(autoscalerConfig);
+
+    // make state.now return a fixed value
+    const nowfunc = sinon.stub();
+    sinon.replaceGetter(state, 'now', nowfunc);
+    nowfunc.returns(DUMMY_TIMESTAMP);
+
+    const doc = await state.get();
+
+    nowfunc.returns(DUMMY_TIMESTAMP2);
+    doc.lastScalingTimestamp = DUMMY_TIMESTAMP2;
+    await state.updateState(doc);
+
+    assert.equals(stubSpannerTable.upsert.callCount, 2);
+    assert.equals(stubSpannerTable.upsert.args[0][0], {
+      updatedOn: DUMMY_SPANNER_ISO_TIME2,
+      lastScalingTimestamp: DUMMY_SPANNER_ISO_TIME2,
+      lastScalingCompleteTimestamp: DUMMY_SPANNER_ISO_TIME,
+      scalingOperationId: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      id: expectedRowId,
+    });
+    assert.equals(stubSpannerTable.upsert.args[1][0], {
       updatedOn: DUMMY_SPANNER_ISO_TIME2,
       lastScalingTimestamp: DUMMY_SPANNER_ISO_TIME2,
       lastScalingCompleteTimestamp: DUMMY_SPANNER_ISO_TIME,

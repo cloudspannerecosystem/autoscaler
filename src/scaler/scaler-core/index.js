@@ -325,11 +325,8 @@ async function processScalingRequest(spanner, autoscalerState) {
   });
 
   // Check for ongoing LRO
-  const {
-    savedState,
-    expectedFulfillmentPeriod,
-    requestedSize: lroRequestedSize,
-  } = await readStateCheckOngoingLRO(spanner, autoscalerState);
+  const {savedState, expectedFulfillmentPeriod} =
+    await readStateCheckOngoingLRO(spanner, autoscalerState);
 
   const suggestedSize = getSuggestedSize(spanner);
   if (
@@ -364,14 +361,14 @@ async function processScalingRequest(spanner, autoscalerState) {
     expectedFulfillmentPeriod ===
       spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
         .FULFILLMENT_PERIOD_EXTENDED &&
-    lroRequestedSize !== suggestedSize
+    savedState.scalingRequestedSize !== suggestedSize
   ) {
     // There is an ongoing scaling operation with extended fulfulment period,
     // but the scaling calculations have evaluated a different size to what
     // was previously requested.
     // TODO handle this better: https://github.com/cloudspannerecosystem/autoscaler/issues/283
     logger.warn({
-      message: `----- ${spanner.projectId}/${spanner.instanceId}: has ongoing scaling operation to ${lroRequestedSize} ${spanner.units} with FULFILLMENT_PERIOD_EXTENDED`,
+      message: `----- ${spanner.projectId}/${spanner.instanceId}: has ongoing scaling operation to ${savedState.scalingRequestedSize} ${spanner.units} with FULFILLMENT_PERIOD_EXTENDED`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
       payload: spanner,
@@ -396,12 +393,11 @@ async function processScalingRequest(spanner, autoscalerState) {
           scalingOperationId: operationId,
           lastScalingTimestamp: autoscalerState.now,
           lastScalingCompleteTimestamp: null,
+          scalingMethod: spanner.scalingMethod,
+          scalingPreviousSize: spanner.currentSize,
+          scalingRequestedSize: suggestedSize,
         });
         eventType = 'SCALING';
-
-        // TODO: When no longer handling backward compatibility in state
-        // this should be moved to the LRO check.
-        await Counters.incScalingSuccessCounter(spanner, suggestedSize);
       } catch (err) {
         logger.error({
           message: `----- ${spanner.projectId}/${spanner.instanceId}: Unsuccessful scaling attempt: ${err}`,
@@ -411,7 +407,12 @@ async function processScalingRequest(spanner, autoscalerState) {
           err: err,
         });
         eventType = 'SCALING_FAILURE';
-        await Counters.incScalingFailedCounter(spanner, suggestedSize);
+        await Counters.incScalingFailedCounter(
+          spanner,
+          spanner.scalingMethod,
+          spanner.currentSize,
+          suggestedSize,
+        );
       }
       await publishDownstreamEvent(eventType, spanner, suggestedSize);
     } else {
@@ -431,7 +432,7 @@ async function processScalingRequest(spanner, autoscalerState) {
     logger.info({
       message:
         `----- ${spanner.projectId}/${spanner.instanceId}: has ${spanner.currentSize} ${spanner.units}, no scaling possible ` +
-        `- last scaling operation to ${lroRequestedSize} ${spanner.units} still in progress. Started: ${convertMillisecToHumanReadable(
+        `- last scaling operation to ${savedState.scalingRequestedSize} ${spanner.units} still in progress. Started: ${convertMillisecToHumanReadable(
           autoscalerState.now - savedState.lastScalingTimestamp,
         )} ago).`,
       projectId: spanner.projectId,
@@ -590,8 +591,7 @@ async function scaleSpannerInstanceLocal(spanner) {
 /**
  * @typedef {{
  *  savedState: StateData,
- *  expectedFulfillmentPeriod: spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod | undefined,
- *  requestedSize: number | undefined, // Either nodes or Processing Units.
+ *  expectedFulfillmentPeriod: spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod | undefined
  * }} LroInfo
  */
 
@@ -606,12 +606,11 @@ async function scaleSpannerInstanceLocal(spanner) {
 async function readStateCheckOngoingLRO(spanner, autoscalerState) {
   const savedState = await autoscalerState.get();
 
-  if (!savedState?.scalingOperationId) {
+  if (!savedState.scalingOperationId) {
     // no LRO ongoing.
     return {
       savedState,
       expectedFulfillmentPeriod: undefined,
-      requestedSize: undefined,
     };
   }
   /** @type {?spannerRest.Schema$UpdateInstanceMetadata} */
@@ -642,14 +641,23 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
       operationState.metadata
     );
 
+    // scalingRequestedSize should be in the savedState object, but as a
+    // fallback get it from the metadata.
+    // TODO: remove this when we no longer support V2.0.x backward compatibilty
+    if (savedState.scalingRequestedSize == null) {
+      savedState.scalingRequestedSize =
+        (spanner.units === AutoscalerUnits.NODES
+          ? metadata.instance?.nodeCount
+          : metadata.instance?.processingUnits) ||
+        // one of the previous 2 values should always be set, but as a fallback
+        // set the currentSize
+        spanner.currentSize;
+    }
+
     const requestedSize =
       spanner.units === AutoscalerUnits.NODES
-        ? {nodeCount: metadata.instance?.nodeCount}
-        : {processingUnits: metadata.instance?.processingUnits};
-    const requestedSizeValue =
-      spanner.units === AutoscalerUnits.NODES
-        ? metadata.instance?.nodeCount || undefined
-        : metadata.instance?.processingUnits || undefined;
+        ? {nodeCount: savedState.scalingRequestedSize}
+        : {processingUnits: savedState.scalingRequestedSize};
     const displayedRequestedSize = JSON.stringify(requestedSize);
 
     if (operationState.done) {
@@ -664,8 +672,8 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
           requestedSize: requestedSize,
           payload: spanner,
         });
-        // Clear last operation ID from savedState and set completion time.
-        savedState.scalingOperationId = null;
+
+        // Set completion time in savedState
         if (endTimestamp) {
           savedState.lastScalingCompleteTimestamp = endTimestamp;
         } else {
@@ -676,6 +684,28 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
           savedState.lastScalingCompleteTimestamp =
             savedState.lastScalingTimestamp;
         }
+
+        // Record success counters.
+        await Counters.recordScalingDuration(
+          savedState.lastScalingCompleteTimestamp -
+            savedState.lastScalingTimestamp,
+          spanner,
+          savedState.scalingMethod,
+          savedState.scalingPreviousSize,
+          savedState.scalingRequestedSize,
+        );
+        await Counters.incScalingSuccessCounter(
+          spanner,
+          savedState.scalingMethod,
+          savedState.scalingPreviousSize,
+          savedState.scalingRequestedSize,
+        );
+
+        // Clear last scaling operation from savedState.
+        savedState.scalingOperationId = null;
+        savedState.scalingMethod = null;
+        savedState.scalingPreviousSize = null;
+        savedState.scalingRequestedSize = null;
       } else {
         // Last operation failed with an error
         logger.error({
@@ -686,20 +716,24 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
           error: operationState.error,
           payload: spanner,
         });
-        // Clear last scaling operation from savedState.
-        savedState.scalingOperationId = null;
-        savedState.lastScalingCompleteTimestamp = 0;
-        savedState.lastScalingTimestamp = 0;
 
         await Counters.incScalingFailedCounter(
           spanner,
-          requestedSizeValue == null ? 0 : requestedSizeValue,
+          savedState.scalingMethod,
+          savedState.scalingPreviousSize,
+          savedState.scalingRequestedSize,
         );
+        // Clear last scaling operation from savedState.
+        savedState.lastScalingCompleteTimestamp = 0;
+        savedState.lastScalingTimestamp = 0;
+        savedState.scalingOperationId = null;
+        savedState.scalingMethod = null;
+        savedState.scalingPreviousSize = null;
+        savedState.scalingRequestedSize = null;
       }
       return {
         savedState,
         expectedFulfillmentPeriod: undefined,
-        requestedSize: requestedSizeValue,
       };
     } else {
       const expectedFulfillmentPeriodString =
@@ -727,7 +761,6 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
       return {
         savedState,
         expectedFulfillmentPeriod,
-        requestedSize: requestedSizeValue,
       };
     }
   } catch (err) {
@@ -739,10 +772,28 @@ async function readStateCheckOngoingLRO(spanner, autoscalerState) {
     });
     savedState.scalingOperationId = null;
     savedState.lastScalingCompleteTimestamp = savedState.lastScalingTimestamp;
+    // Record success counters.
+    await Counters.recordScalingDuration(
+      savedState.lastScalingCompleteTimestamp - savedState.lastScalingTimestamp,
+      spanner,
+      savedState.scalingMethod,
+      savedState.scalingPreviousSize,
+      savedState.scalingRequestedSize,
+    );
+    await Counters.incScalingSuccessCounter(
+      spanner,
+      savedState.scalingMethod,
+      savedState.scalingPreviousSize,
+      savedState.scalingRequestedSize,
+    );
+
+    savedState.scalingMethod = null;
+    savedState.scalingPreviousSize = null;
+    savedState.scalingRequestedSize = null;
+
     return {
       savedState,
       expectedFulfillmentPeriod: undefined,
-      requestedSize: undefined,
     };
   } finally {
     // Update saved state in storage.
