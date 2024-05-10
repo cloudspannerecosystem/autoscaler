@@ -265,4 +265,22 @@ describe('#loopThroughSpannerMetrics', () => {
     spanner.metrics[0].should.have.property('margin');
     spanner.metrics[1].should.have.property('margin').and.equal(99);
   });
+
+  it('should clamp to a min number of PU based on currentNumDatabases', () => {
+    const spanner = /** @type {AutoscalerSpanner} */ ({
+      units: 'PROCESSING_UNITS',
+      minSize: 100,
+      currentNumDatabases: 55,
+      currentSize: 1000,
+      maxSize: 2000,
+      metrics: [
+        {name: 'high_priority_cpu', threshold: 65, value: 10},
+        {name: 'rolling_24_hr', threshold: 90, value: 10},
+      ],
+    });
+
+    // Metrics suggest 100PU, but 55 db's requires 600 PU
+    const suggestedSize = loopThroughSpannerMetrics(spanner, () => 100);
+    suggestedSize.should.be.equal(600);
+  });
 });

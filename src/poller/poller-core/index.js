@@ -272,8 +272,13 @@ async function getSpannerMetadata(projectId, spannerInstanceId, units) {
 
   try {
     const spannerInstance = spanner.instance(spannerInstanceId);
-    const data = await spannerInstance.getMetadata();
-    const metadata = data[0];
+
+    const results = await Promise.all([
+      spannerInstance.getDatabases(),
+      spannerInstance.getMetadata(),
+    ]);
+    const numDatabases = results[0][0].length;
+    const metadata = results[1][0];
     logger.debug({
       message: `DisplayName:     ${metadata['displayName']}`,
       projectId: projectId,
@@ -294,6 +299,11 @@ async function getSpannerMetadata(projectId, spannerInstanceId, units) {
       projectId: projectId,
       instanceId: spannerInstanceId,
     });
+    logger.debug({
+      message: `numDatabases:    ${numDatabases}`,
+      projectId: projectId,
+      instanceId: spannerInstanceId,
+    });
 
     /** @type {SpannerMetadata}     */
     const spannerMetadata = {
@@ -302,6 +312,7 @@ async function getSpannerMetadata(projectId, spannerInstanceId, units) {
           ? assertDefined(metadata['nodeCount'])
           : assertDefined(metadata['processingUnits']),
       regional: !!metadata['config']?.split('/')?.pop()?.startsWith('regional'),
+      currentNumDatabases: numDatabases,
       // DEPRECATED
       currentNodes: assertDefined(metadata['nodeCount']),
     };

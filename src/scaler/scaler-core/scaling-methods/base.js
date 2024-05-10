@@ -37,7 +37,12 @@ const RelativeToRange = {
 // margin
 const DEFAULT_THRESHOLD_MARGIN = 5;
 
+// Min 10 databases per 100 processing units.
+// https://cloud.google.com/spanner/quotas#database-limits
+const DATABASES_PER_100_PU = 10;
+
 const {logger} = require('../../../autoscaler-common/logger');
+const {AutoscalerUnits} = require('../../../autoscaler-common/types');
 
 /**
  * @typedef {import('../../../autoscaler-common/types').AutoscalerSpanner
@@ -170,6 +175,21 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
   });
 
   let maxSuggestedSize = spanner.minSize;
+
+  if (
+    spanner.units === AutoscalerUnits.PROCESSING_UNITS &&
+    spanner.currentNumDatabases
+  ) {
+    const minUnitsForNumDatabases =
+      Math.ceil(spanner.currentNumDatabases / DATABASES_PER_100_PU) * 100;
+    logger.info({
+      message: `\tMinumum ${minUnitsForNumDatabases} ${spanner.units} required for ${spanner.currentNumDatabases} databases`,
+      projectId: spanner.projectId,
+      instanceId: spanner.instanceId,
+    });
+    maxSuggestedSize = Math.max(maxSuggestedSize, minUnitsForNumDatabases);
+  }
+
   spanner.isOverloaded = false;
 
   for (const metric of /** @type {SpannerMetricValue[]} */ (spanner.metrics)) {

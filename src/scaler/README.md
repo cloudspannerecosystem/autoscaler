@@ -130,6 +130,7 @@ The following is an example:
       }
    ],
    "currentSize":100,
+   "currentNumDatabases": 10,
    "regional":true
 }
 ```
