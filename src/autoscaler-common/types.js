@@ -25,6 +25,7 @@ const AutoscalerUnits = {
  *    currentSize: number,
  *    regional: boolean,
  *    currentNodes: number,
+ *    currentNumDatabases: number,
  *  }} SpannerMetadata
  */
 

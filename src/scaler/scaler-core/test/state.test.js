@@ -104,6 +104,7 @@ const BASE_CONFIG = {
   maxSize: 200,
   stepSize: 10,
   overloadStepSize: 10,
+  currentNumDatabases: 1,
 };
 
 describe('stateFirestoreTests', () => {
