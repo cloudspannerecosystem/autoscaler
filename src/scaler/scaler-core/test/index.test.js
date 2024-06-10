@@ -68,6 +68,7 @@ describe('#processScalingRequest', () => {
     incScalingSuccessCounter: sinon.stub(),
     incScalingFailedCounter: sinon.stub(),
     incScalingDeniedCounter: sinon.stub(),
+    recordScalingDuration: sinon.stub(),
   };
   const stubScaleSpannerInstance = sinon.stub();
   const getSuggestedSizeStub = sinon.stub();
@@ -154,11 +155,7 @@ describe('#processScalingRequest', () => {
 
     assert.equals(stubScaleSpannerInstance.callCount, 1);
     assert.equals(stubScaleSpannerInstance.getCall(0).args[1], suggestedSize);
-    assert.equals(countersStub.incScalingSuccessCounter.callCount, 1);
-    assert.equals(
-      countersStub.incScalingSuccessCounter.getCall(0).args[1],
-      suggestedSize,
-    );
+    assert.equals(countersStub.incScalingSuccessCounter.callCount, 0);
     assert.equals(countersStub.incScalingDeniedCounter.callCount, 0);
     assert.equals(countersStub.incScalingFailedCounter.callCount, 0);
 
@@ -168,6 +165,9 @@ describe('#processScalingRequest', () => {
       updatedOn: 0,
       lastScalingCompleteTimestamp: null,
       scalingOperationId: 'scalingOperationId',
+      scalingMethod: spanner.scalingMethod,
+      scalingPreviousSize: spanner.currentSize,
+      scalingRequestedSize: suggestedSize,
     });
   });
 
@@ -204,11 +204,13 @@ describe('#processScalingRequest', () => {
           updatedOn: 0,
           lastScalingCompleteTimestamp: 0,
           scalingOperationId: 'DummyOpID',
+          scalingMethod: 'LINEAR',
+          scalingPreviousSize: 100,
+          scalingRequestedSize: 200,
         },
         expectedFulfillmentPeriod:
           spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
             .FULFILLMENT_PERIOD_NORMAL,
-        requestedSize: 12,
       }),
     );
 
@@ -247,7 +249,15 @@ describe('#processScalingRequest', () => {
     assert.equals(countersStub.incScalingFailedCounter.callCount, 1);
     assert.equals(
       countersStub.incScalingFailedCounter.getCall(0).args[1],
-      suggestedSize,
+      spanner.scalingMethod,
+    );
+    assert.equals(
+      countersStub.incScalingFailedCounter.getCall(0).args[2],
+      spanner.currentSize,
+    );
+    assert.equals(
+      countersStub.incScalingFailedCounter.getCall(0).args[3],
+      spanner.currentSize + 100,
     );
   });
 });
@@ -273,6 +283,9 @@ describe('#withinCooldownPeriod', () => {
       lastScalingTimestamp: lastScalingTime,
       createdOn: 0,
       updatedOn: 0,
+      scalingPreviousSize: null,
+      scalingRequestedSize: null,
+      scalingMethod: null,
     };
   });
 
@@ -420,6 +433,8 @@ describe('#readStateCheckOngoingLRO', () => {
 
   const countersStub = {
     incScalingFailedCounter: sinon.stub(),
+    incScalingSuccessCounter: sinon.stub(),
+    recordScalingDuration: sinon.stub(),
   };
 
   /** @type {StateData} */
@@ -459,6 +474,9 @@ describe('#readStateCheckOngoingLRO', () => {
       lastScalingTimestamp: lastScalingDate.getTime(),
       createdOn: 0,
       updatedOn: 0,
+      scalingPreviousSize: 1,
+      scalingRequestedSize: 2,
+      scalingMethod: 'LINEAR',
     };
     originalAutoscalerState = {...autoscalerState};
 
@@ -499,10 +517,11 @@ describe('#readStateCheckOngoingLRO', () => {
       /** @type {LroInfo} */ ({
         savedState: expectedState,
         expectedFulfillmentPeriod: undefined,
-        requestedSize: undefined,
       }),
     );
     sinon.assert.notCalled(getOperation);
+    sinon.assert.notCalled(countersStub.incScalingSuccessCounter);
+    sinon.assert.notCalled(countersStub.recordScalingDuration);
     sinon.assert.notCalled(stateStub.updateState);
   });
 
@@ -514,17 +533,35 @@ describe('#readStateCheckOngoingLRO', () => {
       ...originalAutoscalerState,
       scalingOperationId: null,
       lastScalingCompleteTimestamp: lastScalingDate.getTime(),
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      scalingRequestedSize: null,
     };
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
       /** @type {LroInfo} */ ({
         savedState: expectedState,
         expectedFulfillmentPeriod: undefined,
-        requestedSize: undefined,
       }),
     );
 
     sinon.assert.calledOnce(getOperation);
+    // Failure to get the operation is considered a 'success'...
+    sinon.assert.calledOnceWithMatch(
+      countersStub.incScalingSuccessCounter,
+      sinon.match.any, // spanner
+      sinon.match('LINEAR'),
+      sinon.match(1),
+      sinon.match(2),
+    );
+    sinon.assert.calledOnceWithMatch(
+      countersStub.recordScalingDuration,
+      sinon.match(0), // duration
+      sinon.match.any, // spanner
+      sinon.match('LINEAR'),
+      sinon.match(1),
+      sinon.match(2),
+    );
     sinon.assert.calledWith(stateStub.updateState, expectedState);
   });
 
@@ -536,17 +573,36 @@ describe('#readStateCheckOngoingLRO', () => {
       ...originalAutoscalerState,
       scalingOperationId: null,
       lastScalingCompleteTimestamp: lastScalingDate.getTime(),
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      scalingRequestedSize: null,
     };
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
       /** @type {LroInfo} */ ({
         savedState: expectedState,
         expectedFulfillmentPeriod: undefined,
-        requestedSize: undefined,
       }),
     );
 
     sinon.assert.calledOnce(getOperation);
+    // Failure to get the operation is considered a 'success'...
+    // Failure to get the operation is considered a 'success'...
+    sinon.assert.calledOnceWithMatch(
+      countersStub.incScalingSuccessCounter,
+      sinon.match.any, // spanner
+      sinon.match('LINEAR'),
+      sinon.match(1),
+      sinon.match(2),
+    );
+    sinon.assert.calledOnceWithMatch(
+      countersStub.recordScalingDuration,
+      sinon.match(0), // duration
+      sinon.match.any, // spanner
+      sinon.match('LINEAR'),
+      sinon.match(1),
+      sinon.match(2),
+    );
     sinon.assert.calledWith(stateStub.updateState, expectedState);
   });
 
@@ -563,19 +619,29 @@ describe('#readStateCheckOngoingLRO', () => {
       scalingOperationId: null,
       lastScalingCompleteTimestamp: 0,
       lastScalingTimestamp: 0,
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      scalingRequestedSize: null,
     };
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
       /** @type {LroInfo} */ ({
         savedState: expectedState,
         expectedFulfillmentPeriod: undefined,
-        requestedSize: 2000,
       }),
     );
 
     sinon.assert.calledOnce(getOperation);
+    sinon.assert.notCalled(countersStub.incScalingSuccessCounter);
+    sinon.assert.notCalled(countersStub.recordScalingDuration);
+    sinon.assert.calledOnceWithMatch(
+      countersStub.incScalingFailedCounter,
+      sinon.match.any, // spanner
+      sinon.match('LINEAR'),
+      sinon.match(1),
+      sinon.match(2),
+    );
     sinon.assert.calledWith(stateStub.updateState, expectedState);
-    assert.equals(countersStub.incScalingFailedCounter.callCount, 1);
   });
 
   it('should clear the operation if no metadata', async () => {
@@ -587,17 +653,35 @@ describe('#readStateCheckOngoingLRO', () => {
       ...originalAutoscalerState,
       scalingOperationId: null,
       lastScalingCompleteTimestamp: lastScalingDate.getTime(),
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      scalingRequestedSize: null,
     };
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
       /** @type {LroInfo} */ ({
         savedState: expectedState,
         expectedFulfillmentPeriod: undefined,
-        requestedSize: undefined,
       }),
     );
 
     sinon.assert.calledOnce(getOperation);
+    sinon.assert.calledOnceWithMatch(
+      countersStub.incScalingSuccessCounter,
+      sinon.match.any, // spanner
+      sinon.match('LINEAR'),
+      sinon.match(1),
+      sinon.match(2),
+    );
+
+    sinon.assert.calledOnceWithMatch(
+      countersStub.recordScalingDuration,
+      sinon.match(0), // duration
+      sinon.match.any, // spanner
+      sinon.match('LINEAR'),
+      sinon.match(1),
+      sinon.match(2),
+    );
     sinon.assert.calledWith(stateStub.updateState, expectedState);
   });
 
@@ -613,12 +697,46 @@ describe('#readStateCheckOngoingLRO', () => {
         expectedFulfillmentPeriod:
           spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
             .FULFILLMENT_PERIOD_NORMAL,
-        requestedSize: 2000,
       }),
     );
 
     sinon.assert.calledOnce(getOperation);
+    sinon.assert.notCalled(countersStub.incScalingSuccessCounter);
+    sinon.assert.notCalled(countersStub.recordScalingDuration);
     sinon.assert.calledWith(stateStub.updateState, originalAutoscalerState);
+  });
+
+  it('should get scalingRequestedSize from metadata if not in savedState', async () => {
+    stateStub.get.resolves({
+      ...autoscalerState,
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      scalingRequestedSize: null,
+    });
+    operation.done = false;
+    getOperation.resolves({data: operation});
+
+    const expectedState = {
+      ...originalAutoscalerState,
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      scalingRequestedSize: 2000,
+    };
+
+    assert.equals(
+      await readStateCheckOngoingLRO(spannerParams, stateStub),
+      /** @type {LroInfo} */ ({
+        savedState: expectedState,
+        expectedFulfillmentPeriod:
+          spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
+            .FULFILLMENT_PERIOD_NORMAL,
+      }),
+    );
+
+    sinon.assert.calledOnce(getOperation);
+    sinon.assert.notCalled(countersStub.incScalingSuccessCounter);
+    sinon.assert.notCalled(countersStub.recordScalingDuration);
+    sinon.assert.calledWith(stateStub.updateState, expectedState);
   });
 
   it('should return fulfulment period extended when returned by API', async () => {
@@ -635,15 +753,16 @@ describe('#readStateCheckOngoingLRO', () => {
         expectedFulfillmentPeriod:
           spannerProtos.google.spanner.admin.instance.v1.FulfillmentPeriod
             .FULFILLMENT_PERIOD_EXTENDED,
-        requestedSize: 2000,
       }),
     );
 
     sinon.assert.calledOnce(getOperation);
+    sinon.assert.notCalled(countersStub.incScalingSuccessCounter);
+    sinon.assert.notCalled(countersStub.recordScalingDuration);
     sinon.assert.calledWith(stateStub.updateState, originalAutoscalerState);
   });
 
-  it('should update timestamp and clear ID when completed', async () => {
+  it('should update timestamp, record metrics and clear ID when completed', async () => {
     stateStub.get.resolves(autoscalerState);
     // 60 seconds after start
     const endTime = lastScalingDate.getTime() + 60_000;
@@ -655,17 +774,84 @@ describe('#readStateCheckOngoingLRO', () => {
       ...originalAutoscalerState,
       scalingOperationId: null,
       lastScalingCompleteTimestamp: endTime,
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      scalingRequestedSize: null,
     };
     assert.equals(
       await readStateCheckOngoingLRO(spannerParams, stateStub),
       /** @type {LroInfo} */ ({
         savedState: expectedState,
         expectedFulfillmentPeriod: undefined,
-        requestedSize: 2000,
       }),
     );
 
     sinon.assert.calledOnce(getOperation);
+
+    sinon.assert.calledOnceWithMatch(
+      countersStub.incScalingSuccessCounter,
+      sinon.match.any, // spanner
+      sinon.match('LINEAR'),
+      sinon.match(1),
+      sinon.match(2),
+    );
+    sinon.assert.calledOnceWithMatch(
+      countersStub.recordScalingDuration,
+      sinon.match(60_000), // duration
+      sinon.match.any, // spanner
+      sinon.match('LINEAR'),
+      sinon.match(1),
+      sinon.match(2),
+    );
+    sinon.assert.calledWith(stateStub.updateState, expectedState);
+  });
+
+  it('with noSavedStateScalingInfo should update timestamp, record metrics and clear ID when completed', async () => {
+    stateStub.get.resolves({
+      ...autoscalerState,
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      scalingRequestedSize: null,
+    });
+    // 60 seconds after start
+    const endTime = lastScalingDate.getTime() + 60_000;
+    operation.done = true;
+    operation.metadata.endTime = new Date(endTime).toISOString();
+    getOperation.resolves({data: operation});
+
+    const expectedState = {
+      ...originalAutoscalerState,
+      scalingOperationId: null,
+      lastScalingCompleteTimestamp: endTime,
+      scalingMethod: null,
+      scalingPreviousSize: null,
+      scalingRequestedSize: null,
+    };
+    assert.equals(
+      await readStateCheckOngoingLRO(spannerParams, stateStub),
+      /** @type {LroInfo} */ ({
+        savedState: expectedState,
+        expectedFulfillmentPeriod: undefined,
+      }),
+    );
+
+    sinon.assert.calledOnce(getOperation);
+
+    sinon.assert.calledOnceWithMatch(
+      countersStub.incScalingSuccessCounter,
+      sinon.match.any, // spanner
+      null,
+      null,
+      sinon.match(2000),
+    );
+    sinon.assert.calledOnceWithMatch(
+      countersStub.recordScalingDuration,
+      sinon.match(60_000), // duration
+      sinon.match.any, // spanner
+      null,
+      null,
+      sinon.match(2000),
+    );
     sinon.assert.calledWith(stateStub.updateState, expectedState);
   });
 });

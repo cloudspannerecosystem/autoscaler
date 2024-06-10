@@ -29,6 +29,7 @@ const COUNTER_NAMES = {
   SCALING_FAILED: COUNTERS_PREFIX + 'scaling-failed',
   REQUESTS_SUCCESS: COUNTERS_PREFIX + 'requests-success',
   REQUESTS_FAILED: COUNTERS_PREFIX + 'requests-failed',
+  SCALING_DURATION: COUNTERS_PREFIX + 'scaling-duration',
 };
 
 const ATTRIBUTE_NAMES = {
@@ -71,6 +72,17 @@ const COUNTERS = [
     counterName: COUNTER_NAMES.REQUESTS_FAILED,
     counterDesc: 'The number of scaling request messages that failed',
   },
+  {
+    counterName: COUNTER_NAMES.SCALING_DURATION,
+    counterDesc: 'The time taken to complete the scaling operation',
+    counterType: 'HISTOGRAM',
+    counterUnits: 'ms', // milliseconds
+    // This creates a set of 25 buckets with exponential growth
+    // starting at 0, increasing to 6553_500ms ~= 109mins
+    counterHistogramBuckets: [...Array(25).keys()].map((n) =>
+      Math.floor(100 * (2 ** (n / 1.5) - 1)),
+    ),
+  },
 ];
 
 const pendingInit = CountersBase.createCounters(COUNTERS);
@@ -80,34 +92,48 @@ const pendingInit = CountersBase.createCounters(COUNTERS);
  *
  * @private
  * @param {AutoscalerSpanner} spanner config object
- * @param {number} requestedSize
+ * @param {string?} method
+ * @param {number?} previousSize
+ * @param {number?} requestedSize
  * @return {Attributes}
  */
-function _getCounterAttributes(spanner, requestedSize) {
-  return {
+function _getCounterAttributes(spanner, method, previousSize, requestedSize) {
+  const ret = {
     [ATTRIBUTE_NAMES.SPANNER_PROJECT_ID]: spanner.projectId,
     [ATTRIBUTE_NAMES.SPANNER_INSTANCE_ID]: spanner.instanceId,
-    [ATTRIBUTE_NAMES.SCALING_METHOD]: spanner.scalingMethod,
-    [ATTRIBUTE_NAMES.SCALING_DIRECTION]:
-      requestedSize > spanner.currentSize
-        ? 'SCALE_UP'
-        : requestedSize < spanner.currentSize
-          ? 'SCALE_DOWN'
-          : 'SCALE_SAME',
   };
+  if (method) {
+    ret[ATTRIBUTE_NAMES.SCALING_METHOD] = method;
+  }
+  if (previousSize != null && requestedSize != null) {
+    ret[ATTRIBUTE_NAMES.SCALING_DIRECTION] =
+      requestedSize > previousSize
+        ? 'SCALE_UP'
+        : requestedSize < previousSize
+          ? 'SCALE_DOWN'
+          : 'SCALE_SAME';
+  }
+  return ret;
 }
 
 /**
  * Increment scaling success counter
  *
  * @param {AutoscalerSpanner} spanner config object
- * @param {number} requestedSize
+ * @param {string?} method
+ * @param {number?} previousSize
+ * @param {number?} requestedSize
  */
-async function incScalingSuccessCounter(spanner, requestedSize) {
+async function incScalingSuccessCounter(
+  spanner,
+  method,
+  previousSize,
+  requestedSize,
+) {
   await pendingInit;
   CountersBase.incCounter(
     COUNTER_NAMES.SCALING_SUCCESS,
-    _getCounterAttributes(spanner, requestedSize),
+    _getCounterAttributes(spanner, method, previousSize, requestedSize),
   );
 }
 
@@ -115,13 +141,20 @@ async function incScalingSuccessCounter(spanner, requestedSize) {
  * Increment scaling failed counter
  *
  * @param {AutoscalerSpanner} spanner config object
- * @param {number} requestedSize
+ * @param {string?} method
+ * @param {number?} previousSize
+ * @param {number?} requestedSize
  */
-async function incScalingFailedCounter(spanner, requestedSize) {
+async function incScalingFailedCounter(
+  spanner,
+  method,
+  previousSize,
+  requestedSize,
+) {
   await pendingInit;
   CountersBase.incCounter(
     COUNTER_NAMES.SCALING_FAILED,
-    _getCounterAttributes(spanner, requestedSize),
+    _getCounterAttributes(spanner, method, previousSize, requestedSize),
   );
 }
 
@@ -135,7 +168,12 @@ async function incScalingFailedCounter(spanner, requestedSize) {
 async function incScalingDeniedCounter(spanner, requestedSize, reason) {
   await pendingInit;
   CountersBase.incCounter(COUNTER_NAMES.SCALING_DENIED, {
-    ..._getCounterAttributes(spanner, requestedSize),
+    ..._getCounterAttributes(
+      spanner,
+      spanner.scalingMethod,
+      spanner.currentSize,
+      requestedSize,
+    ),
     [ATTRIBUTE_NAMES.SCALING_DENIED_REASON]: reason,
   });
 }
@@ -156,11 +194,37 @@ async function incRequestsFailedCounter() {
   CountersBase.incCounter(COUNTER_NAMES.REQUESTS_FAILED);
 }
 
+/**
+ * Record scaling duration to the distribution.
+ *
+ * @param {number} durationMillis
+ * @param {AutoscalerSpanner} spanner config object
+ * @param {string?} method
+ * @param {number?} previousSize
+ * @param {number?} requestedSize
+
+ */
+async function recordScalingDuration(
+  durationMillis,
+  spanner,
+  method,
+  previousSize,
+  requestedSize,
+) {
+  await pendingInit;
+  CountersBase.recordValue(
+    COUNTER_NAMES.SCALING_DURATION,
+    Math.floor(durationMillis),
+    _getCounterAttributes(spanner, method, previousSize, requestedSize),
+  );
+}
+
 module.exports = {
   incScalingSuccessCounter,
   incScalingFailedCounter,
   incScalingDeniedCounter,
   incRequestsSuccessCounter,
   incRequestsFailedCounter,
+  recordScalingDuration,
   tryFlush: CountersBase.tryFlush,
 };

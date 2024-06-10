@@ -216,8 +216,8 @@ If the value of `name` is `spanner`, the following values are required.
 | `instanceId`               | The instance id of Cloud Spanner which you want to manage the state. |
 | `databaseId`               | The database id of Cloud Spanner instance which you want to manage the state. |
 
-When using Cloud Spanner to manage the state,
-a table with the following DDL is created at runtime.
+When using Cloud Spanner to manage the state, a table with the following DDL is
+created at runtime.
 
 ```sql
 CREATE TABLE spannerAutoscaler (
@@ -227,15 +227,30 @@ CREATE TABLE spannerAutoscaler (
   updatedOn TIMESTAMP,
   lastScalingCompleteTimestamp TIMESTAMP,
   scalingOperationId STRING(MAX),
+  scalingRequestedSize INT64,
+  scalingMethod STRING(MAX),
+  scalingPreviousSize INT64,
 ) PRIMARY KEY (id)
 ```
 
-Note: If you are upgrading from V1, then you need to add the 2 new columns to the
-spanner schema using the following DDL statements
+Note: If you are upgrading from v1.x, then you need to add the 5 new columns to
+the spanner schema using the following DDL statements
 
 ```sql
 ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS lastScalingCompleteTimestamp TIMESTAMP;
 ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingOperationId STRING(MAX);
+ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingRequestedSize INT64;
+ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingMethod STRING(MAX);
+ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingPreviousSize INT64;
+```
+
+Note: If you are upgrading from V2.0.x, then you need to add the 3 new columns
+to the spanner schema using the following DDL statements
+
+```sql
+ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingRequestedSize INT64;
+ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingMethod STRING(MAX);
+ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingPreviousSize INT64;
 ```
 
 ## Example configuration for Cloud Functions

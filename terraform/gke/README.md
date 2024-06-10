@@ -327,21 +327,36 @@ In this section you prepare your project for deployment.
 
     ```sql
     CREATE TABLE spannerAutoscaler (
-       id STRING(MAX),
-       lastScalingTimestamp TIMESTAMP,
-       createdOn TIMESTAMP,
-       updatedOn TIMESTAMP,
-       lastScalingCompleteTimestamp TIMESTAMP,
-       scalingOperationId STRING(MAX),
+      id STRING(MAX),
+      lastScalingTimestamp TIMESTAMP,
+      createdOn TIMESTAMP,
+      updatedOn TIMESTAMP,
+      lastScalingCompleteTimestamp TIMESTAMP,
+      scalingOperationId STRING(MAX),
+      scalingRequestedSize INT64,
+      scalingMethod STRING(MAX),
+      scalingPreviousSize INT64,
     ) PRIMARY KEY (id)
     ```
 
-    If you are upgrading from V1, then you need to add the 2 new columns to the
-    existing spanner schema using the following DDL statements
+    Note: If you are upgrading from v1.x, then you need to add the 5 new columns
+    to the spanner schema using the following DDL statements
 
     ```sql
     ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS lastScalingCompleteTimestamp TIMESTAMP;
     ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingOperationId STRING(MAX);
+    ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingRequestedSize INT64;
+    ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingMethod STRING(MAX);
+    ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingPreviousSize INT64;
+    ```
+
+    Note: If you are upgrading from V2.0.x, then you need to add the 3 new columns
+    to the spanner schema using the following DDL statements
+
+    ```sql
+    ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingRequestedSize INT64;
+    ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingMethod STRING(MAX);
+    ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingPreviousSize INT64;
     ```
 
 2.  Next, continue to [Creating Autoscaler infrastructure](#creating-autoscaler-infrastructure).

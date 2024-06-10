@@ -61,6 +61,9 @@ function createStateData() {
     updatedOn: 0,
     lastScalingCompleteTimestamp: 0,
     scalingOperationId: null,
+    scalingMethod: null,
+    scalingPreviousSize: null,
+    scalingRequestedSize: null,
   };
 }
 

@@ -120,6 +120,9 @@ resource "google_spanner_database" "state-database" {
       updatedOn TIMESTAMP,
       lastScalingCompleteTimestamp TIMESTAMP,
       scalingOperationId STRING(MAX),
+      scalingRequestedSize INT64,
+      scalingMethod STRING(MAX),
+      scalingPreviousSize INT64,
     ) PRIMARY KEY (id)
     EOT
   ]
