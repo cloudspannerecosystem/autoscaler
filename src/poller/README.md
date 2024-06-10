@@ -316,7 +316,7 @@ data:
       units: NODES
       minSize: 5
       maxSize: 30
-      scalingMethod DIRECT
+      scalingMethod: DIRECT
     - projectId: spanner-autoscaler-test
       instanceId: spanner-scaling-threshold
       units: PROCESSING_UNITS
@@ -331,7 +331,7 @@ data:
       units: NODES
       minSize: 5
       maxSize: 30
-      scalingMethod LINEAR
+      scalingMethod: LINEAR
       scaleInLimit: 25
       metrics:
       - name: my_custom_metric
