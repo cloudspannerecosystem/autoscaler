@@ -260,32 +260,9 @@ async function initMetrics() {
       }
     }
 
-    const gcpResources = new GcpDetectorSync().detect();
-    if (gcpResources.waitForAsyncAttributes) {
-      await gcpResources.waitForAsyncAttributes();
-    }
-
-    if (process.env.FUNCTION_TARGET) {
-      // In cloud functions.
-      // We need to set the platform to generic_task so that the
-      // function instance ID gets set in the  counter resource attributes.
-      // For details, see
-      // https://github.com/GoogleCloudPlatform/opentelemetry-operations-js/issues/679
-      RESOURCE_ATTRIBUTES[Semconv.SEMRESATTRS_CLOUD_PLATFORM] = 'generic_task';
-
-      if (gcpResources.attributes[Semconv.SEMRESATTRS_FAAS_ID]?.toString()) {
-        RESOURCE_ATTRIBUTES[Semconv.SEMRESATTRS_SERVICE_INSTANCE_ID] =
-          gcpResources.attributes[Semconv.SEMRESATTRS_FAAS_ID].toString();
-      } else {
-        logger.warn(
-          'WARNING: running under Cloud Functions, but FAAS_ID ' +
-            'resource attribute is not set. ' +
-            'This may lead to Send TimeSeries errors',
-        );
-      }
-    }
-
-    const resources = gcpResources.merge(new Resource(RESOURCE_ATTRIBUTES));
+    const resources = new GcpDetectorSync()
+      .detect()
+      .merge(new Resource(RESOURCE_ATTRIBUTES));
     if (resources.waitForAsyncAttributes) {
       await resources.waitForAsyncAttributes();
     }
