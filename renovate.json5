@@ -1,0 +1,16 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:recommended",
+    ":semanticCommits",
+    ":enableVulnerabilityAlertsWithLabel(security)",
+  ],
+  packageRules: [
+    {
+      // Only allow minor updates for all NPM packages except googleapis
+      matchDatasources: ["npm"],
+      excludePackageNames: ["googleapis"],
+      major: false,
+    },
+  ],
+}
