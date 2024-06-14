@@ -7,7 +7,7 @@
 
 * Correctly log Exceptions ([#267](https://github.com/cloudspannerecosystem/autoscaler/issues/267)) ([3e58052](https://github.com/cloudspannerecosystem/autoscaler/commit/3e5805225d906f60209c03afb5a68c98bfb4d2bc))
 
-## [2.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v1.20.0...v2.0.0) (2024-03-26)
+## [2.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v1.21.1...v2.0.0) (2024-03-26)
 
 
 ### ⚠ BREAKING CHANGES
