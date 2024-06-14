@@ -2,6 +2,7 @@ echo "Running .husky/pre-commit checks. Use -n/--no-verify to skip"
 
 npm run check-format
 npm run eslint
+npm run markdown-link-check
 npm run mdlint
 npm run typecheck
 npm test
