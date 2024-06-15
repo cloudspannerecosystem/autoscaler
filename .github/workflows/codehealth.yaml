@@ -1,4 +1,4 @@
-name: "Code health checks (npm audit, eslint, tscompiler)"
+name: "Code health checks (npm audit, eslint, tscompiler, ...)"
 
 on:
   push:
@@ -41,3 +41,6 @@ jobs:
 
       - name: Execute "npm audit"
         run: npm audit
+
+      - name: Execute "npm run markdown-link-check"
+        run: npm run markdown-link-check
