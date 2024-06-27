@@ -10,7 +10,8 @@
       // Only allow minor updates for all NPM packages except googleapis
       matchDatasources: ["npm"],
       excludePackageNames: ["googleapis"],
-      major: false,
+      major: { enabled: false },
     },
   ],
+  rangeStrategy: "bump",
 }
