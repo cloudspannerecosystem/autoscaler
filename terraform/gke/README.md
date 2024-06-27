@@ -700,7 +700,7 @@ following the instructions above.
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [architecture-gke]: ../../resources/architecture-gke.png
 [autoscaler-poller]: ../../src/poller/README.md
-[autoscaler-config-params]: ../../src/poller/#configuration-parameters
+[autoscaler-config-params]: ../../src/poller/README.md#configuration-parameters
 [cron-frequent]: ../../kubernetes/decoupled/autoscaler-pkg/poller/poller.yaml
 [cron-hourly]: ../../kubernetes/decoupled/autoscaler-pkg/poller/poller-hourly.yaml
 [margins]: ../../src/poller/README.md#margins
