@@ -1,0 +1,16 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^https://console.cloud.google.com/"
+    },
+    {
+      "pattern": "^https://example.org"
+    }
+  ],
+  "replacementPatterns": [
+    {
+      "pattern": "^([./].*)/(#.*)?$",
+      "replacement": "$1/__LOCAL_URL_MUST_END_IN_FILENAME_NOT_RAW_PATH__$2"
+    }
+  ]
+}
