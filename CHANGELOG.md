@@ -1,5 +1,49 @@
 # Changelog
 
+## [2.1.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v2.0.1...v2.1.0) (2024-06-27)
+
+
+### Features
+
+* Add markdown link checker ([#316](https://github.com/cloudspannerecosystem/autoscaler/issues/316)) ([79a5da7](https://github.com/cloudspannerecosystem/autoscaler/commit/79a5da7b2c4599e56c17b1d8ae2678009000c386))
+* Add metric for scaling duration ([#284](https://github.com/cloudspannerecosystem/autoscaler/issues/284)) ([3b49e4c](https://github.com/cloudspannerecosystem/autoscaler/commit/3b49e4c51fcbc2a21f09c19065436dc8f39d9158))
+* Add npm run command for end-to-end tests, sort list ([#279](https://github.com/cloudspannerecosystem/autoscaler/issues/279)) ([85f37ac](https://github.com/cloudspannerecosystem/autoscaler/commit/85f37acd5730e19323d295a10d7c56ec229715d3))
+* Take into account expectedFulfillmentPeriod ([#282](https://github.com/cloudspannerecosystem/autoscaler/issues/282)) ([9187ef9](https://github.com/cloudspannerecosystem/autoscaler/commit/9187ef9a17221be95c5b93868fd0b1620fae5569))
+* Take into account number of databases in an instance ([#287](https://github.com/cloudspannerecosystem/autoscaler/issues/287)) ([56a3a28](https://github.com/cloudspannerecosystem/autoscaler/commit/56a3a280d12dc9f734afecbaa8d01f93c4453a06)), closes [#286](https://github.com/cloudspannerecosystem/autoscaler/issues/286)
+
+
+### Bug Fixes
+
+* **deps:** Bulk dependency update ([#304](https://github.com/cloudspannerecosystem/autoscaler/issues/304)) ([ea97fb0](https://github.com/cloudspannerecosystem/autoscaler/commit/ea97fb0ec999e160866f870e760351d49e93a4d7))
+* **deps:** update dependency @google-cloud/firestore to ^7.9.0 ([b9b3347](https://github.com/cloudspannerecosystem/autoscaler/commit/b9b3347f1f2dff81c8bf3c16642eacde57ebd604))
+* **deps:** update dependency @google-cloud/firestore to v7.8.0 ([ea97fb0](https://github.com/cloudspannerecosystem/autoscaler/commit/ea97fb0ec999e160866f870e760351d49e93a4d7))
+* **deps:** update dependency @google-cloud/firestore to v7.9.0 ([dc6f683](https://github.com/cloudspannerecosystem/autoscaler/commit/dc6f6836ec4a17001d4a73e0f2668e241408a1dc))
+* **deps:** update dependency @google-cloud/functions-framework to v3.4.0 ([ea97fb0](https://github.com/cloudspannerecosystem/autoscaler/commit/ea97fb0ec999e160866f870e760351d49e93a4d7))
+* **deps:** update dependency @google-cloud/logging-bunyan to v5.1.0 ([ea97fb0](https://github.com/cloudspannerecosystem/autoscaler/commit/ea97fb0ec999e160866f870e760351d49e93a4d7))
+* **deps:** update dependency @google-cloud/monitoring to v4.1.0 ([ea97fb0](https://github.com/cloudspannerecosystem/autoscaler/commit/ea97fb0ec999e160866f870e760351d49e93a4d7))
+* **deps:** update dependency @google-cloud/opentelemetry-cloud-monitoring-exporter to ^0.18.0 ([cdc8b39](https://github.com/cloudspannerecosystem/autoscaler/commit/cdc8b39145ae77fbb4d83359550222e4a454927e))
+* **deps:** update dependency @google-cloud/pubsub to ^4.5.0 ([b9b3347](https://github.com/cloudspannerecosystem/autoscaler/commit/b9b3347f1f2dff81c8bf3c16642eacde57ebd604))
+* **deps:** update dependency @google-cloud/pubsub to v4.4.1 ([ea97fb0](https://github.com/cloudspannerecosystem/autoscaler/commit/ea97fb0ec999e160866f870e760351d49e93a4d7))
+* **deps:** update dependency @google-cloud/pubsub to v4.5.0 ([dc6f683](https://github.com/cloudspannerecosystem/autoscaler/commit/dc6f6836ec4a17001d4a73e0f2668e241408a1dc))
+* **deps:** update dependency @google-cloud/spanner to ^7.9.1 ([b9b3347](https://github.com/cloudspannerecosystem/autoscaler/commit/b9b3347f1f2dff81c8bf3c16642eacde57ebd604))
+* **deps:** update dependency @google-cloud/spanner to v7.8.0 ([ea97fb0](https://github.com/cloudspannerecosystem/autoscaler/commit/ea97fb0ec999e160866f870e760351d49e93a4d7))
+* **deps:** update dependency @google-cloud/spanner to v7.9.1 ([dc6f683](https://github.com/cloudspannerecosystem/autoscaler/commit/dc6f6836ec4a17001d4a73e0f2668e241408a1dc))
+* **deps:** update dependency axios to v1.7.2 ([ea97fb0](https://github.com/cloudspannerecosystem/autoscaler/commit/ea97fb0ec999e160866f870e760351d49e93a4d7))
+* **deps:** update dependency googleapis to ^140.0.1 ([b9b3347](https://github.com/cloudspannerecosystem/autoscaler/commit/b9b3347f1f2dff81c8bf3c16642eacde57ebd604))
+* **deps:** update dependency googleapis to v140 ([ea97fb0](https://github.com/cloudspannerecosystem/autoscaler/commit/ea97fb0ec999e160866f870e760351d49e93a4d7))
+* **deps:** update dependency googleapis to v140.0.1 ([dc6f683](https://github.com/cloudspannerecosystem/autoscaler/commit/dc6f6836ec4a17001d4a73e0f2668e241408a1dc))
+* **deps:** update dependency pino to ^9.2.0 ([b9b3347](https://github.com/cloudspannerecosystem/autoscaler/commit/b9b3347f1f2dff81c8bf3c16642eacde57ebd604))
+* **deps:** update opentelemetry-js monorepo ([dc6f683](https://github.com/cloudspannerecosystem/autoscaler/commit/dc6f6836ec4a17001d4a73e0f2668e241408a1dc))
+* **deps:** update opentelemetry-js monorepo (@opentelemetry/api, @opentelemetry/exporter-metrics-otlp-grpc, @opentelemetry/sdk-metrics, @opentelemetry/sdk-node, @opentelemetry/semantic-conventions) ([ea97fb0](https://github.com/cloudspannerecosystem/autoscaler/commit/ea97fb0ec999e160866f870e760351d49e93a4d7))
+* **deps:** update opentelemetry-js monorepo (@opentelemetry/exporter-metrics-otlp-grpc, @opentelemetry/sdk-metrics, @opentelemetry/sdk-node, @opentelemetry/semantic-conventions) ([b9b3347](https://github.com/cloudspannerecosystem/autoscaler/commit/b9b3347f1f2dff81c8bf3c16642eacde57ebd604))
+* **deps:** update opentelemetry-js monorepo to ^1.25.1 ([#328](https://github.com/cloudspannerecosystem/autoscaler/issues/328)) ([7d924b3](https://github.com/cloudspannerecosystem/autoscaler/commit/7d924b39c0b9df2bb3e080ff93cf6ed794c0187a))
+* **deps:** Update package versions ([#326](https://github.com/cloudspannerecosystem/autoscaler/issues/326)) ([dc6f683](https://github.com/cloudspannerecosystem/autoscaler/commit/dc6f6836ec4a17001d4a73e0f2668e241408a1dc))
+* Remove logline to console ([#275](https://github.com/cloudspannerecosystem/autoscaler/issues/275)) ([4972785](https://github.com/cloudspannerecosystem/autoscaler/commit/49727854e3591b451f5d53b9838c171f3322acdd))
+* Remove zone parameter ([#276](https://github.com/cloudspannerecosystem/autoscaler/issues/276)) ([f51046a](https://github.com/cloudspannerecosystem/autoscaler/commit/f51046ac9e9a392082019c6608cb4c3720014949))
+* replace Bunyan logger with Pino ([#288](https://github.com/cloudspannerecosystem/autoscaler/issues/288)) ([803fe1b](https://github.com/cloudspannerecosystem/autoscaler/commit/803fe1b2fc4bd3e7cd2f5ea81f89e196de893648))
+* Resolve scaler memory leak when using Firestore ([#273](https://github.com/cloudspannerecosystem/autoscaler/issues/273)) ([e9d484a](https://github.com/cloudspannerecosystem/autoscaler/commit/e9d484a2d2add87921e9832a3c4f53ead9c712f7))
+* Update OTEL GCM exporter and remove FAAS workaround ([#308](https://github.com/cloudspannerecosystem/autoscaler/issues/308)) ([cdc8b39](https://github.com/cloudspannerecosystem/autoscaler/commit/cdc8b39145ae77fbb4d83359550222e4a454927e))
+
 ## [2.0.1](https://github.com/cloudspannerecosystem/autoscaler/compare/v2.0.0...v2.0.1) (2024-04-04)
 
 
