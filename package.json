@@ -28,7 +28,8 @@
     "test-e2e": "pushd terraform/cloud-functions/per-project/test && go test -run . -timeout 60m --tags=e2e && popd",
     "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit",
     "unified-job": "node -e \"require('./src/unifiedScaler').main()\"",
-    "update-all": "npm update -S"
+    "update-all": "npm update -S",
+    "validateConfigFile": "node -e \"require('./src/poller/poller-core/validateConfig').main()\" -- "
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.9.0",
@@ -42,6 +43,7 @@
     "@opentelemetry/sdk-metrics": "^1.25.1",
     "@opentelemetry/sdk-node": "^0.52.1",
     "@opentelemetry/semantic-conventions": "^1.25.1",
+    "ajv": "^8.16.0",
     "axios": "^1.7.2",
     "eventid": "^2.0.1",
     "express": "^4.19.2",
