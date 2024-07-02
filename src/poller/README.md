@@ -69,6 +69,14 @@ configuration parameters are defined in YAML in a [Kubernetes ConfigMap][configm
 See the [configuration section][autoscaler-home-config] in the home page for
 instructions on how to change the payload.
 
+The Autoscaler JSON (for Cloud functions) or YAML (for GKE) configuration can be
+validated by running the command:
+
+```shell
+npm ci
+npm run validateConfigFile -- path/to/config_file
+```
+
 ### Required
 
 | Key                 | Description |

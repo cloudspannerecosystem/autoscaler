@@ -697,6 +697,13 @@ following the instructions above.
     cat ${AUTOSCALER_ROOT}/autoscaler-config/autoscaler-config.yaml
     ```
 
+3.  Validate the contents of the YAML configuraration file:
+
+    ```sh
+    npm ci
+    npm run validateConfigFile -- ${AUTOSCALER_ROOT}/autoscaler-config/autoscaler-config.yaml
+    ```
+
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [architecture-gke]: ../../resources/architecture-gke.png
 [autoscaler-poller]: ../../src/poller/README.md

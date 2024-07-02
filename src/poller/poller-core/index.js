@@ -31,6 +31,7 @@ const Counters = require('./counters.js');
 const {AutoscalerUnits} = require('../../autoscaler-common/types');
 const assertDefined = require('../../autoscaler-common/assertDefined');
 const {version: packageVersion} = require('../../../package.json');
+const {parseAndValidateConfig} = require('./validateConfig');
 
 /**
  * @typedef {import('../../autoscaler-common/types').AutoscalerSpanner
@@ -397,8 +398,8 @@ async function callScalerHTTP(spanner, metrics) {
  * @return {Promise<AutoscalerSpanner[]>} enriched payload
  */
 async function parseAndEnrichPayload(payload) {
+  const spanners = await parseAndValidateConfig(payload);
   /** @type {AutoscalerSpanner[]} */
-  const spanners = JSON.parse(payload);
   const spannersFound = [];
 
   for (let sIdx = 0; sIdx < spanners.length; sIdx++) {
@@ -410,70 +411,13 @@ async function parseAndEnrichPayload(payload) {
     // merge in the defaults
     spanners[sIdx] = {...baseDefaults, ...spanners[sIdx]};
 
-    // handle processing units and deprecation of minNodes/maxNodes
-    if (spanners[sIdx].units.toUpperCase() == 'PROCESSING_UNITS') {
-      spanners[sIdx].units = spanners[sIdx].units.toUpperCase();
+    spanners[sIdx].units = spanners[sIdx].units?.toUpperCase();
+    // handle processing units/nodes defaults
+    if (spanners[sIdx].units == 'PROCESSING_UNITS') {
       // merge in the processing units defaults
       spanners[sIdx] = {...processingUnitsDefaults, ...spanners[sIdx]};
-
-      // minNodes and maxNodes should not be used with processing units. If
-      // they are set the config is invalid.
-      if (spanners[sIdx].minNodes || spanners[sIdx].maxNodes) {
-        throw new Error(
-          'INVALID CONFIG: units is set to PROCESSING_UNITS, ' +
-            'however, minNodes or maxNodes is set, ' +
-            'remove minNodes and maxNodes from your configuration.',
-        );
-      }
-    } else if (spanners[sIdx].units.toUpperCase() == 'NODES') {
-      spanners[sIdx].units = spanners[sIdx].units.toUpperCase();
-
-      // if minNodes or minSize are provided set the other, and if both are set
-      // and not match throw an error
-      if (spanners[sIdx].minNodes && !spanners[sIdx].minSize) {
-        logger.warn({
-          message: `DEPRECATION: minNodes is deprecated, ' +
-            'remove minNodes from your config and instead use: ' +
-            'units = 'NODES' and minSize = ${spanners[sIdx].minNodes}`,
-          projectId: spanners[sIdx].projectId,
-          instanceId: spanners[sIdx].instanceId,
-        });
-        spanners[sIdx].minSize = assertDefined(spanners[sIdx].minNodes);
-      } else if (
-        spanners[sIdx].minSize &&
-        spanners[sIdx].minNodes &&
-        spanners[sIdx].minSize != spanners[sIdx].minNodes
-      ) {
-        throw new Error(
-          'INVALID CONFIG: minSize and minNodes are both set ' +
-            'but do not match, make them match or only set minSize',
-        );
-      }
-
-      // if maxNodes or maxSize are provided set the other, and if both are set
-      // and not match throw an error
-      if (spanners[sIdx].maxNodes && !spanners[sIdx].maxSize) {
-        logger.warn({
-          message: `DEPRECATION: maxNodes is deprecated, remove maxSize ' +
-            'from your config and instead use: ' +
-            'units = 'NODES' and maxSize = ${spanners[sIdx].maxNodes}`,
-          projectId: spanners[sIdx].projectId,
-          instanceId: spanners[sIdx].instanceId,
-        });
-        spanners[sIdx].maxSize = assertDefined(spanners[sIdx].maxNodes);
-      } else if (
-        spanners[sIdx].maxSize &&
-        spanners[sIdx].maxNodes &&
-        spanners[sIdx].maxSize != spanners[sIdx].maxNodes
-      ) {
-        throw new Error(
-          'INVALID CONFIG: maxSize and maxNodes are both set ' +
-            'but do not match, make them match or only set maxSize',
-        );
-      }
-
-      // at this point both minNodes/minSize and maxNodes/maxSize are matching
-      // or are both not set so we can merge in defaults
+    } else if (spanners[sIdx].units == 'NODES') {
+      // merge in the nodes defaults
       spanners[sIdx] = {...nodesDefaults, ...spanners[sIdx]};
     } else {
       throw new Error(
