@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: dsdssfdfdsa
+metadata:
+  name: autoscaler-config
+  namespace: spanner-autoscaler
+data:
+  autoscaler-config.yaml: |
+    ---
+    - projectId: spanner-autoscaler-test
+      instanceId: spanner-scaling-direct
+      units: NODES
+      minSize: 5
+      maxSize: 30
+      scalingMethod: DIRECT
+    - projectId: spanner-autoscaler-test
+      instanceId: spanner-scaling-threshold
+      units: PROCESSING_UNITS
+      minSize: 100
+      maxSize: 3000
+      metrics:
+      - name: high_priority_cpu
+        regional_threshold: 40
+        regional_margin: 3
+    - projectId: spanner-autoscaler-test
+      instanceId: spanner-scaling-custom
+      units: NODES
+      minSize: 5
+      maxSize: 30
+      scalingMethod: LINEAR
+      scaleInLimit: 25
+      metrics:
+      - name: my_custom_metric
+        filter: metric.type="spanner.googleapis.com/instance/resource/metric"
+        regional_threshold: 40
+        multi_regional_threshold: 30

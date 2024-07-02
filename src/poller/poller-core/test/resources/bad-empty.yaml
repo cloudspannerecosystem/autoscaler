@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: dsdssfdfdsa
+metadata:
+  name: autoscaler-config
+  namespace: spanner-autoscaler
+data:
+  autoscaler-config.yaml: ""
