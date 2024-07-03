@@ -70,13 +70,13 @@
     "lodash": "^4.17.21",
     "markdown-link-check": "^3.12.2",
     "markdownlint-cli": "^0.41.0",
-    "mocha": "^10.5.2",
+    "mocha": "^10.6.0",
     "nyc": "^15.1.0",
     "prettier": "^3.3.2",
     "rewire": "^7.0.0",
     "should": "^13.2.3",
     "sinon": "^17.0.1",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.3"
   },
   "engines": {
     "node": ">=18.0.0 || >=20.0.0",
