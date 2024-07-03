@@ -283,6 +283,7 @@ ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingPreviousSize INT64
         "metrics": [
           {
             "name": "high_priority_cpu",
+            "multi_regional_threshold": 30,
             "regional_threshold": 40,
             "regional_margin": 3
           }
@@ -333,6 +334,7 @@ data:
       metrics:
       - name: high_priority_cpu
         regional_threshold: 40
+        multi_regional_threshold: 40
         regional_margin: 3
     - projectId: spanner-autoscaler-test
       instanceId: spanner-scaling-custom

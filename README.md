@@ -166,6 +166,9 @@ deployment type, but the mechanism for configuration differs slightly:
 *   [Cloud Functions](terraform/cloud-functions/README.md#configuration)
 *   [Google Kubernetes Engine (GKE)](terraform/gke/README.md#building-and-deploying-the-autoscaler-services)
 
+There is also a [browser-based configuration file editor and a command line
+configuration file validator][configeditor].
+
 ## Licensing
 
 ```lang-none
@@ -208,6 +211,7 @@ support channels.
 [cloud-logging]: https://cloud.google.com/logging
 [compute-capacity]: https://cloud.google.com/spanner/docs/compute-capacity#compute_capacity
 [code-of-conduct]: code-of-conduct.md
+[configeditor]: configeditor/README.md
 [contributing-guidelines]: contributing.md
 [gke]: https://cloud.google.com/kubernetes-engine
 [new-issue]: https://github.com/cloudspannerecosystem/autoscaler/issues/new
