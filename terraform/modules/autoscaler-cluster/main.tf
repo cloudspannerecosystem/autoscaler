@@ -25,10 +25,12 @@ locals {
   scaler_sa_name = element(split("@", var.scaler_sa_email), 0)
 }
 
+// OpenTelemetry Collector SA
+
 resource "google_service_account" "otel_collector_service_account" {
   project      = var.project_id
   account_id   = var.otel_collector_sa_name
-  display_name = "Autoscaler - service account for OpenTelemetry Collector in ${var.name}"
+  display_name = "Spanner Autoscaler - service account for OpenTelemetry Collector in ${var.name}"
 }
 
 resource "google_project_iam_member" "metrics_publisher_otel_collector" {
@@ -37,10 +39,12 @@ resource "google_project_iam_member" "metrics_publisher_otel_collector" {
   member  = "serviceAccount:${google_service_account.otel_collector_service_account.email}"
 }
 
+// GKE Cluster SA
+
 resource "google_service_account" "service_account" {
   project      = var.project_id
   account_id   = "cluster-sa"
-  display_name = "Autoscaler - cluster service account for ${var.name}"
+  display_name = "Spanner Autoscaler - cluster service account for ${var.name}"
 }
 
 resource "google_project_iam_member" "cluster_iam_logginglogwriter" {
@@ -72,6 +76,34 @@ resource "google_project_iam_member" "cluster_iam_artifactregistryreader" {
   role    = "roles/artifactregistry.reader"
   member  = "serviceAccount:${google_service_account.service_account.email}"
 }
+
+// Cloud Build SA - TODO move to base module pending Cloud Functions update
+
+resource "google_service_account" "build_service_account" {
+  project      = var.project_id
+  account_id   = "build-sa"
+  display_name = "Spanner Autoscaler - Cloud Build SA"
+}
+
+resource "google_project_iam_member" "build_iam_storageviewer" {
+  project = var.project_id
+  role    = "roles/storage.objectViewer"
+  member  = "serviceAccount:${google_service_account.build_service_account.email}"
+}
+
+resource "google_project_iam_member" "build_iam_logginglogwriter" {
+  project = var.project_id
+  role    = "roles/logging.logWriter"
+  member  = "serviceAccount:${google_service_account.build_service_account.email}"
+}
+
+resource "google_project_iam_member" "build_iam_artifactwriter" {
+  project = var.project_id
+  role    = "roles/artifactregistry.writer"
+  member  = "serviceAccount:${google_service_account.build_service_account.email}"
+}
+
+// Other resources
 
 resource "google_compute_network" "network" {
   name                    = "spanner-autoscaler-network"

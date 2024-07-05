@@ -23,3 +23,5 @@ steps:
         ".",
       ]
 images: ["$LOCATION-docker.pkg.dev/$PROJECT_ID/spanner-autoscaler/poller"]
+options:
+  logging: "CLOUD_LOGGING_ONLY"
