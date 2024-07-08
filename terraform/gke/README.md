@@ -462,7 +462,7 @@ following commands:
 1.  Build the Autoscaler:
 
     ```sh
-    gcloud builds submit . --config=cloudbuild-unified.yaml --region=${REGION}
+    gcloud beta builds submit . --config=cloudbuild-unified.yaml --region=${REGION} --service-account="projects/${PROJECT_ID}/serviceAccounts/build-sa@${PROJECT_ID}.iam.gserviceaccount.com"
     ```
 
 2.  Construct the path to the image:
@@ -494,8 +494,8 @@ following commands:
 1.  Build the Autoscaler components:
 
     ```sh
-    gcloud builds submit . --config=cloudbuild-poller.yaml --region=${REGION} && \
-    gcloud builds submit . --config=cloudbuild-scaler.yaml --region=${REGION}
+    gcloud beta builds submit . --config=cloudbuild-poller.yaml --region=${REGION} --service-account="projects/${PROJECT_ID}/serviceAccounts/build-sa@${PROJECT_ID}.iam.gserviceaccount.com" && \
+    gcloud beta builds submit . --config=cloudbuild-scaler.yaml --region=${REGION} --service-account="projects/${PROJECT_ID}/serviceAccounts/build-sa@${PROJECT_ID}.iam.gserviceaccount.com"
     ```
 
 2.  Construct the paths to the images:
