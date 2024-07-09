@@ -288,7 +288,7 @@ async function initMetrics() {
     } else {
       exporterMode = ExporterMode.GCM_ONLY_FLUSHING;
       logger.info(`Counters mode: ${exporterMode} using GCP monitoring`);
-      exporter = new GcpMetricExporter({prefix: 'custom.googleapis.com'});
+      exporter = new GcpMetricExporter({prefix: 'workload.googleapis.com'});
     }
 
     meterProvider = new MeterProvider({
