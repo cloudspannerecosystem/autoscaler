@@ -284,7 +284,11 @@ async function initMetrics() {
       logger.info(
         `Counters mode: ${exporterMode} OTEL collector: ${process.env.OTEL_COLLECTOR_URL}`,
       );
-      exporter = new OTLPMetricExporter({url: process.env.OTEL_COLLECTOR_URL});
+      exporter = new OTLPMetricExporter({
+        url: process.env.OTEL_COLLECTOR_URL,
+        // @ts-ignore -- CompressionAlgorithm.NONE (='none') is not exported.
+        compression: 'none',
+      });
     } else {
       exporterMode = ExporterMode.GCM_ONLY_FLUSHING;
       logger.info(`Counters mode: ${exporterMode} using GCP monitoring`);
