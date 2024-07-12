@@ -426,7 +426,7 @@ class StateSpanner extends State {
       row.id = this.getSpannerId();
       await this.table.upsert(row);
     } catch (e) {
-      logger.fatal({
+      logger.error({
         msg: `Failed to write to Spanner State storage: ${StateSpanner.getStateDatabasePath(this.stateProjectId, this.stateDatabase)}/tables/${this.table.name}: ${e}`,
         err: e,
       });
