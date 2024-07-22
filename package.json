@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.9.0",
-    "@google-cloud/functions-framework": "^3.4.0",
+    "@google-cloud/functions-framework": "^3.4.2",
     "@google-cloud/monitoring": "^4.1.0",
     "@google-cloud/opentelemetry-cloud-monitoring-exporter": "^0.18.0",
     "@google-cloud/pubsub": "^4.5.0",
