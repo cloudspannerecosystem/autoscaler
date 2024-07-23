@@ -8,9 +8,38 @@
   packageRules: [
     {
       // Only allow minor updates for all NPM packages except googleapis
+      // And group into a single PR.
       matchDatasources: ["npm"],
+      matchUpdateTypes: ["minor"],
       excludePackageNames: ["googleapis"],
-      major: { enabled: false },
+      groupName: "npm",
+    },
+    {
+      // Incldude major updates for GoogleAPIs NPM package
+      matchDatasources: ["npm"],
+      matchUpdateTypes: ["major"],
+      matchPackageNames: ["googleapis"],
+      groupName: "npm",
+    },
+    {
+      // Separate group for other major NPM updates, that does not create PRs
+      matchDatasources: ["npm"],
+      matchUpdateTypes: ["major"],
+      excludePackageNames: ["googleapis"],
+      groupName: "npm-major",
+      dependencyDashboardApproval: true,
+    },
+    {
+      matchDatasources: ["terraform-module"],
+      groupName: "terraform",
+    },
+    {
+      matchDatasources: ["terraform-provider"],
+      groupName: "terraform",
+    },
+    {
+      matchDatasources: ["docker"],
+      groupName: "docker",
     },
   ],
   rangeStrategy: "bump",
