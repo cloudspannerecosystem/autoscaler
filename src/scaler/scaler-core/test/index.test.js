@@ -41,6 +41,27 @@ afterEach(() => {
   sinon.restore();
 });
 
+describe('#getScalingMethod', () => {
+  const app = rewire('../index.js');
+  const getScalingMethod = app.__get__('getScalingMethod');
+
+  it('should return the configured scaling method function', async function () {
+    const spanner = createSpannerParameters();
+    spanner.scalingMethod = 'LINEAR';
+    const scalingFunction = getScalingMethod(spanner);
+    assert.isFunction(scalingFunction.calculateSize);
+    assert.equals(spanner.scalingMethod, 'LINEAR');
+  });
+
+  it('should default to STEPWISE scaling', async function () {
+    const spanner = createSpannerParameters();
+    spanner.scalingMethod = 'UNKNOWN_SCALING_METHOD';
+    const scalingFunction = getScalingMethod(spanner);
+    assert.isFunction(scalingFunction.calculateSize);
+    assert.equals(spanner.scalingMethod, 'STEPWISE');
+  });
+});
+
 describe('#getNewMetadata', () => {
   const app = rewire('../index.js');
   const getNewMetadata = app.__get__('getNewMetadata');
