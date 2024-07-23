@@ -1,5 +1,5 @@
 {
-  "displayName": "spanner autoscaler dashboard",
+  "displayName": "Spanner Autoscaler Dashboard",
   "mosaicLayout": {
     "columns": 12,
     "tiles": [
@@ -183,6 +183,45 @@
         "width": 6,
         "xPos": 6,
         "yPos": 4
+      },
+      {
+        "yPos": 8,
+        "width": 6,
+        "height": 4,
+        "widget": {
+          "title": "Scaling Duration",
+          "xyChart": {
+            "chartOptions": {
+              "mode": "COLOR"
+            },
+            "dataSets": [
+              {
+                "minAlignmentPeriod": "60s",
+                "plotType": "LINE",
+                "targetAxis": "Y1",
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "crossSeriesReducer": "REDUCE_PERCENTILE_99",
+                      "groupByFields": [
+                        "metric.label.\"scaling_method\"",
+                        "metric.label.\"scaling_direction\"",
+                        "metric.label.\"spanner_instance_id\""
+                      ],
+                      "perSeriesAligner": "ALIGN_DELTA"
+                    },
+                    "filter": "metric.type=\"workload.googleapis.com/cloudspannerecosystem/autoscaler/scaler/scaling-duration\""
+                  }
+                }
+              }
+            ],
+            "yAxis": {
+              "label": "y1Axis",
+              "scale": "LINEAR"
+            }
+          }
+        }
       }
     ]
   }
