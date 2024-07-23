@@ -7,6 +7,14 @@
   ],
   packageRules: [
     {
+      description: "Do not create PRs for nodejs/npm engine updates",
+      matchPackageNames: ["node"],
+      matchManagers: ["npm"],
+      matchDepTypes: ["engines"],
+      dependencyDashboardApproval: true,
+      groupName: "npm-engine-versions",
+    },
+    {
       // Only allow minor updates for all NPM packages except googleapis
       // And group into a single PR.
       matchDatasources: ["npm"],
@@ -28,14 +36,6 @@
       excludePackageNames: ["googleapis"],
       groupName: "npm-major-packages",
       dependencyDashboardApproval: true,
-    },
-    {
-      description: "Do not create PRs for nodejs/npm engine updates",
-      matchPackageNames: ["node"],
-      matchManagers: ["npm"],
-      matchDepTypes: ["engines"],
-      dependencyDashboardApproval: true,
-      groupName: "npm-engine-versions",
     },
     {
       matchDatasources: ["terraform-module"],
