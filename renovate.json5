@@ -11,7 +11,7 @@
       // And group into a single PR.
       matchDatasources: ["npm"],
       matchUpdateTypes: ["minor"],
-      excludePackageNames: ["googleapis", "npm", "node"],
+      excludePackageNames: ["googleapis"],
       groupName: "npm-packages",
     },
     {
@@ -25,9 +25,17 @@
       // Separate group for other major NPM updates, that does not create PRs
       matchDatasources: ["npm"],
       matchUpdateTypes: ["major"],
-      excludePackageNames: ["googleapis", "npm", "node"],
+      excludePackageNames: ["googleapis"],
       groupName: "npm-major-packages",
       dependencyDashboardApproval: true,
+    },
+    {
+      description: "Do not create PRs for nodejs/npm engine updates",
+      matchPackageNames: ["node"],
+      matchManagers: ["npm"],
+      matchDepTypes: ["engines"],
+      dependencyDashboardApproval: true,
+      groupName: "npm-engine-versions",
     },
     {
       matchDatasources: ["terraform-module"],
