@@ -61,39 +61,37 @@ const spannerRestApi = GoogleApis.spanner({
 /**
  * Get scaling method function by name.
  *
- * @param {string} methodName
- * @param {string} projectId
- * @param {string} instanceId
+ * @param {AutoscalerSpanner} spanner
  * @return {{
  *  calculateSize: function(AutoscalerSpanner):number,
  *  calculateNumNodes: function(AutoscalerSpanner): number
  * }}
  */
-function getScalingMethod(methodName, projectId, instanceId) {
+function getScalingMethod(spanner) {
   const SCALING_METHODS_FOLDER = './scaling-methods/';
   const DEFAULT_METHOD_NAME = 'STEPWISE';
 
   // sanitize the method name before using
   // to prevent risk of directory traversal.
-  methodName = sanitize(methodName);
+  const methodName = sanitize(spanner.scalingMethod);
   let scalingMethod;
   try {
     scalingMethod = require(SCALING_METHODS_FOLDER + methodName.toLowerCase());
   } catch (err) {
     logger.warn({
       message: `Unknown scaling method '${methodName}'`,
-      projectId: projectId,
-      instanceId: instanceId,
+      projectId: spanner.projectId,
+      instanceId: spanner.instanceId,
     });
     scalingMethod = require(
       SCALING_METHODS_FOLDER + DEFAULT_METHOD_NAME.toLowerCase(),
     );
-    methodName = DEFAULT_METHOD_NAME;
+    spanner.scalingMethod = DEFAULT_METHOD_NAME;
   }
   logger.info({
-    message: `Using scaling method: ${methodName}`,
-    projectId: projectId,
-    instanceId: instanceId,
+    message: `Using scaling method: ${spanner.scalingMethod}`,
+    projectId: spanner.projectId,
+    instanceId: spanner.instanceId,
   });
   return scalingMethod;
 }
@@ -291,11 +289,7 @@ function withinCooldownPeriod(spanner, suggestedSize, autoscalerState, now) {
  * @return {number}
  */
 function getSuggestedSize(spanner) {
-  const scalingMethod = getScalingMethod(
-    spanner.scalingMethod,
-    spanner.projectId,
-    spanner.instanceId,
-  );
+  const scalingMethod = getScalingMethod(spanner);
   if (scalingMethod.calculateSize) {
     return scalingMethod.calculateSize(spanner);
   } else if (scalingMethod.calculateNumNodes) {
