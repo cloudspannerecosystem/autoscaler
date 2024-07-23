@@ -8,8 +8,7 @@
   packageRules: [
     {
       description: "Do not create PRs for nodejs/npm engine updates",
-      matchPackageNames: ["node"],
-      matchManagers: ["npm"],
+      matchPackageNames: ["node", "npm"],
       matchDepTypes: ["engines"],
       dependencyDashboardApproval: true,
       groupName: "npm-engine-versions",
