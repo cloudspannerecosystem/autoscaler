@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.1.1](https://github.com/cloudspannerecosystem/autoscaler/compare/v2.1.0...v2.1.1) (2024-07-23)
+
+
+### Bug Fixes
+
+* Add workaround for Cloud Build SA updates ([#341](https://github.com/cloudspannerecosystem/autoscaler/issues/341)) ([4248b1a](https://github.com/cloudspannerecosystem/autoscaler/commit/4248b1a1400baa06cd99b0d8ca25a37dc52e706f))
+* **deps:** update dependency @google-cloud/functions-framework to ^3.4.2 ([6bf77f7](https://github.com/cloudspannerecosystem/autoscaler/commit/6bf77f74821983b48ff62fc70ecb49ba946973d2))
+* **deps:** update dependency @google-cloud/opentelemetry-cloud-monitoring-exporter to ^0.19.0 ([6bf77f7](https://github.com/cloudspannerecosystem/autoscaler/commit/6bf77f74821983b48ff62fc70ecb49ba946973d2))
+* **deps:** update dependency @google-cloud/spanner to ^7.10.0 ([6bf77f7](https://github.com/cloudspannerecosystem/autoscaler/commit/6bf77f74821983b48ff62fc70ecb49ba946973d2))
+* **deps:** update dependency mocha to 10.6.0 ([6bf77f7](https://github.com/cloudspannerecosystem/autoscaler/commit/6bf77f74821983b48ff62fc70ecb49ba946973d2))
+* **deps:** update dependency pino to ^9.3.1 ([6bf77f7](https://github.com/cloudspannerecosystem/autoscaler/commit/6bf77f74821983b48ff62fc70ecb49ba946973d2))
+* **deps:** update dependency typescript to 5.5.4 ([6bf77f7](https://github.com/cloudspannerecosystem/autoscaler/commit/6bf77f74821983b48ff62fc70ecb49ba946973d2))
+* **deps:** update package versions ([#364](https://github.com/cloudspannerecosystem/autoscaler/issues/364)) ([6bf77f7](https://github.com/cloudspannerecosystem/autoscaler/commit/6bf77f74821983b48ff62fc70ecb49ba946973d2))
+* Populate OpenTelemetry compression parameter ([#349](https://github.com/cloudspannerecosystem/autoscaler/issues/349)) ([d91fe50](https://github.com/cloudspannerecosystem/autoscaler/commit/d91fe506ddd5cf0b047ee45b34d081c63c1520fd))
+* Retain defaulted scaling method name ([#363](https://github.com/cloudspannerecosystem/autoscaler/issues/363)) ([9cc106e](https://github.com/cloudspannerecosystem/autoscaler/commit/9cc106e93f0308f5805caba01598110f26d93137))
+* Use ERROR loglevel for potentially non-fatal code path ([#351](https://github.com/cloudspannerecosystem/autoscaler/issues/351)) ([5f51453](https://github.com/cloudspannerecosystem/autoscaler/commit/5f5145383cae716276b2a26b8caecc6bbe9d5bea))
+
 ## [2.1.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v2.0.1...v2.1.0) (2024-06-27)
 
 
