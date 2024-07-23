@@ -11,22 +11,22 @@
       // And group into a single PR.
       matchDatasources: ["npm"],
       matchUpdateTypes: ["minor"],
-      excludePackageNames: ["googleapis"],
-      groupName: "npm",
+      excludePackageNames: ["googleapis", "npm", "node"],
+      groupName: "npm-packages",
     },
     {
       // Incldude major updates for GoogleAPIs NPM package
       matchDatasources: ["npm"],
       matchUpdateTypes: ["major"],
       matchPackageNames: ["googleapis"],
-      groupName: "npm",
+      groupName: "npm-packages",
     },
     {
       // Separate group for other major NPM updates, that does not create PRs
       matchDatasources: ["npm"],
       matchUpdateTypes: ["major"],
-      excludePackageNames: ["googleapis"],
-      groupName: "npm-major",
+      excludePackageNames: ["googleapis", "npm", "node"],
+      groupName: "npm-major-packages",
       dependencyDashboardApproval: true,
     },
     {
@@ -39,8 +39,14 @@
     },
     {
       matchDatasources: ["docker"],
-      groupName: "docker",
+      groupName: "docker-containers",
     },
+    {
+      matchDatasources: ["docker"],
+      groupName: "docker-containers",
+    },
+    
   ],
   rangeStrategy: "bump",
+  
 }
