@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autoscaler-config
+  namespace: spanner-autoscaler
+data:
+  autoscaler-config.yaml: |
+    ---
+    - projectId: spanner-autoscaler-test
+      instanceId: spanner-scaling-direct
+      units: NODES
+      minSize: 5
+      maxSize: 30
+      scalingMethod: DIRECT
+      garbage:value

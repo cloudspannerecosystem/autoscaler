@@ -1,0 +1,11 @@
+[
+  {
+    "projectId": "basic-configuration",
+    "instanceId": "another-spanner1",
+    "scalerPubSubTopic": "projects/my-spanner-project/topics/spanner-scaling",
+    "units": "NODES",
+    "minSize": 5,
+    "maxSize": "30",
+    "scalingMethod": "DIRECT"
+  }
+]

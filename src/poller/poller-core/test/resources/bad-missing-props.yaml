@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: autoscaler-config
+  namespace: spanner-autoscaler
+data:
+  autoscaler-config.yaml: |
+    ---
+    - projectId: spanner-autoscaler-test

@@ -1,4 +1,6 @@
-# Copyright 2023 Google LLC
+#!/bin/bash
+#
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,20 +13,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+#
+set -e
 
-ARG NODE_VERSION=20
-FROM node:${NODE_VERSION}-alpine AS build-env
+SCRIPTDIR=$(dirname "$0")
+cd "$SCRIPTDIR"
 
-WORKDIR /usr/src/app
-COPY src/autoscaler-common/ src/autoscaler-common/
-COPY src/poller/ src/poller/
-COPY package*.json ./
-COPY autoscaler-config.schema.json ./
-RUN npm config set update-notifier false
-RUN npm install --omit=dev
+npm install --quiet
+mkdir -p build
+cp -r ../node_modules/js-yaml ../node_modules/vanilla-jsoneditor ../autoscaler-config.schema.json  build/
 
-FROM gcr.io/distroless/nodejs${NODE_VERSION}:latest
-COPY --from=build-env /usr/src/app /usr/src/app
-WORKDIR /usr/src/app/
+[[ "$1" == "--quiet" ]] ||  cat <<EOF
 
-CMD ["-e", "require('./src/poller/index').main()"]
+--------------------
+Config editor built.
+--------------------
+
+Open the following link in a browser to use the config editor
+   file://$(pwd)/index.html
+or run:
+   cd $(pwd)
+   npx -y http-server -p 8080 -a 127.0.0.1
+and then open http://127.0.0.1:8080
+
+EOF

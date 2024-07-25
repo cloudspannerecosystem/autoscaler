@@ -285,7 +285,7 @@ you can follow [this example][pub-sub-receive-proto].
 [autoscaler-poller-parameters]: ../poller/README.md#configuration-parameters
 [spanner-regional]: https://cloud.google.com/spanner/docs/instances#configuration
 [directly-proportional]: https://en.wikipedia.org/wiki/Proportionality_(mathematics)#Direct_proportionality
-[cross-multiplication]: https://github.com/cloudspannerecosystem/autoscaler/blob/83ed3f5d37eceedd031ff679c1f2b9de7b0a3dbf/scaler/scaler-core/scaling-methods/linear.js#L35
+[cross-multiplication]: https://github.com/cloudspannerecosystem/autoscaler/blob/main/src/scaler/scaler-core/scaling-methods/linear.js#L56
 [pub-sub-schema]: https://cloud.google.com/pubsub/docs/schemas
 [base-64-decode]: https://www.base64decode.org/
 [log-based-metrics]: https://cloud.google.com/logging/docs/logs-based-metrics
