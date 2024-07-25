@@ -50,7 +50,7 @@
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
-    "pino": "^9.3.1",
+    "pino": "^9.3.2",
     "sanitize-filename": "^1.6.3"
   },
   "devDependencies": {
