@@ -19,6 +19,7 @@ WORKDIR /usr/src/app
 COPY src/autoscaler-common/ src/autoscaler-common/
 COPY src/poller/ src/poller/
 COPY package*.json ./
+COPY autoscaler-config.schema.json ./
 RUN npm config set update-notifier false
 RUN npm install --omit=dev
 

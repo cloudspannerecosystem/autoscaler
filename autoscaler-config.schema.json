@@ -1,0 +1,245 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/cloudspannerecosystem/autoscaler/autoscaler-config.schema.json",
+  "title": "Cloud Spanner Autoscaler configuration",
+  "description": "JSON schema for the Cloud Spanner autoscaler configuration, specifying one or more Spanner instances to monitor and automatically scale",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "$ref": "#/$defs/spannerInstance"
+  },
+  "$comment": "Any changes to this file also need to be reflected in src/poller/README.md, and in autoscaler-common/types.js.",
+  "$defs": {
+    "spannerInstance": {
+      "type": "object",
+      "title": "Spanner Instance",
+      "description": "Specification of a Cloud Spanner instance to be managed by the autoscaler.",
+      "additionalProperties": false,
+      "required": ["projectId", "instanceId"],
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "projectId": {
+          "type": "string",
+          "minLength": 2,
+          "description": "Project ID of the Cloud Spanner to be monitored."
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 2,
+          "description": "Instance ID of the Cloud Spanner to be monitored."
+        },
+        "units": {
+          "enum": ["NODES", "PROCESSING_UNITS"],
+          "description": "Specifies the units how the spanner capacity will be measured.",
+          "default": "NODES"
+        },
+        "minSize": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Minimum number of Cloud Spanner `NODES` or `PROCESSING_UNITS` that the instance can be scaled IN to.",
+          "default": "1 NODE or 100 PROCESSING_UNITS"
+        },
+        "maxSize": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Maximum number of Cloud Spanner `NODES` or `PROCESSING_UNITS` that the instance can be scaled OUT to.",
+          "default": "3 NODES or 2000 PROCESSING_UNITS"
+        },
+        "scalingMethod": {
+          "type": "string",
+          "minLength": 2,
+          "description": "Scaling method that should be used. See the [scaling methods](https://github.com/cloudspannerecosystem/autoscaler/blob/main/src/scaler/README.md#scaling-methods) for more information.",
+          "default": "STEPWISE"
+        },
+        "stepSize": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Amount of capacity that should be added or removed when scaling with the STEPWISE method.\nWhen the Spanner instance size is over 1000 `PROCESSING_UNITS`, scaling will be done in steps of 1000 `PROCESSING_UNITS`.\n For more information see the [Spanner compute capacity documentation](https://cloud.google.com/spanner/docs/compute-capacity#compute_capacity).",
+          "default": "2 NODES or 200 PROCESSING_UNITS"
+        },
+        "overloadStepSize": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Amount of capacity that should be added when the Cloud Spanner instance is overloaded, and the `STEPWISE` method is used.",
+          "default": "5 NODES or 500 PROCESSING_UNITS"
+        },
+        "scaleInLimit": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Percentage (integer) of the total instance size that can be removed in a scale in event when using the `LINEAR` scaling method.\nFor example if set to `20`, only 20% of the instance size can be removed in a single scaling event. When `scaleInLimit` is not defined a limit is not enforced.",
+          "default": 100
+        },
+        "scaleOutCoolingMinutes": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Minutes to wait after scaling IN or OUT before a scale OUT event can be processed.",
+          "default": 5
+        },
+        "scaleInCoolingMinutes": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Minutes to wait after scaling IN or OUT before a scale IN event can be processed.",
+          "default": 30
+        },
+        "overloadCoolingMinutes": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Minutes to wait after scaling IN or OUT before a scale OUT event can be processed, when the Spanner instance is overloaded.\nAn instance is overloaded if its High Priority CPU utilization is over 90%.",
+          "default": 5
+        },
+        "stateProjectId": {
+          "type": "string",
+          "minLength": 2,
+          "description": "The project ID where the Autoscaler state will be persisted.\nBy default it is persisted using Cloud Firestore in the same project as the Spanner instance being scaled - see `stateDatabase`.",
+          "default": "${projectId}"
+        },
+        "stateDatabase": {
+          "type": "object",
+          "description": "Object defining the database for managing the state of the Autoscaler.",
+          "default": "firestore",
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "enum": ["firestore", "spanner"],
+              "description": "Type of the database for storing the persistent state of the Autoscaler.",
+              "default": "firestore"
+            },
+            "instanceId": {
+              "type": "string",
+              "minLength": 2,
+              "description": "The instance id of Cloud Spanner in which you want to persist the state. Required if name=spanner."
+            },
+            "databaseId": {
+              "type": "string",
+              "minLength": 2,
+              "description": "The instance id of Cloud Spanner in which you want to persist the state. Required if name=spanner."
+            }
+          }
+        },
+        "scalerPubSubTopic": {
+          "type": "string",
+          "minLength": 2,
+          "pattern": "^projects/[^/]+/topics/[^/]+$",
+          "description": "PubSub topic (in the form `projects/${projectId}/topics/scaler-topic`) for the Poller function to publish messages for the Scaler function (Required for Cloud Functions deployments)"
+        },
+        "scalerURL": {
+          "type": "string",
+          "minLength": 2,
+          "pattern": "^https?://.+",
+          "description": "URL where the scaler service receives HTTP requests (Required for non-unified GKE deployments)",
+          "default": "http://scaler"
+        },
+        "downstreamPubSubTopic": {
+          "type": "string",
+          "minLength": 2,
+          "pattern": "^projects/[^/]+/topics/[^/]+$",
+          "description": "Set this parameter to point to a pubsub topic (in the form `projects/${projectId}/topics/downstream-topic-name`) to make the Autoscaler publish events that can be consumed by downstream applications.\nSee [Downstream messaging](https://github.com/cloudspannerecosystem/autoscaler/blob/main/src/scaler/README.md#downstream-messaging) for more information."
+        },
+        "metrics": {
+          "type": "array",
+          "description": "An array of custom metric definitions.\nThese can be provided in the configuration objects to customize the metrics used to autoscale your Cloud Spanner instances\n",
+          "items": {
+            "$ref": "#/$defs/metricDefinition"
+          }
+        }
+      }
+    },
+    "metricDefinition": {
+      "title": "Custom Metric Definition",
+      "description": "To specify a custom threshold specify the name of the metrics to customize followed by the parameter values you wish to change.\nThe updated parameters will be merged with the default metric parameters.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 2,
+          "description": "A unique name of the for the metric to be evaulated.\nIf you want to override the default metrics, their names are: `high_priority_cpu`, `rolling_24_hr` and `storage`."
+        },
+        "filter": {
+          "type": "string",
+          "minLength": 2,
+          "description": "The Cloud Spanner metric and filter that should be used when querying for data.\nThe Autoscaler will automatically add the filter expressions for Spanner instance resources, instance id and project id."
+        },
+        "reducer": {
+          "$comment": "from https://monitoring.googleapis.com/$discovery/rest?version=v3",
+          "enum": [
+            "REDUCE_NONE",
+            "REDUCE_MEAN",
+            "REDUCE_MIN",
+            "REDUCE_MAX",
+            "REDUCE_SUM",
+            "REDUCE_STDDEV",
+            "REDUCE_COUNT",
+            "REDUCE_COUNT_TRUE",
+            "REDUCE_COUNT_FALSE",
+            "REDUCE_FRACTION_TRUE",
+            "REDUCE_PERCENTILE_99",
+            "REDUCE_PERCENTILE_95",
+            "REDUCE_PERCENTILE_50",
+            "REDUCE_PERCENTILE_05"
+          ],
+          "description": "The reducer specifies how the data points should be aggregated when querying for metrics, typically `REDUCE_SUM`.\nFor more details please refer to [Alert Policies - Reducer](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies#reducer) documentation.",
+          "default": "REDUCE_SUM"
+        },
+        "aligner": {
+          "$comment": "Values from https://monitoring.googleapis.com/$discovery/rest?version=v3",
+          "enum": [
+            "ALIGN_NONE",
+            "ALIGN_DELTA",
+            "ALIGN_RATE",
+            "ALIGN_INTERPOLATE",
+            "ALIGN_NEXT_OLDER",
+            "ALIGN_MIN",
+            "ALIGN_MAX",
+            "ALIGN_MEAN",
+            "ALIGN_COUNT",
+            "ALIGN_SUM",
+            "ALIGN_STDDEV",
+            "ALIGN_COUNT_TRUE",
+            "ALIGN_COUNT_FALSE",
+            "ALIGN_FRACTION_TRUE",
+            "ALIGN_PERCENTILE_99",
+            "ALIGN_PERCENTILE_95",
+            "ALIGN_PERCENTILE_50",
+            "ALIGN_PERCENTILE_05",
+            "ALIGN_PERCENT_CHANGE"
+          ],
+          "description": "The aligner specifies how the data points should be aligned in the time series, typically `ALIGN_MAX`.\nFor more details please refer to [Alert Policies - Aligner](https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.alertPolicies#aligner) documentation.",
+          "default": "ALIGN_MAX"
+        },
+        "period": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Defines the period of time in units of seconds at which aggregation takes place. Typically the period should be 60.",
+          "default": 60
+        },
+        "regional_threshold": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Threshold used to evaluate if a regional instance needs to be scaled in or out."
+        },
+        "multi_regional_threshold": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Threshold used to evaluate if a multi-regional instance needs to be scaled in or out."
+        },
+        "regional_margin": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Margin above and below the threshold where the metric value is allowed.\nIf the metric falls outside of the range `[threshold - margin, threshold + margin]`, then the regional instance needs to be scaled in or out.",
+          "default": 5
+        },
+        "multi_regional_margin": {
+          "type": "number",
+          "minimum": 1,
+          "description": "Margin above and below the threshold where the metric value is allowed.\nIf the metric falls outside of the range `[threshold - margin, threshold + margin]`, then the multi regional instance needs to be scaled in or out.",
+          "default": 5
+        }
+      }
+    }
+  }
+}

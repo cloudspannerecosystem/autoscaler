@@ -23,6 +23,7 @@ const rewire = require('rewire');
 // eslint-disable-next-line no-unused-vars
 const should = require('should');
 const sinon = require('sinon');
+const {ValidationError} = require('../config-validator');
 
 const app = rewire('../index.js');
 
@@ -100,13 +101,14 @@ describe('#validateCustomMetric', () => {
 
 describe('#parseAndEnrichPayload', () => {
   it('should return the default for stepSize', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project", ' +
-      '  "instanceId": "spanner1", ' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "minNodes": 10' +
-      '}]';
+    const payload = JSON.stringify([
+      {
+        projectId: 'my-spanner-project',
+        instanceId: 'spanner1',
+        scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+        minSize: 10,
+      },
+    ]);
 
     const stub = sinon.stub().resolves({currentNode: 5, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
@@ -117,34 +119,16 @@ describe('#parseAndEnrichPayload', () => {
     unset();
   });
 
-  it('should override the default for minNodes', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project",' +
-      '  "instanceId": "spanner1",' +
-      '  "scalerPubSubTopic": "spanner-scaling",' +
-      '  "minNodes": 10 ' +
-      '}]';
-
-    const stub = sinon.stub().resolves({currentNode: 5, regional: true});
-    const unset = app.__set__('getSpannerMetadata', stub);
-
-    const mergedConfig = await parseAndEnrichPayload(payload);
-    mergedConfig[0].units.should.equal('NODES');
-    should(mergedConfig[0].minSize).equal(10);
-
-    unset();
-  });
-
   it('should merge in defaults for processing units', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project", ' +
-      '  "instanceId": "spanner1", ' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "units": "PROCESSING_UNITS", ' +
-      '  "minSize": 200' +
-      '}]';
+    const payload = JSON.stringify([
+      {
+        projectId: 'my-spanner-project',
+        instanceId: 'spanner1',
+        scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+        units: 'PROCESSING_UNITS',
+        minSize: 200,
+      },
+    ]);
 
     const stub = sinon.stub().resolves({currentSize: 500, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
@@ -160,15 +144,16 @@ describe('#parseAndEnrichPayload', () => {
   });
 
   it('should use the value of minSize/maxSize for minNodes/maxNodes instead of overriding with the defaults, Github Issue 61', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project", ' +
-      '  "instanceId": "spanner1", ' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "units": "NODES", ' +
-      '  "minSize": 20, ' +
-      '  "maxSize": 50 ' +
-      '}]';
+    const payload = JSON.stringify([
+      {
+        projectId: 'my-spanner-project',
+        instanceId: 'spanner1',
+        scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+        units: 'NODES',
+        minSize: 20,
+        maxSize: 50,
+      },
+    ]);
 
     const stub = sinon.stub().resolves({currentSize: 50, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
@@ -180,87 +165,22 @@ describe('#parseAndEnrichPayload', () => {
     unset();
   });
 
-  it('should throw if the nodes are specified when units is set to processing units', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project", ' +
-      '  "instanceId": "spanner1", ' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "units": "PROCESSING_UNITS", ' +
-      '  "minNodes": 200' +
-      '}]';
-
-    const stub = sinon.stub().resolves({currentSize: 500, regional: true});
-    const unset = app.__set__('getSpannerMetadata', stub);
-
-    await parseAndEnrichPayload(payload).should.be.rejectedWith(
-      new Error(
-        'INVALID CONFIG: units is set to PROCESSING_UNITS, ' +
-          'however, minNodes or maxNodes is set, ' +
-          'remove minNodes and maxNodes from your configuration.',
-      ),
-    );
-
-    unset();
-  });
-
-  it('should throw if the nodes are specified when but minSize and minNodes are both provided but not matching', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project", ' +
-      '  "instanceId": "spanner1", ' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "units": "NODES", ' +
-      '  "minNodes": 20, ' +
-      '  "minSize": 5' +
-      '}]';
-
-    const stub = sinon.stub().resolves({currentSize: 50, regional: true});
-    const unset = app.__set__('getSpannerMetadata', stub);
-
-    await parseAndEnrichPayload(payload).should.be.rejectedWith(
-      new Error(
-        'INVALID CONFIG: minSize and minNodes are both set ' +
-          'but do not match, make them match or only set minSize',
-      ),
-    );
-
-    unset();
-  });
-
-  it('should throw if the nodes are specified when but maxSize and maxNodes are both provided but not matching', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project", ' +
-      '  "instanceId": "spanner1", ' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "units": "NODES", ' +
-      '  "maxNodes": 20, ' +
-      '  "maxSize": 5' +
-      '}]';
-
-    const stub = sinon.stub().resolves({currentSize: 50, regional: true});
-    const unset = app.__set__('getSpannerMetadata', stub);
-
-    await parseAndEnrichPayload(payload).should.be.rejectedWith(
-      new Error(
-        'INVALID CONFIG: maxSize and maxNodes are both set ' +
-          'but do not match, make them match or only set maxSize',
-      ),
-    );
-
-    unset();
-  });
-
   it('should override the regional threshold for storage but not high_priority_cpu', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project", ' +
-      '  "instanceId": "spanner1", ' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "minNodes": 10, ' +
-      '  "metrics": [{"name": "storage", "regional_threshold":10}]' +
-      '}]';
+    const payload = JSON.stringify([
+      {
+        projectId: 'my-spanner-project',
+        instanceId: 'spanner1',
+        scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+        minSize: 10,
+        metrics: [
+          {
+            name: 'storage',
+            regional_threshold: 10,
+            multi_regional_threshold: 10,
+          },
+        ],
+      },
+    ]);
 
     const stub = sinon.stub().resolves({currentNode: 5, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
@@ -271,6 +191,7 @@ describe('#parseAndEnrichPayload', () => {
 
     let metric = /** @type {SpannerMetric} */ (mergedConfig[0].metrics[idx]);
     metric.regional_threshold.should.equal(10);
+    metric.multi_regional_threshold.should.equal(10);
     idx = mergedConfig[0].metrics.findIndex(
       (x) => x.name === 'high_priority_cpu',
     );
@@ -281,17 +202,26 @@ describe('#parseAndEnrichPayload', () => {
   });
 
   it('should override the multiple thresholds', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project", ' +
-      '  "instanceId": "spanner1", ' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "minNodes": 10, ' +
-      '  "metrics": [' +
-      '    {"name": "high_priority_cpu", "multi_regional_threshold":20}, ' +
-      '    {"name": "storage", "regional_threshold":10}' +
-      '  ]' +
-      '}]';
+    const payload = JSON.stringify([
+      {
+        projectId: 'my-spanner-project',
+        instanceId: 'spanner1',
+        scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+        minSize: 10,
+        metrics: [
+          {
+            name: 'high_priority_cpu',
+            regional_threshold: 20,
+            multi_regional_threshold: 20,
+          },
+          {
+            name: 'storage',
+            regional_threshold: 10,
+            multi_regional_threshold: 10,
+          },
+        ],
+      },
+    ]);
 
     const stub = sinon.stub().resolves({currentNode: 5, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
@@ -311,20 +241,22 @@ describe('#parseAndEnrichPayload', () => {
   });
 
   it('should add a custom metric to the list if metric name is a default metric', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project", ' +
-      '  "instanceId": "spanner1", ' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "minNodes": 10, ' +
-      '  "metrics": [' +
-      '    {' +
-      '      "filter": "my super cool filter", ' +
-      '      "name": "bogus", ' +
-      '      "multi_regional_threshold":20' +
-      '    }' +
-      '  ]' +
-      '}]';
+    const payload = JSON.stringify([
+      {
+        projectId: 'my-spanner-project',
+        instanceId: 'spanner1',
+        scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+        minSize: 10,
+        metrics: [
+          {
+            filter: 'my super cool filter',
+            name: 'bogus',
+            multi_regional_threshold: 20,
+            regional_threshold: 20,
+          },
+        ],
+      },
+    ]);
 
     const stub = sinon.stub().resolves({currentNode: 5, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
@@ -337,16 +269,21 @@ describe('#parseAndEnrichPayload', () => {
   });
 
   it('should not add a custom metric to the list if the provided metric is not valid', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project",' +
-      '  "instanceId": "spanner1",' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "minNodes": 10, ' +
-      '  "metrics": [' +
-      '    {"filter": "my super cool filter", "name": "bogus"}' +
-      '  ]' +
-      '}]';
+    const payload = JSON.stringify([
+      {
+        projectId: 'my-spanner-project',
+        instanceId: 'spanner1',
+        scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+        minSize: 10,
+        metrics: [
+          {
+            name: 'bogus',
+            regional_threshold: 10,
+            multi_regional_threshold: 20,
+          },
+        ],
+      },
+    ]);
 
     const stub = sinon.stub().resolves({currentNode: 5, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
@@ -358,22 +295,69 @@ describe('#parseAndEnrichPayload', () => {
   });
 
   it('should throw if the nodes are specified if units is set something other than nodes or processing units', async () => {
-    const payload =
-      '[{' +
-      '  "projectId": "my-spanner-project",' +
-      '  "instanceId": "spanner1",' +
-      '  "scalerPubSubTopic": "spanner-scaling", ' +
-      '  "units": "BOGUS", ' +
-      '  "minNodes": 200' +
-      '}]';
+    const payload = JSON.stringify([
+      {
+        projectId: 'my-spanner-project',
+        instanceId: 'spanner1',
+        scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+        units: 'BOGUS',
+        minSize: 200,
+      },
+    ]);
 
     const stub = sinon.stub().resolves({currentSize: 500, regional: true});
     const unset = app.__set__('getSpannerMetadata', stub);
 
     await parseAndEnrichPayload(payload).should.be.rejectedWith(
-      new Error(
-        'INVALID CONFIG: BOGUS is invalid. ' +
-          'Valid values are NODES or PROCESSING_UNITS',
+      new ValidationError(
+        'Invalid Autoscaler Configuration parameters:\n' +
+          'SpannerConfig/0/units must be equal to one of the allowed values',
+      ),
+    );
+
+    unset();
+  });
+
+  it('should throw if the sizes are specified as strings', async () => {
+    const payload = JSON.stringify([
+      {
+        projectId: 'my-spanner-project',
+        instanceId: 'spanner1',
+        scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+        units: 'NODES',
+        minSize: '300',
+      },
+    ]);
+
+    const stub = sinon.stub().resolves({currentSize: 500, regional: true});
+    const unset = app.__set__('getSpannerMetadata', stub);
+
+    await parseAndEnrichPayload(payload).should.be.rejectedWith(
+      new ValidationError(
+        'Invalid Autoscaler Configuration parameters:\n' +
+          'SpannerConfig/0/minSize must be number',
+      ),
+    );
+
+    unset();
+  });
+
+  it('should throw if the config is not an array', async () => {
+    const payload = JSON.stringify({
+      projectId: 'my-spanner-project',
+      instanceId: 'spanner1',
+      scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+      units: 'NODES',
+      minSize: '300',
+    });
+
+    const stub = sinon.stub().resolves({currentSize: 500, regional: true});
+    const unset = app.__set__('getSpannerMetadata', stub);
+
+    await parseAndEnrichPayload(payload).should.be.rejectedWith(
+      new ValidationError(
+        'Invalid Autoscaler Configuration parameters:\n' +
+          'SpannerConfig must be array',
       ),
     );
 

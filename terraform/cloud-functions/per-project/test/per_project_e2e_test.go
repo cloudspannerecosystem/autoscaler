@@ -22,7 +22,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"testing"
 	"time"
 
@@ -64,7 +63,7 @@ func setAutoscalerConfigMinProcessingUnits(t *testing.T, schedulerClient *schedu
 		t.Fatal()
 	}
 
-	schedulerJobBody[0]["minSize"] = strconv.Itoa(units)
+	schedulerJobBody[0]["minSize"] = units
 	schedulerJobBodyUpdate, err := json.Marshal(schedulerJobBody)
 	if err != nil {
 		logger.Log(t, err)
