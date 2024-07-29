@@ -17,7 +17,7 @@
       description: "Group minor/patch updates for all NPM packages except googleapis",
       matchDatasources: ["npm"],
       matchUpdateTypes: ["minor", "patch"],
-      excludePackageNames: ["googleapis"],
+      excludePackageNames: ["googleapis", "npm", "node"],
       groupName: "npm-packages",
     },
     {
@@ -30,7 +30,8 @@
       description: "Group for non-googleapis major NPM updates, that does not create PRs",
       matchDatasources: ["npm"],
       matchUpdateTypes: ["major"],
-      excludePackageNames: ["googleapis"],
+      excludePackageNames: ["googleapis", "npm", "node"],
+      exludeDepTypes: ["engines"],
       groupName: "npm-major-packages",
       dependencyDashboardApproval: true,
     },
