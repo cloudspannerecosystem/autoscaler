@@ -31,7 +31,6 @@
       matchDatasources: ["npm"],
       matchUpdateTypes: ["major"],
       excludePackageNames: ["googleapis", "npm", "node"],
-      exludeDepTypes: ["engines"],
       groupName: "npm-major-packages",
       dependencyDashboardApproval: true,
     },
