@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v2.1.1...v3.0.0) (2024-07-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* previous configs may fail due to stricter configuration validation, such as those that still use min/maxNodes, or that have specified a parameter incorrectly.
+* Update metrics domain for CF to workload.googleapis.com
+
+### Features
+
+* Add scaling duration dashboard ([#347](https://github.com/cloudspannerecosystem/autoscaler/issues/347)) ([874593f](https://github.com/cloudspannerecosystem/autoscaler/commit/874593fb49c5f48e83cc91c828ae6955efd3693d))
+* Add validation of Autoscaler config against JSON schema ([#338](https://github.com/cloudspannerecosystem/autoscaler/issues/338)) ([66c48a6](https://github.com/cloudspannerecosystem/autoscaler/commit/66c48a63885bfb0a0e2e0ce026bdad6f54087128))
+
 ## [2.1.1](https://github.com/cloudspannerecosystem/autoscaler/compare/v2.1.0...v2.1.1) (2024-07-23)
 
 
