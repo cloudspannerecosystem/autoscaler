@@ -276,9 +276,11 @@ async function getSpannerMetadata(projectId, spannerInstanceId, units) {
 
   try {
     const spannerInstance = spanner.instance(spannerInstanceId);
-
+    const databaseAdminClient = spanner.getDatabaseAdminClient();
     const results = await Promise.all([
-      spannerInstance.getDatabases(),
+      databaseAdminClient.listDatabases({
+        parent: databaseAdminClient.instancePath(projectId, spannerInstanceId),
+      }),
       spannerInstance.getMetadata(),
     ]);
     const numDatabases = results[0][0].length;
