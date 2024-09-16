@@ -49,7 +49,7 @@
     "eventid": "^2.0.1",
     "express": "^4.21.0",
     "express-jwt": "^8.4.1",
-    "googleapis": "^143.0.0",
+    "googleapis": "^144.0.0",
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
