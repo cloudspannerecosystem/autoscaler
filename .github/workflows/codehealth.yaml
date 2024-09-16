@@ -44,3 +44,9 @@ jobs:
 
       - name: Execute "npm run markdown-link-check"
         run: npm run markdown-link-check
+
+      - name: Use terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: terraform validate deployments
+        run: npm run terraform-validate

@@ -5,4 +5,6 @@ npm run eslint
 npm run markdown-link-check
 npm run mdlint
 npm run typecheck
+npm run terraform-validate
 npm test
+

@@ -17,6 +17,19 @@
 
 // Service Accounts
 
+resource "google_service_account" "build_sa" {
+  account_id   = "build-sa"
+  display_name = "Autoscaler - Cloud Build Builder Service Account"
+}
+
+resource "google_project_iam_binding" "build_iam" {
+  for_each = toset(["roles/storage.objectViewer", "roles/logging.logWriter", "roles/artifactregistry.writer"])
+  project  = var.project_id
+  role     = each.value
+  members  = ["serviceAccount:${google_service_account.build_sa.email}"]
+}
+
+
 resource "google_service_account" "forwarder_sa" {
   account_id   = "forwarder-sa"
   display_name = "Autoscaler - PubSub Forwarder Service Account"
@@ -83,4 +96,9 @@ resource "google_cloudfunctions_function" "forwarder_function" {
   source_archive_bucket = google_storage_bucket.bucket_gcf_source.name
   source_archive_object = google_storage_bucket_object.gcs_functions_forwarder_source.name
   service_account_email = google_service_account.forwarder_sa.email
+  build_service_account = google_service_account.build_sa.id
+  depends_on = [
+    google_project_iam_binding.build_iam,
+    google_pubsub_topic_iam_member.forwader_pubsub_sub_binding
+  ]
 }

@@ -18,7 +18,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 5.43.0"
+      version = ">= 6.2.0"
     }
   }
 }
@@ -53,6 +53,7 @@ module "autoscaler-functions" {
   region          = var.region
   poller_sa_email = google_service_account.poller_sa.email
   scaler_sa_email = google_service_account.scaler_sa.email
+  build_sa_id     = module.autoscaler-base.build_sa_id
 }
 
 module "firestore" {
