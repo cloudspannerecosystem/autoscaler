@@ -15,8 +15,8 @@
     "eslint-fix": "eslint --fix .",
     "format": "prettier --write .",
     "install-all": "npm install --save",
-    "markdown-link-check": "find . -name '*.md' -not \\( -path './node_modules/*' -o -path '*/.terraform/*' -o -path './CHANGELOG.md' -prune \\) -print0 | xargs --null markdown-link-check --config markdown-link-checker.json --quiet",
-    "mdlint": "markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore 'code-of-conduct.md' --ignore 'CHANGELOG.md'",
+    "markdown-link-check": "find . -name '*.md' -not \\( -path './node_modules/*' -o -path './configeditor/build/*' -o -path '*/.terraform/*' -o -path './CHANGELOG.md' -prune \\) -print0 | xargs --null markdown-link-check --config markdown-link-checker.json --quiet",
+    "mdlint": "markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore '**/build/**' --ignore 'code-of-conduct.md' --ignore 'CHANGELOG.md'",
     "poller-job": "node -e \"require('./src/poller/index').main()\"",
     "prepare": "{ git rev-parse --is-inside-work-tree >/dev/null 2>/dev/null && test \"$NODE_ENV\" != production -a \"$CI\" != true && husky ; }  || true",
     "prettier": "prettier --write .",
@@ -29,7 +29,8 @@
     "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit",
     "unified-job": "node -e \"require('./src/unifiedScaler').main()\"",
     "update-all": "npm update -S",
-    "validate-config-file": "node -e \"require('./src/poller/poller-core/config-validator').main()\" -- "
+    "validate-config-file": "node -e \"require('./src/poller/poller-core/config-validator').main()\" -- ",
+    "start-configeditor-server": "cd configeditor && ./build-configeditor.sh --quiet && npm exec http-server -- -a 127.0.0.1 "
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.10.0",

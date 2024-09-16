@@ -44,3 +44,5 @@ kubernetes/**/resourcegroup.yaml
 
 # Terratest
 .test-data
+
+configeditor/build
