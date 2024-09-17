@@ -24,6 +24,7 @@
     "start-forwarder-function": "functions-framework --target=forwardFromHTTP",
     "start-poller-function": "functions-framework --target=checkSpannerScaleMetricsHTTP",
     "start-scaler-function": "functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
+    "terraform-validate": "set -e ; package_root=\"$(pwd)\"; for x in gke/decoupled gke/unified cloud-functions/distributed/app-project cloud-functions/distributed/autoscaler-project cloud-functions/per-project ; do cd \"$package_root/terraform/$x\" ; echo \"\n\nValidating Terraform in $PWD\n\n\" ; terraform init ; terraform validate; done",
     "test": "NODE_ENV=test nyc --reporter=text mocha --recursive src --extension=.test.js",
     "test-e2e": "pushd terraform/cloud-functions/per-project/test && go test -run . -timeout 60m --tags=e2e && popd",
     "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit",

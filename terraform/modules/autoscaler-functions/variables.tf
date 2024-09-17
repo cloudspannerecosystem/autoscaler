@@ -45,6 +45,11 @@ variable "scaler_sa_email" {
   type = string
 }
 
+variable "build_sa_id" {
+  type = string
+  // projects/{{project}}/serviceAccounts/{{email}}
+}
+
 variable "forwarder_sa_emails" {
   type = list(string)
   // Example ["serviceAccount:forwarder_sa@app-project.iam.gserviceaccount.com"]

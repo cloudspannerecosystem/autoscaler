@@ -77,32 +77,6 @@ resource "google_project_iam_member" "cluster_iam_artifactregistryreader" {
   member  = "serviceAccount:${google_service_account.service_account.email}"
 }
 
-// Cloud Build SA - TODO move to base module pending Cloud Functions update
-
-resource "google_service_account" "build_service_account" {
-  project      = var.project_id
-  account_id   = "build-sa"
-  display_name = "Spanner Autoscaler - Cloud Build SA"
-}
-
-resource "google_project_iam_member" "build_iam_storageviewer" {
-  project = var.project_id
-  role    = "roles/storage.objectViewer"
-  member  = "serviceAccount:${google_service_account.build_service_account.email}"
-}
-
-resource "google_project_iam_member" "build_iam_logginglogwriter" {
-  project = var.project_id
-  role    = "roles/logging.logWriter"
-  member  = "serviceAccount:${google_service_account.build_service_account.email}"
-}
-
-resource "google_project_iam_member" "build_iam_artifactwriter" {
-  project = var.project_id
-  role    = "roles/artifactregistry.writer"
-  member  = "serviceAccount:${google_service_account.build_service_account.email}"
-}
-
 // Other resources
 
 resource "google_compute_network" "network" {
@@ -159,7 +133,7 @@ resource "kubernetes_namespace" "autoscaler_namespace" {
 module "workload_identity_poller" {
   count               = var.unified_components ? 0 : 1
   source              = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  version             = "~> 31.1.0"
+  version             = ">= 33.0.3"
 
   project_id          = var.project_id
   namespace           = "spanner-autoscaler"
@@ -171,7 +145,7 @@ module "workload_identity_poller" {
 
 module "workload_identity_scaler" {
   source              = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  version             = "~> 31.1.0"
+  version             = ">= 33.0.3"
 
   project_id          = var.project_id
   namespace           = "spanner-autoscaler"
@@ -184,7 +158,7 @@ module "workload_identity_scaler" {
 
 module "workload_identity_otel_collector" {
   source              = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  version             = "~> 31.1.0"
+  version             = ">= 33.0.3"
 
   project_id          = var.project_id
   namespace           = "spanner-autoscaler"
@@ -197,7 +171,7 @@ module "workload_identity_otel_collector" {
 
 module "cluster" {
   source                 = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  version                = "~> 31.1.0"
+  version                = ">= 33.0.3"
 
   project_id             = var.project_id
   name                   = var.name
