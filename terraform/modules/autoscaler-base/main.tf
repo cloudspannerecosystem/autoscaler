@@ -24,7 +24,8 @@ resource "google_project_iam_member" "poller_sa_spanner" {
 // Downstream topic
 
 resource "google_pubsub_topic" "downstream_topic" {
-  name = "downstream-topic"
+  project = var.project_id
+  name    = "downstream-topic"
 
   depends_on = [google_pubsub_schema.scaler_downstream_pubsub_schema]
 
@@ -46,6 +47,7 @@ resource "google_pubsub_topic_iam_member" "scaler_downstream_pub_iam" {
 }
 
 resource "google_pubsub_schema" "scaler_downstream_pubsub_schema" {
+  project    = var.project_id
   name       = "downstream-schema"
   type       = "PROTOCOL_BUFFER"
   definition = file("${path.module}/../../../src/scaler/scaler-core/downstream.schema.proto")

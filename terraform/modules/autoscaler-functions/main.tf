@@ -23,7 +23,8 @@ terraform {
 // PubSub
 
 resource "google_pubsub_topic" "poller_topic" {
-  name = "poller-topic"
+  project = var.project_id
+  name    = "poller-topic"
 }
 
 resource "google_pubsub_topic_iam_member" "poller_pubsub_sub_iam" {
@@ -43,7 +44,8 @@ resource "google_pubsub_topic_iam_member" "forwarder_pubsub_pub_iam" {
 }
 
 resource "google_pubsub_topic" "scaler_topic" {
-  name = "scaler-topic"
+  project = var.project_id
+  name    = "scaler-topic"
 }
 
 resource "google_pubsub_topic_iam_member" "poller_pubsub_pub_iam" {
@@ -63,6 +65,7 @@ resource "google_pubsub_topic_iam_member" "scaler_pubsub_sub_iam" {
 // Cloud Functions
 
 resource "google_storage_bucket" "bucket_gcf_source" {
+  project                     = var.project_id
   name                        = "${var.project_id}-gcf-source"
   storage_class               = "REGIONAL"
   location                    = var.region
