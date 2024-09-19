@@ -21,11 +21,26 @@ SCRIPTDIR=$(dirname "$0")
 cd "$SCRIPTDIR"
 
 npm install --quiet
-mkdir -p build/vanilla-jsoneditor
-[[ ! -e build/vanilla-jsoneditor/standalone.js ]] && \
-  curl -o build/vanilla-jsoneditor/standalone.js \
-    https://cdn.jsdelivr.net/npm/vanilla-jsoneditor@0.23.8/standalone.js
-    
+JSONEDITOR_JS=build/vanilla-jsoneditor/standalone.js
+# renovate: datasource=npm packageName=vanilla-jsoneditor
+JSONEDITOR_VERSION=0.23.8
+JSONEDITOR_JS_URL="https://cdn.jsdelivr.net/npm/vanilla-jsoneditor@${JSONEDITOR_VERSION}/standalone.js"
+# sha256sum of file at $JSONEDITOR_JS_URL
+JSONEDITOR_JS_HASH="81886177f9cab8541f73e02aa195fcea27089acfdf5be48b20ed60f65543f6cf"
+if [[ ! -e "$JSONEDITOR_JS" ]]; then
+  echo "Downloading npm/vanilla-jsoneditor@${JSONEDITOR_VERSION}/standalone.js"
+  curl -s -o "$JSONEDITOR_JS" "$JSONEDITOR_JS_URL"
+
+  # Check sha256sum hash
+  if ! echo "$JSONEDITOR_JS_HASH  $JSONEDITOR_JS" \
+    | sha256sum --check --quiet ; then
+    echo ""
+    echo "FAILED $JSONEDITOR_JS Checksum does not match expected value"
+    rm "$JSONEDITOR_JS"
+    exit 1
+    fi
+fi
+
 cp -r ../node_modules/js-yaml ../autoscaler-config.schema.json  build/
 
 [[ "$1" == "--quiet" ]] ||  cat <<EOF
