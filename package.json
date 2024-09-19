@@ -15,7 +15,7 @@
     "eslint-fix": "eslint --fix .",
     "format": "prettier --write .",
     "install-all": "npm install --save",
-    "markdown-link-check": "find . -name '*.md' -not \\( -path './node_modules/*' -o -path './configeditor/build/*' -o -path '*/.terraform/*' -o -path './CHANGELOG.md' -prune \\) -print0 | xargs --null markdown-link-check --config markdown-link-checker.json --quiet",
+    "markdown-link-check": "find . -name '*.md' -not \\( -path './node_modules/*' -o -path './configeditor/build/*' -o -path '*/.terraform/*' -o -path './CHANGELOG.md' -prune \\) -print0 | xargs -0 markdown-link-check --config markdown-link-checker.json --quiet",
     "mdlint": "markdownlint '**/*.md' --config .mdl.json --ignore '**/node_modules/**' --ignore '**/build/**' --ignore 'code-of-conduct.md' --ignore 'CHANGELOG.md'",
     "poller-job": "node -e \"require('./src/poller/index').main()\"",
     "prepare": "{ git rev-parse --is-inside-work-tree >/dev/null 2>/dev/null && test \"$NODE_ENV\" != production -a \"$CI\" != true && husky ; }  || true",
