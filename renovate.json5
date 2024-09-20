@@ -43,5 +43,19 @@
       groupName: "docker-containers",
     },
   ],
+  customManagers: [
+    {
+      customType: "regex",
+      description: "Update _VERSION variables in Dockerfiles, shell scripts",
+      fileMatch: [
+        "(^|/|\\.)([Dd]ocker|[Cc]ontainer)file$",
+        "(^|/)([Dd]ocker|[Cc]ontainer)file[^/]*$",
+        "(^|/)*.sh",
+      ],
+      matchStrings: [
+        '# renovate: datasource=(?<datasource>[a-z-]+?)(?: depName=(?<depName>.+?))? packageName=(?<packageName>.+?)(?: versioning=(?<versioning>[a-z-]+?))?\\s(?:ENV|ARG)?\\s*.+?_VERSION="?(?<currentValue>.+?)"?\\s',
+      ],
+    },
+  ],
   rangeStrategy: "bump",
 }
