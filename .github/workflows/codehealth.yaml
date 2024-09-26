@@ -24,6 +24,9 @@ jobs:
           node-version: 20
           check-latest: true
 
+      - name: Use terraform
+        uses: hashicorp/setup-terraform@v3
+
       - name: Install node modules
         run: npm install
 
@@ -34,7 +37,7 @@ jobs:
         run: npm run eslint
 
       - name: Execute "npm run check-format"
-        run: npm run check-format -- --log-level warn
+        run: npm run check-format
 
       - name: Execute "npm run mdlint"
         run: npm run mdlint
@@ -44,9 +47,6 @@ jobs:
 
       - name: Execute "npm run markdown-link-check"
         run: npm run markdown-link-check
-
-      - name: Use terraform
-        uses: hashicorp/setup-terraform@v3
 
       - name: terraform validate deployments
         run: npm run terraform-validate

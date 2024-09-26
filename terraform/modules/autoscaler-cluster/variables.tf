@@ -70,9 +70,9 @@ variable "scaler_sa_email" {
 }
 
 variable "otel_collector_sa_name" {
-  type = string
+  type        = string
   description = "The name of the service account and workload identity to be created and used by the OpenTelemetry Collector workload"
-  default = "otel-collector-sa"
+  default     = "otel-collector-sa"
 }
 
 variable "unified_components" {

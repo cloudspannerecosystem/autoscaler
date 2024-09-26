@@ -74,7 +74,17 @@ data "archive_file" "local_source" {
   type        = "zip"
   source_dir  = abspath("${path.module}/../../..")
   output_path = "${var.local_output_path}/src.zip"
-  excludes = [ ".git", ".github", ".nyc_output", ".vscode", "kubernetes", "node_modules", "resources", "scaler", "terraform"  ]
+  excludes = [
+    ".git",
+    ".github",
+    ".nyc_output",
+    ".vscode",
+    "kubernetes",
+    "node_modules",
+    "resources",
+    "scaler",
+    "terraform"
+  ]
 }
 
 resource "google_storage_bucket_object" "gcs_functions_source" {

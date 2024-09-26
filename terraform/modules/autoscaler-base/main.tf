@@ -29,7 +29,7 @@ resource "google_pubsub_topic" "downstream_topic" {
   depends_on = [google_pubsub_schema.scaler_downstream_pubsub_schema]
 
   schema_settings {
-    schema =  google_pubsub_schema.scaler_downstream_pubsub_schema.id
+    schema   = google_pubsub_schema.scaler_downstream_pubsub_schema.id
     encoding = "JSON"
   }
 
@@ -46,9 +46,9 @@ resource "google_pubsub_topic_iam_member" "scaler_downstream_pub_iam" {
 }
 
 resource "google_pubsub_schema" "scaler_downstream_pubsub_schema" {
-  name = "downstream-schema"
-  type = "PROTOCOL_BUFFER"
-  definition = "${file("${path.module}/../../../src/scaler/scaler-core/downstream.schema.proto")}"
+  name       = "downstream-schema"
+  type       = "PROTOCOL_BUFFER"
+  definition = file("${path.module}/../../../src/scaler/scaler-core/downstream.schema.proto")
 }
 
 resource "google_project_iam_member" "metrics_publisher_iam_poller" {
