@@ -16,26 +16,26 @@
 
 locals {
   config = var.json_config != "" ? var.json_config : base64encode(jsonencode([
-      merge ({
-        "projectId" : "${var.project_id}",
-        "instanceId" : "${var.spanner_name}",
-        "scalerPubSubTopic" : "${var.target_pubsub_topic}",
-        "units" : "${var.units}",
-        "minSize" : var.min_size,
-        "maxSize" : var.max_size,
-        "scalingMethod" : "${var.scaling_method}",
-        "stateDatabase": var.terraform_spanner_state ? {
-          "name":       "spanner",
-          "instanceId": "${var.spanner_state_name}"
-          "databaseId": "spanner-autoscaler-state"
+    merge({
+      "projectId" : "${var.project_id}",
+      "instanceId" : "${var.spanner_name}",
+      "scalerPubSubTopic" : "${var.target_pubsub_topic}",
+      "units" : "${var.units}",
+      "minSize" : var.min_size,
+      "maxSize" : var.max_size,
+      "scalingMethod" : "${var.scaling_method}",
+      "stateDatabase" : var.terraform_spanner_state ? {
+        "name" : "spanner",
+        "instanceId" : "${var.spanner_state_name}"
+        "databaseId" : "spanner-autoscaler-state"
         } : {
-          "name":       "firestore",
-        }
+        "name" : "firestore",
+      }
       },
       var.state_project_id != null ? {
         "stateProjectId" : "${var.state_project_id}"
-      } : {})
-    ]))
+    } : {})
+  ]))
 }
 
 resource "google_app_engine_application" "app" {

@@ -17,10 +17,10 @@
 output "build_sa_id" {
   value       = google_service_account.build_sa.id
   description = "Service account ID for Builder SA"
-  depends_on = [ google_project_iam_binding.build_iam ]
+  depends_on  = [google_project_iam_binding.build_iam]
 }
 output "build_sa_email" {
   value       = google_service_account.build_sa.email
   description = "Service account email for Builder SA"
-  depends_on = [ google_project_iam_binding.build_iam ]
+  depends_on  = [google_project_iam_binding.build_iam]
 }
