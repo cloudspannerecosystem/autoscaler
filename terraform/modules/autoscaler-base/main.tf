@@ -69,8 +69,14 @@ resource "google_service_account" "build_sa" {
 }
 
 resource "google_project_iam_binding" "build_iam" {
-  for_each = toset(["roles/storage.objectViewer", "roles/logging.logWriter", "roles/artifactregistry.writer"])
-  project  = var.project_id
-  role     = each.value
-  members  = ["serviceAccount:${google_service_account.build_sa.email}"]
+  # If this list of roles is updated, then the depends_on rule in outputs.tf
+  # also needs to be updated
+  for_each = toset([
+    "roles/storage.objectViewer",
+    "roles/logging.logWriter",
+    "roles/artifactregistry.writer"
+  ])
+  project = var.project_id
+  role    = each.value
+  members = ["serviceAccount:${google_service_account.build_sa.email}"]
 }
