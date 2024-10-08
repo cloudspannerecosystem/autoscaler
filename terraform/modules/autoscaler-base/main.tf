@@ -68,15 +68,18 @@ resource "google_service_account" "build_sa" {
   display_name = "Autoscaler - Cloud Build Builder Service Account"
 }
 
-resource "google_project_iam_binding" "build_iam" {
-  # If this list of roles is updated, then the depends_on rule in outputs.tf
-  # also needs to be updated
+resource "google_project_iam_member" "build_iam" {
   for_each = toset([
-    "roles/storage.objectViewer",
+    "roles/artifactregistry.writer",
     "roles/logging.logWriter",
-    "roles/artifactregistry.writer"
+    "roles/storage.objectViewer",
   ])
   project = var.project_id
   role    = each.value
-  members = ["serviceAccount:${google_service_account.build_sa.email}"]
+  member  = "serviceAccount:${google_service_account.build_sa.email}"
+}
+
+resource "time_sleep" "wait_for_iam" {
+  depends_on      = [google_project_iam_member.build_iam]
+  create_duration = "90s"
 }
