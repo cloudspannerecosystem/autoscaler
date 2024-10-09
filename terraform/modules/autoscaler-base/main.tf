@@ -68,9 +68,18 @@ resource "google_service_account" "build_sa" {
   display_name = "Autoscaler - Cloud Build Builder Service Account"
 }
 
-resource "google_project_iam_binding" "build_iam" {
-  for_each = toset(["roles/storage.objectViewer", "roles/logging.logWriter", "roles/artifactregistry.writer"])
-  project  = var.project_id
-  role     = each.value
-  members  = ["serviceAccount:${google_service_account.build_sa.email}"]
+resource "google_project_iam_member" "build_iam" {
+  for_each = toset([
+    "roles/artifactregistry.writer",
+    "roles/logging.logWriter",
+    "roles/storage.objectViewer",
+  ])
+  project = var.project_id
+  role    = each.value
+  member  = "serviceAccount:${google_service_account.build_sa.email}"
+}
+
+resource "time_sleep" "wait_for_iam" {
+  depends_on      = [google_project_iam_member.build_iam]
+  create_duration = "90s"
 }

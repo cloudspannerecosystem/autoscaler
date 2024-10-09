@@ -294,35 +294,6 @@ In this section you prepare your project for deployment.
     [known issue][provider-issue] in the Terraform Google provider, please retry
     the command above and include the flag `-parallelism=1`.
 
-    If you are using a recently created project, or one that does not have permissions
-    automatically assigned to default service accounts, you may see an error message
-    similar to the following:
-
-    ```sh
-    Error: Error waiting for Creating CloudFunctions Function: Error code 3, message: Build failed: failed to Fetch: failed to download archive gs://gcf-sources-[PROJECT_NUMBER]-us-central1/tf-poller-function-[UID]/version-1/function-source.zip:
-    Access to bucket gcf-sources-[PROJECT_NUMBER]-us-central1 denied. You must grant Storage Object Viewer permission to [PROJECT_NUMBER]-compute@developer.gserviceaccount.com.
-    ```
-
-    A workaround for this issue is to run the following commands, which assign additional
-    permissions to the default compute service account, which is used by Cloud Build:
-
-    ```sh
-    PROJECT_ID=$(gcloud config get-value project)
-    PROJECT_NUMBER=$(gcloud projects list --filter="$(gcloud config get-value project)" --format="value(PROJECT_NUMBER)")
-    gcloud projects add-iam-policy-binding "${PROJECT_ID}" --member="serviceAccount:${PROJECT_NUMBER}"-compute@developer.gserviceaccount.com --role='roles/storage.objectViewer'
-    gcloud projects add-iam-policy-binding "${PROJECT_ID}" --member="serviceAccount:${PROJECT_NUMBER}"-compute@developer.gserviceaccount.com --role='roles/logging.logWriter'
-    gcloud projects add-iam-policy-binding "${PROJECT_ID}" --member="serviceAccount:${PROJECT_NUMBER}"-compute@developer.gserviceaccount.com --role='roles/artifactregistry.writer'
-    ```
-
-    You can then re-run the `terraform apply` command listed above.
-
-    Please note that the updates to the service account may take several
-    minutes to propagate. The requirement for this workaround will be removed
-    in an upcoming release.
-
-    We recommend that you remove any unneeded permissions from the default compute
-    service account when your use of the Spanner Autoscaler is complete.
-
 ## Importing your Spanner instances
 
 If you have existing Spanner instances that you want to

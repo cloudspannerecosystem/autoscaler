@@ -22,13 +22,21 @@ resource "google_service_account" "build_sa" {
   display_name = "Autoscaler - Cloud Build Builder Service Account"
 }
 
-resource "google_project_iam_binding" "build_iam" {
-  for_each = toset(["roles/storage.objectViewer", "roles/logging.logWriter", "roles/artifactregistry.writer"])
-  project  = var.project_id
-  role     = each.value
-  members  = ["serviceAccount:${google_service_account.build_sa.email}"]
+resource "google_project_iam_member" "build_iam" {
+  for_each = toset([
+    "roles/artifactregistry.writer",
+    "roles/logging.logWriter",
+    "roles/storage.objectViewer",
+  ])
+  project = var.project_id
+  role    = each.value
+  member  = "serviceAccount:${google_service_account.build_sa.email}"
 }
 
+resource "time_sleep" "wait_for_iam" {
+  depends_on      = [google_project_iam_member.build_iam]
+  create_duration = "90s"
+}
 
 resource "google_service_account" "forwarder_sa" {
   account_id   = "forwarder-sa"
@@ -98,7 +106,7 @@ resource "google_cloudfunctions_function" "forwarder_function" {
   service_account_email = google_service_account.forwarder_sa.email
   build_service_account = google_service_account.build_sa.id
   depends_on = [
-    google_project_iam_binding.build_iam,
+    time_sleep.wait_for_iam,
     google_pubsub_topic_iam_member.forwader_pubsub_sub_binding
   ]
 }

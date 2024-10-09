@@ -63,7 +63,11 @@ resource "google_project_iam_custom_role" "metrics_viewer_iam_role" {
   role_id     = "spannerAutoscalerMetricsViewer_${random_id.role_suffix.hex}"
   title       = "Spanner Autoscaler Metrics Viewer Role"
   description = "Allows a principal to get Spanner instances and view time series metrics"
-  permissions = ["spanner.instances.get", "monitoring.timeSeries.list"]
+  permissions = [
+    "monitoring.timeSeries.list",
+    "spanner.databases.list",
+    "spanner.instances.get",
+  ]
 }
 
 # Allows Poller to to get Spanner instances and view time series metrics
@@ -79,7 +83,10 @@ resource "google_project_iam_custom_role" "capacity_manager_iam_role" {
   role_id     = "spannerAutoscalerCapacityManager_${random_id.role_suffix.hex}"
   title       = "Spanner Autoscaler Capacity Manager Role"
   description = "Allows a principal to scale spanner instances"
-  permissions = ["spanner.instanceOperations.get", "spanner.instances.update"]
+  permissions = [
+    "spanner.instanceOperations.get",
+    "spanner.instances.update"
+  ]
 }
 
 # Allows scaler to modify the capacity (nodes or PUs) of the Spanner instance
