@@ -106,7 +106,9 @@ func waitForSpannerProcessingUnits(t *testing.T, instanceAdmin *instance.Instanc
 				Name: instanceId,
 			}
 			spannerInstance, err := instanceAdmin.GetInstance(ctx, spannerInstanceReq)
-			assert.Nil(t, err)
+			if err != nil {
+				return "", err
+			}
 			assert.NotNil(t, spannerInstance)
 			processingUnits := spannerInstance.GetProcessingUnits()
 			if processingUnits != targetProcessingUnits {
@@ -191,6 +193,7 @@ func TestPerProjectEndToEndDeployment(t *testing.T) {
 
 		// Wait up to a minute for Spanner to report initial processing units
 		spannerInstanceId := fmt.Sprintf("projects/%s/instances/%s", config.ProjectId, spannerName)
+		logger.Log(t, fmt.Sprintf("Using instance ID: %s", spannerInstanceId))
 		waitForSpannerProcessingUnits(t, instanceAdmin, spannerInstanceId, spannerTestProcessingUnits, 6, time.Second*10)
 
 		// Update the autoscaler config with a new minimum number of processing units
