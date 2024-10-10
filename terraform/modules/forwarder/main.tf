@@ -18,6 +18,7 @@
 // Service Accounts
 
 resource "google_service_account" "build_sa" {
+  project      = var.project_id
   account_id   = "build-sa"
   display_name = "Autoscaler - Cloud Build Builder Service Account"
 }
@@ -39,6 +40,7 @@ resource "time_sleep" "wait_for_iam" {
 }
 
 resource "google_service_account" "forwarder_sa" {
+  project      = var.project_id
   account_id   = "forwarder-sa"
   display_name = "Autoscaler - PubSub Forwarder Service Account"
 }
@@ -46,7 +48,8 @@ resource "google_service_account" "forwarder_sa" {
 // PubSub
 
 resource "google_pubsub_topic" "forwarder_topic" {
-  name = "forwarder-topic"
+  project = var.project_id
+  name    = "forwarder-topic"
 }
 
 resource "google_pubsub_topic_iam_member" "forwader_pubsub_sub_binding" {
@@ -59,6 +62,7 @@ resource "google_pubsub_topic_iam_member" "forwader_pubsub_sub_binding" {
 // Cloud Functions
 
 resource "google_storage_bucket" "bucket_gcf_source" {
+  project                     = var.project_id
   name                        = "${var.project_id}-gcf-source"
   storage_class               = "REGIONAL"
   location                    = var.region
