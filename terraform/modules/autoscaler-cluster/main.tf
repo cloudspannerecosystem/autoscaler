@@ -80,11 +80,13 @@ resource "google_project_iam_member" "cluster_iam_artifactregistryreader" {
 // Other resources
 
 resource "google_compute_network" "network" {
+  project                 = var.project_id
   name                    = "spanner-autoscaler-network"
   auto_create_subnetworks = false
 }
 
 resource "google_compute_subnetwork" "subnetwork" {
+  project                  = var.project_id
   name                     = "spanner-autoscaler-subnetwork"
   network                  = google_compute_network.network.id
   ip_cidr_range            = "10.0.0.0/16"
@@ -92,11 +94,13 @@ resource "google_compute_subnetwork" "subnetwork" {
 }
 
 resource "google_compute_router" "router" {
+  project = var.project_id
   name    = "app-router"
   network = google_compute_network.network.id
 }
 
 resource "google_compute_router_nat" "nat" {
+  project                            = var.project_id
   name                               = "autoscaler-nat"
   router                             = google_compute_router.router.name
   region                             = google_compute_router.router.region
@@ -110,6 +114,7 @@ resource "google_compute_router_nat" "nat" {
 }
 
 resource "google_artifact_registry_repository" "autoscaler_artifact_repo" {
+  project       = var.project_id
   location      = var.region
   repository_id = "spanner-autoscaler"
   description   = "Image registry for Spanner Autoscaler"

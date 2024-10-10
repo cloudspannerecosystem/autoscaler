@@ -44,6 +44,7 @@ resource "google_app_engine_application" "app" {
 }
 
 resource "google_cloud_scheduler_job" "poller_job" {
+  project     = var.project_id
   name        = "poll-main-instance-metrics"
   description = "Poll metrics for main-instance"
   schedule    = var.schedule

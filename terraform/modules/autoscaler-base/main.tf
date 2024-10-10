@@ -66,6 +66,7 @@ resource "google_project_iam_member" "metrics_publisher_iam_scaler" {
 }
 
 resource "google_service_account" "build_sa" {
+  project      = var.project_id
   account_id   = "build-sa"
   display_name = "Autoscaler - Cloud Build Builder Service Account"
 }
