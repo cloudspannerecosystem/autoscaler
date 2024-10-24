@@ -5,7 +5,8 @@
 
   <p align="center">
     <!-- In one sentence: what does the code in this directory do? -->
-    Set up the Autoscaler in Cloud Functions in a per-project deployment using Terraform
+    Set up the Autoscaler in Cloud Run functions in a per-project
+    deployment using Terraform
     <br />
     <a href="../../../README.md">Home</a>
     ·
@@ -19,7 +20,7 @@
     ·
     <a href="../README.md#Monitoring">Monitoring</a>
     <br />
-    Cloud Functions
+    Cloud Run functions
     ·
     <a href="../../gke/README.md">Google Kubernetes Engine</a>
     <br />
@@ -142,18 +143,21 @@ In this section you prepare your project for deployment.
 5.  Enable the required Cloud APIs
 
     ```sh
-    gcloud services enable iam.googleapis.com \
-      cloudresourcemanager.googleapis.com \
+    gcloud services enable \
       appengine.googleapis.com \
+      cloudbuild.googleapis.com \
+      cloudfunctions.googleapis.com \
+      cloudresourcemanager.googleapis.com \
+      cloudscheduler.googleapis.com \
+      compute.googleapis.com \
+      eventarc.googleapis.com \
       firestore.googleapis.com \
-      spanner.googleapis.com \
-      pubsub.googleapis.com \
+      iam.googleapis.com \
       logging.googleapis.com \
       monitoring.googleapis.com \
-      cloudfunctions.googleapis.com \
-      cloudbuild.googleapis.com \
-      cloudscheduler.googleapis.com \
-      cloudresourcemanager.googleapis.com
+      pubsub.googleapis.com \
+      run.googleapis.com \
+      spanner.googleapis.com
     ```
 
 6.  Create a Google App Engine app, to enable the APIs

@@ -19,7 +19,7 @@
     ·
     Monitoring
     <br />
-    Cloud Functions
+    Cloud Run functions
     ·
     <a href="../gke/README.md">Google Kubernetes Engine</a>
     <br />
@@ -43,7 +43,7 @@
 ## Overview
 
 This directory contains Terraform configuration files to quickly set up the
-infrastructure of your Autoscaler on Cloud Functions.
+infrastructure of your Autoscaler on Cloud Run functions.
 
 ## Architecture
 

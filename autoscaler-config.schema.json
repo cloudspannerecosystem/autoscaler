@@ -123,7 +123,7 @@
           "type": "string",
           "minLength": 2,
           "pattern": "^projects/[^/]+/topics/[^/]+$",
-          "description": "PubSub topic (in the form `projects/${projectId}/topics/scaler-topic`) for the Poller function to publish messages for the Scaler function (Required for Cloud Functions deployments)"
+          "description": "PubSub topic (in the form `projects/${projectId}/topics/scaler-topic`) for the Poller function to publish messages for the Scaler function (Required for Cloud Run functions deployments)"
         },
         "scalerURL": {
           "type": "string",

@@ -35,7 +35,7 @@
     *   [Thresholds](#thresholds)
     *   [Margins](#margins)
     *   [Metrics](#metrics)
-*   [Example configuration for Cloud Functions](#example-configuration-for-cloud-functions)
+*   [Example configuration for Cloud Run functions](#example-configuration-for-cloud-run-functions)
 *   [Example configuration for Google Kubernetes Engine](#example-configuration-for-google-kubernetes-engine)
 
 ## Overview
@@ -61,7 +61,7 @@ instance is [regional or multi-region][spanner-regional].
 The following are the configuration parameters consumed by the Poller component.
 Some of these parameters are forwarded to the Scaler component as well.
 
-In the case of the Poller and Scaler components deployed to Cloud Functions,
+In the case of the Poller and Scaler components deployed to Cloud Run functions,
 the parameters are defined using JSON in the payload of the PubSub message that
 is published by the Cloud Scheduler job. When deployed to Kubernetes, the
 configuration parameters are defined in YAML in a [Kubernetes ConfigMap][configmap].
@@ -69,8 +69,8 @@ configuration parameters are defined in YAML in a [Kubernetes ConfigMap][configm
 See the [configuration section][autoscaler-home-config] in the home page for
 instructions on how to change the payload.
 
-The Autoscaler JSON (for Cloud functions) or YAML (for GKE) configuration can be
-validated by running the command:
+The Autoscaler JSON (for Cloud Run functions) or YAML (for GKE) configuration
+can be validated by running the command:
 
 ```shell
 npm install
@@ -84,7 +84,7 @@ npm run validate-config-file -- path/to/config_file
 | `projectId`         | Project ID of the Cloud Spanner to be monitored by the Autoscaler |
 | `instanceId`        | Instance ID of the Cloud Spanner to be monitored by the Autoscaler |
 
-### Required for a Cloud Functions deployment
+### Required for a Cloud Run functions deployment
 
 | Key                 | Description |
 | ------------------- | ----------- |
@@ -261,7 +261,7 @@ ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingMethod STRING(MAX)
 ALTER TABLE spannerAutoscaler ADD COLUMN IF NOT EXISTS scalingPreviousSize INT64;
 ```
 
-## Example configuration for Cloud Functions
+## Example configuration for Cloud Run functions
 
 ```json
 [

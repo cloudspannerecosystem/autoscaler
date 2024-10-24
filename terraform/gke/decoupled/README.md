@@ -19,7 +19,7 @@
     ·
     <a href="../../README.md#Monitoring">Monitoring</a>
     <br />
-    <a href="../../cloud-functions/README.md">Cloud Functions</a>
+    <a href="../../cloud-functions/README.md">Cloud Run functions</a>
     ·
     Google Kubernetes Engine
   </p>

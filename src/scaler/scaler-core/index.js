@@ -444,7 +444,7 @@ async function processScalingRequest(spanner, autoscalerState) {
 /**
  * Handle scale request from a PubSub event.
  *
- * Called by Cloud Functions Scaler deployment.
+ * Called by Cloud Run functions Scaler deployment.
  *
  * @param {{data:string}} pubSubEvent -- a CloudEvent object.
  * @param {*} context
