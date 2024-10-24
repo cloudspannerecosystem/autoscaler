@@ -8,9 +8,9 @@
   "main": "src/functions.js",
   "scripts": {
     "check-format": "npm run prettier-check && npm run terraform-fmt-check",
-    "debug-poller-function": "node --inspect node_modules/@google-cloud/functions-framework --target=checkSpannerScaleMetricsHTTP",
-    "debug-scaler-function": "node --inspect node_modules/@google-cloud/functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
-    "debug-forwarder-function": "node --inspect node_modules/@google-cloud/functions-framework --target=forwardFromHTTP",
+    "debug-poller-function": "node --inspect node_modules/.bin/functions-framework --target=checkSpannerScaleMetricsHTTP",
+    "debug-scaler-function": "node --inspect node_modules/.bin/functions-framework --target=scaleSpannerInstanceHTTP --port=8081",
+    "debug-forwarder-function": "node --inspect node_modules/.bin/functions-framework --target=forwardFromHTTP",
     "eslint": "eslint .",
     "eslint-fix": "eslint --fix .",
     "format": "prettier --write .",
