@@ -16,7 +16,7 @@
 
 terraform {
   provider_meta "google" {
-    module_name = "cloud-solutions/spanner-autoscaler-deploy-cf-v1.0"
+    module_name = "cloud-solutions/spanner-autoscaler-deploy-cf-v1.0.0" // x-release-please-version
   }
 }
 
