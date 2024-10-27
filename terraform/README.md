@@ -19,7 +19,7 @@
     ·
     Monitoring
     <br />
-    <a href="cloud-functions/README.md">Cloud Functions</a>
+    <a href="cloud-functions/README.md">Cloud Run functions</a>
     ·
     <a href="gke/README.md">Google Kubernetes Engine</a>
   </p>
@@ -39,8 +39,8 @@ infrastructure of your Autoscaler.
 
 The Autoscaler can be deployed in two different ways:
 
-*   [Deployment to Cloud Functions](cloud-functions/README.md): Autoscaler
-    components are deployed to [Cloud Functions][cloudfunctions], with
+*   [Deployment to Cloud Run functions](cloud-functions/README.md): Autoscaler
+    components are deployed to [Cloud Run functions][cloudfunctions], with
     [Pub/Sub][pubsub] used for asynchronous messaging between components. Use
     this deployment type for serverless operation, for cross-project
     Autoscaling, and to take maximal advantage of Google Cloud managed
@@ -50,7 +50,7 @@ The Autoscaler can be deployed in two different ways:
     components are deployed to [Google Kubernetes Engine (GKE)][gke], with
     Kubernetes-native constructs used for messaging and configuration. Use this
     deployment type if you want to use Kubernetes or cannot use the Google
-    Cloud service dependencies in the Cloud Functions model described above.
+    Cloud service dependencies in the Cloud Run functions model described above.
 
 ## Monitoring
 

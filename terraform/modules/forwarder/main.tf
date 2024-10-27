@@ -17,6 +17,10 @@
 
 // Service Accounts
 
+data "google_project" "project" {
+
+}
+
 resource "google_service_account" "build_sa" {
   project      = var.project_id
   account_id   = "build-sa"
@@ -59,7 +63,7 @@ resource "google_pubsub_topic_iam_member" "forwader_pubsub_sub_binding" {
   member  = "serviceAccount:${google_service_account.forwarder_sa.email}"
 }
 
-// Cloud Functions
+// Cloud Run functions
 
 resource "google_storage_bucket" "bucket_gcf_source" {
   project                     = var.project_id
@@ -90,27 +94,49 @@ resource "google_storage_bucket_object" "gcs_functions_forwarder_source" {
   source = data.archive_file.local_forwarder_source.output_path
 }
 
-resource "google_cloudfunctions_function" "forwarder_function" {
-  name                = "tf-forwarder-function"
-  project             = var.project_id
-  region              = var.region
-  ingress_settings    = "ALLOW_INTERNAL_AND_GCLB"
-  available_memory_mb = "256"
-  entry_point         = "forwardFromPubSub"
-  runtime             = "nodejs${var.nodejs_version}"
+resource "google_cloudfunctions2_function" "forwarder_function" {
+  name     = "tf-forwarder-function"
+  project  = var.project_id
+  location = var.region
+
+  build_config {
+    runtime     = "nodejs${var.nodejs_version}"
+    entry_point = "forwardFromPubSub"
+    source {
+      storage_source {
+        bucket = google_storage_bucket.bucket_gcf_source.name
+        object = google_storage_bucket_object.gcs_functions_forwarder_source.name
+      }
+    }
+    service_account = google_service_account.build_sa.id
+  }
+
+  service_config {
+    available_memory      = "256M"
+    ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
+    service_account_email = google_service_account.forwarder_sa.email
+    environment_variables = {
+      POLLER_TOPIC = var.target_pubsub_topic
+    }
+  }
+
   event_trigger {
-    event_type = "google.pubsub.topic.publish"
-    resource   = google_pubsub_topic.forwarder_topic.id
+    event_type            = "google.cloud.pubsub.topic.v1.messagePublished"
+    pubsub_topic          = google_pubsub_topic.forwarder_topic.id
+    retry_policy          = "RETRY_POLICY_RETRY"
+    service_account_email = google_service_account.forwarder_sa.email
   }
-  environment_variables = {
-    POLLER_TOPIC = var.target_pubsub_topic
-  }
-  source_archive_bucket = google_storage_bucket.bucket_gcf_source.name
-  source_archive_object = google_storage_bucket_object.gcs_functions_forwarder_source.name
-  service_account_email = google_service_account.forwarder_sa.email
-  build_service_account = google_service_account.build_sa.id
+
   depends_on = [
     time_sleep.wait_for_iam,
     google_pubsub_topic_iam_member.forwader_pubsub_sub_binding
   ]
+}
+
+resource "google_cloud_run_service_iam_member" "cloud_run_forwarder_invoker" {
+  project  = google_cloudfunctions2_function.forwarder_function.project
+  location = google_cloudfunctions2_function.forwarder_function.location
+  service  = google_cloudfunctions2_function.forwarder_function.name
+  role     = "roles/run.invoker"
+  member   = google_service_account.forwarder_sa.member
 }
