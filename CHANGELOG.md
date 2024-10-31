@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.0.1](https://github.com/cloudspannerecosystem/autoscaler/compare/v3.0.0...v3.0.1) (2024-10-31)
+
+
+### Bug Fixes
+
+* **deps:** update npm-packages ([#390](https://github.com/cloudspannerecosystem/autoscaler/issues/390)) ([e4e529f](https://github.com/cloudspannerecosystem/autoscaler/commit/e4e529f1dc50a8c71ae79f4990128b3ed2060fd7))
+* **tf:** allow build SA to read AR ([#405](https://github.com/cloudspannerecosystem/autoscaler/issues/405)) ([988c6f5](https://github.com/cloudspannerecosystem/autoscaler/commit/988c6f59fb0b508293165d16c0d2ff960c75d574))
+* **tf:** lock versions of terraform-google-modules kubernetes-engine ([#402](https://github.com/cloudspannerecosystem/autoscaler/issues/402)) ([0aac9d1](https://github.com/cloudspannerecosystem/autoscaler/commit/0aac9d157683d9763560aeb4b8388b2e1ab0cb3b))
+
 ## [3.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v2.1.1...v3.0.0) (2024-10-27)
 
 
