@@ -3,6 +3,7 @@
   extends: [
     "config:recommended",
     ":semanticCommits",
+    ":semanticCommitTypeAll(fix)",
     ":enableVulnerabilityAlertsWithLabel(security)",
   ],
   packageRules: [
