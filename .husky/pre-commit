@@ -1,10 +1,33 @@
+#!/bin/bash
+
 echo "Running .husky/pre-commit checks. Use -n/--no-verify to skip"
+echo "------------------------------------------------------------"
 
-npm run check-format
+npm run prettier-check
 npm run eslint
-npm run markdown-link-check
-npm run mdlint
-npm run typecheck
-npm run terraform-validate
-npm test
 
+function hasModifiedMatching() {
+  [[ -z "$1" ]] && echo "hasModifiedMatching needs arg" && return 1
+  git status --short  --untracked-files=all --column=never | grep -q "$1"
+  return $?
+}
+
+# check for modified markdown?
+if hasModifiedMatching '\.md$' ; then
+  echo "Markdown files modified... running checks"
+  npm run markdown-link-check
+  npm run mdlint
+fi
+
+if hasModifiedMatching ' src/' ; then
+  echo "src files modified... running checks"
+  npm run typecheck
+  npm test
+fi
+
+
+if hasModifiedMatching '\.tf$' ; then
+  echo "Terraform files modified... running checks"
+  npm run terraform-fmt-check
+  npm run terraform-validate
+fi
