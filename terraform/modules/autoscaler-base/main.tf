@@ -73,6 +73,7 @@ resource "google_service_account" "build_sa" {
 
 resource "google_project_iam_member" "build_iam" {
   for_each = toset([
+    "roles/artifactregistry.reader",
     "roles/artifactregistry.writer",
     "roles/logging.logWriter",
     "roles/storage.objectViewer",
