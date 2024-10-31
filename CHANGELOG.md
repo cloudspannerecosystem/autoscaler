@@ -1,5 +1,36 @@
 # Changelog
 
+## [3.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v2.1.1...v3.0.0) (2024-10-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* Use of Cloud Run Functions will require additional APIs to be enabled before redeploying - see the documentation for cloud functions deployment for the command to run.
+* previous configs may fail due to stricter configuration validation, such as those that still use min/maxNodes, or that have specified a parameter incorrectly.
+* Update metrics domain for CF to workload.googleapis.com
+
+### Features
+
+* Add JSON editor for schema-validated editing of configs ([#340](https://github.com/cloudspannerecosystem/autoscaler/issues/340)) ([6a167a3](https://github.com/cloudspannerecosystem/autoscaler/commit/6a167a31fe7e122afc49d1401d41efcbf275ae71))
+* Add scaling duration dashboard ([#347](https://github.com/cloudspannerecosystem/autoscaler/issues/347)) ([874593f](https://github.com/cloudspannerecosystem/autoscaler/commit/874593fb49c5f48e83cc91c828ae6955efd3693d))
+* Add validation of Autoscaler config against JSON schema ([#338](https://github.com/cloudspannerecosystem/autoscaler/issues/338)) ([66c48a6](https://github.com/cloudspannerecosystem/autoscaler/commit/66c48a63885bfb0a0e2e0ce026bdad6f54087128))
+* update to use Cloud Run Functions ([#196](https://github.com/cloudspannerecosystem/autoscaler/issues/196)) ([f9480b0](https://github.com/cloudspannerecosystem/autoscaler/commit/f9480b0b94f10283880685b98d17bf5069c3b7bc))
+
+
+### Bug Fixes
+
+* add resource requests/limits to otel collector ([#398](https://github.com/cloudspannerecosystem/autoscaler/issues/398)) ([4a54fe2](https://github.com/cloudspannerecosystem/autoscaler/commit/4a54fe208f308d88ded4b57b733b9b094ec564ac))
+* always specify Terraform project ([#384](https://github.com/cloudspannerecosystem/autoscaler/issues/384)) ([de5adb0](https://github.com/cloudspannerecosystem/autoscaler/commit/de5adb0cd81964d73307d98a3e8e1f7e7b76d63e))
+* **deploy:** ensure build_sa iams are set before it can be used ([#394](https://github.com/cloudspannerecosystem/autoscaler/issues/394)) ([aa48048](https://github.com/cloudspannerecosystem/autoscaler/commit/aa48048c8a7efd0d699319eb0bdedda75cbd050e))
+* **deps:** update dependency axios to v1.7.4 [security] ([#377](https://github.com/cloudspannerecosystem/autoscaler/issues/377)) ([f7ca3f0](https://github.com/cloudspannerecosystem/autoscaler/commit/f7ca3f07f42400b3e77f7c7ec54f8de243623179))
+* **deps:** update dependency googleapis to v143 ([#379](https://github.com/cloudspannerecosystem/autoscaler/issues/379)) ([07b9ca4](https://github.com/cloudspannerecosystem/autoscaler/commit/07b9ca44046f91e402518bd4b8f9f17b2ebe4126))
+* **deps:** update dependency googleapis to v144 ([#383](https://github.com/cloudspannerecosystem/autoscaler/issues/383)) ([c780a99](https://github.com/cloudspannerecosystem/autoscaler/commit/c780a9935a806348a16088a1a68458d4bdc41d25))
+* **deps:** update sinon and nyc to resolve npm audit ([#386](https://github.com/cloudspannerecosystem/autoscaler/issues/386)) ([062992a](https://github.com/cloudspannerecosystem/autoscaler/commit/062992aa45822847834827ea34d1e3e930389d55))
+* macos compatible xargs (-0 == --null) ([#392](https://github.com/cloudspannerecosystem/autoscaler/issues/392)) ([247a648](https://github.com/cloudspannerecosystem/autoscaler/commit/247a648057bcf30ddede810f9d675912a37bea04))
+* use a custom service account for Cloud Build ([#387](https://github.com/cloudspannerecosystem/autoscaler/issues/387)) ([076a44f](https://github.com/cloudspannerecosystem/autoscaler/commit/076a44fcdb1398582fd28b61c3ced94ea3572e24))
+* Use lightweight Spanner call to address memory leak ([#380](https://github.com/cloudspannerecosystem/autoscaler/issues/380)) ([5e85ecb](https://github.com/cloudspannerecosystem/autoscaler/commit/5e85ecb0b742fbffe570293db572cf00e35de16a))
+* Version bump for security vuln ([#396](https://github.com/cloudspannerecosystem/autoscaler/issues/396)) ([0551694](https://github.com/cloudspannerecosystem/autoscaler/commit/05516944fd4646a1a97327fb59678078c5522265))
+
 ## [2.1.1](https://github.com/cloudspannerecosystem/autoscaler/compare/v2.1.0...v2.1.1) (2024-07-23)
 
 
