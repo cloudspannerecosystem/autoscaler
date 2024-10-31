@@ -138,7 +138,7 @@ resource "kubernetes_namespace" "autoscaler_namespace" {
 module "workload_identity_poller" {
   count   = var.unified_components ? 0 : 1
   source  = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  version = "= 33.1.0"
+  version = "34.0.0"
 
   project_id          = var.project_id
   namespace           = "spanner-autoscaler"
@@ -150,7 +150,7 @@ module "workload_identity_poller" {
 
 module "workload_identity_scaler" {
   source  = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  version = "= 33.1.0"
+  version = "34.0.0"
 
   project_id          = var.project_id
   namespace           = "spanner-autoscaler"
@@ -163,7 +163,7 @@ module "workload_identity_scaler" {
 
 module "workload_identity_otel_collector" {
   source  = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  version = "= 33.1.0"
+  version = "34.0.0"
 
   project_id          = var.project_id
   namespace           = "spanner-autoscaler"
@@ -176,7 +176,7 @@ module "workload_identity_otel_collector" {
 
 module "cluster" {
   source  = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  version = "= 33.1.0"
+  version = "34.0.0"
 
   project_id             = var.project_id
   name                   = var.name
