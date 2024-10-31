@@ -17,8 +17,8 @@
       description: "Group minor/patch updates for all NPM packages except googleapis",
       matchDatasources: ["npm"],
       matchUpdateTypes: ["minor", "patch"],
-      excludePackageNames: ["googleapis", "npm", "node"],
       groupName: "npm-packages",
+      matchPackageNames: ["!googleapis", "!npm", "!node"],
     },
     {
       description: "Allow all update types for googleapis",
@@ -30,9 +30,9 @@
       description: "Group for non-googleapis major NPM updates, that does not create PRs",
       matchDatasources: ["npm"],
       matchUpdateTypes: ["major"],
-      excludePackageNames: ["googleapis", "npm", "node"],
       groupName: "npm-major-packages",
       dependencyDashboardApproval: true,
+      matchPackageNames: ["!googleapis", "!npm", "!node"],
     },
     {
       matchDatasources: ["terraform-module", "terraform-provider"],
