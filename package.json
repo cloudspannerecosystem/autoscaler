@@ -30,6 +30,7 @@
     "terraform-validate": "set -e ; package_root=\"$(pwd)\"; for x in gke/decoupled gke/unified cloud-functions/distributed/app-project cloud-functions/distributed/autoscaler-project cloud-functions/per-project ; do cd \"$package_root/terraform/$x\" ; echo \"\n\nValidating Terraform in $PWD\n\n\" ; terraform init ; terraform validate; done",
     "test": "NODE_ENV=test nyc --reporter=text mocha --recursive src --extension=.test.js",
     "test-e2e": "pushd terraform/cloud-functions/per-project/test && go test -run . -timeout 60m --tags=e2e && popd",
+    "test-e2e-gke": "pushd terraform/gke/unified/test && go test -run . -timeout 60m --tags=e2e && popd",
     "typecheck": "tsc --project jsconfig.json --maxNodeModuleJsDepth 0 --noEmit",
     "unified-job": "node -e \"require('./src/unifiedScaler').main()\"",
     "update-all": "npm update -S",
