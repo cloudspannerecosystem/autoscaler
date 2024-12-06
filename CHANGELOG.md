@@ -1,5 +1,24 @@
 # Changelog
 
+## [4.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v3.0.1...v4.0.0) (2024-12-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* While v18 remains in maintenance until April 2025, several dependencies no longer support node 18.
+
+### Features
+
+* remove support for node v18 ([#415](https://github.com/cloudspannerecosystem/autoscaler/issues/415)) ([b967e47](https://github.com/cloudspannerecosystem/autoscaler/commit/b967e4707f18e1fb9fccecd4fb3f733602512f1d))
+
+
+### Bug Fixes
+
+* **deps:** update npm-packages ([#416](https://github.com/cloudspannerecosystem/autoscaler/issues/416)) ([0b428e7](https://github.com/cloudspannerecosystem/autoscaler/commit/0b428e7709dea84a4f9a5bbe7e9c3408cd913567))
+* **deps:** update npm-packages ([#417](https://github.com/cloudspannerecosystem/autoscaler/issues/417)) ([a9f8f35](https://github.com/cloudspannerecosystem/autoscaler/commit/a9f8f357126748b37f3e5f11ca13d2302a8a2963))
+* **deps:** update terraform google to v6.10.0 ([#412](https://github.com/cloudspannerecosystem/autoscaler/issues/412)) ([64621c2](https://github.com/cloudspannerecosystem/autoscaler/commit/64621c27f175478efe9d86ac2f295d7c196b88db))
+* **deps:** update terraform module versions ([#406](https://github.com/cloudspannerecosystem/autoscaler/issues/406)) ([4490f61](https://github.com/cloudspannerecosystem/autoscaler/commit/4490f61ad314d7c91f22a809cf260b18256fa511))
+
 ## [3.0.1](https://github.com/cloudspannerecosystem/autoscaler/compare/v3.0.0...v3.0.1) (2024-10-31)
 
 
