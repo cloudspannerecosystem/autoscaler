@@ -6,6 +6,11 @@
     ":semanticCommitTypeAll(fix)",
     ":enableVulnerabilityAlertsWithLabel(security)",
   ],
+  ignorePaths: [
+    // override default ingorePaths which would ignore files in test directories
+    "**/node_modules/**",
+    "**/bower_components/**",
+  ],
   packageRules: [
     {
       description: "Do not create PRs for nodejs/npm engine updates",
@@ -42,6 +47,10 @@
     {
       matchDatasources: ["docker"],
       groupName: "docker-containers",
+    },
+    {
+      matchDatasources: ["go"],
+      groupName: "golang-modules",
     },
     {
       // Temporarily disable updates for markdown-link-check as versions > v3.13.2
