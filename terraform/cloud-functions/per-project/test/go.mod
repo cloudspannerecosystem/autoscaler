@@ -6,7 +6,7 @@ require (
 	cloud.google.com/go/scheduler v1.11.2
 	cloud.google.com/go/spanner v1.73.0
 	github.com/gruntwork-io/terratest v0.48.1
-	github.com/sethvargo/go-envconfig v0.9.0
+	github.com/sethvargo/go-envconfig v1.1.0
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/protobuf v1.36.0
 )
