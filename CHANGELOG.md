@@ -1,5 +1,33 @@
 # Changelog
 
+## [4.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v3.0.1...v4.0.0) (2024-12-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* While v18 remains in maintenance until April 2025, several dependencies no longer support node 18.
+
+### Features
+
+* remove support for node v18 ([#415](https://github.com/cloudspannerecosystem/autoscaler/issues/415)) ([b967e47](https://github.com/cloudspannerecosystem/autoscaler/commit/b967e4707f18e1fb9fccecd4fb3f733602512f1d))
+
+
+### Bug Fixes
+
+* **deps:** add missing golang sums ([#425](https://github.com/cloudspannerecosystem/autoscaler/issues/425)) ([3591d6a](https://github.com/cloudspannerecosystem/autoscaler/commit/3591d6a7475f12e730fc8a554afbd0ed8c922faa))
+* **deps:** update dependency express-jwt to ^8.5.1 ([#419](https://github.com/cloudspannerecosystem/autoscaler/issues/419)) ([11199d8](https://github.com/cloudspannerecosystem/autoscaler/commit/11199d86daa576e09c3c06cde61202172edbae02))
+* **deps:** update golang-modules ([#423](https://github.com/cloudspannerecosystem/autoscaler/issues/423)) ([709caab](https://github.com/cloudspannerecosystem/autoscaler/commit/709caab402c5079eeeff94ffb157e6ec51cc0dcd))
+* **deps:** update module github.com/sethvargo/go-envconfig to v1 ([#424](https://github.com/cloudspannerecosystem/autoscaler/issues/424)) ([8031f1f](https://github.com/cloudspannerecosystem/autoscaler/commit/8031f1f75ae819d9d5e21b5d7f3a3e83158ef503))
+* **deps:** update module golang.org/x/crypto to v0.31.0 [security] ([b4d4cb6](https://github.com/cloudspannerecosystem/autoscaler/commit/b4d4cb6d5d47fc4fd61c81d24a09ccacec0698a3))
+* **deps:** update module golang.org/x/net to v0.33.0 [security] ([#429](https://github.com/cloudspannerecosystem/autoscaler/issues/429)) ([ec4a8c7](https://github.com/cloudspannerecosystem/autoscaler/commit/ec4a8c73ab701a4763f653c25b8d8e41708c6397))
+* **deps:** update npm-packages ([#416](https://github.com/cloudspannerecosystem/autoscaler/issues/416)) ([0b428e7](https://github.com/cloudspannerecosystem/autoscaler/commit/0b428e7709dea84a4f9a5bbe7e9c3408cd913567))
+* **deps:** update npm-packages ([#417](https://github.com/cloudspannerecosystem/autoscaler/issues/417)) ([a9f8f35](https://github.com/cloudspannerecosystem/autoscaler/commit/a9f8f357126748b37f3e5f11ca13d2302a8a2963))
+* **deps:** update npm-packages ([#427](https://github.com/cloudspannerecosystem/autoscaler/issues/427)) ([e7da5d4](https://github.com/cloudspannerecosystem/autoscaler/commit/e7da5d4a02677a08cf163d717b160331e9b1433c))
+* **deps:** update npm-packages ([#428](https://github.com/cloudspannerecosystem/autoscaler/issues/428)) ([e9dc57a](https://github.com/cloudspannerecosystem/autoscaler/commit/e9dc57a1759913383569339ea1eae2a555c30486))
+* **deps:** update terraform ([#414](https://github.com/cloudspannerecosystem/autoscaler/issues/414)) ([a9cd938](https://github.com/cloudspannerecosystem/autoscaler/commit/a9cd938949ce6383cab0bc26278a696f1fbd22d6))
+* **deps:** update terraform google to v6.10.0 ([#412](https://github.com/cloudspannerecosystem/autoscaler/issues/412)) ([64621c2](https://github.com/cloudspannerecosystem/autoscaler/commit/64621c27f175478efe9d86ac2f295d7c196b88db))
+* **deps:** update terraform module versions ([#406](https://github.com/cloudspannerecosystem/autoscaler/issues/406)) ([4490f61](https://github.com/cloudspannerecosystem/autoscaler/commit/4490f61ad314d7c91f22a809cf260b18256fa511))
+
 ## [3.0.1](https://github.com/cloudspannerecosystem/autoscaler/compare/v3.0.0...v3.0.1) (2024-10-31)
 
 
