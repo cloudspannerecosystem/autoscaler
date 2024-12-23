@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.11.0",
-    "@google-cloud/functions-framework": "^3.4.3",
+    "@google-cloud/functions-framework": "^3.4.4",
     "@google-cloud/monitoring": "^4.1.0",
     "@google-cloud/opentelemetry-cloud-monitoring-exporter": "^0.20.0",
     "@google-cloud/pubsub": "^4.9.0",
@@ -58,7 +58,7 @@
     "js-yaml": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
-    "pino": "^9.5.0",
+    "pino": "^9.6.0",
     "sanitize-filename": "^1.6.3"
   },
   "devDependencies": {
