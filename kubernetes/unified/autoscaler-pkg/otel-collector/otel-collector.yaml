@@ -27,6 +27,13 @@ spec:
           args:
             - --config
             - /etc/otel/config.yaml
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - all
           volumeMounts:
             - mountPath: /etc/otel/
               name: otel-config

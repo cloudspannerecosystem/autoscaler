@@ -24,8 +24,10 @@ COPY package*.json ./
 COPY autoscaler-config.schema.json ./
 RUN npm config set update-notifier false
 RUN npm install --omit=dev
+RUN find /usr/src/app/ -type d -exec chmod a+x '{}' ';'
+RUN find /usr/src/app/ -type f -name '*.js*' -exec chmod a+r '{}' ';'
 
-FROM gcr.io/distroless/nodejs${NODE_VERSION}:latest
+FROM gcr.io/distroless/nodejs${NODE_VERSION}:nonroot
 COPY --from=build-env /usr/src/app /usr/src/app
 WORKDIR /usr/src/app/
 
