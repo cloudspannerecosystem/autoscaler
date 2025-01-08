@@ -30,9 +30,12 @@
 
 *   [Table of Contents](#table-of-contents)
 *   [Overview](#overview)
-*   [Architecture](#architecture)
     *   [Pros](#pros)
     *   [Cons](#cons)
+*   [Options for GKE deployment](#options-for-gke-deployment)
+*   [Architecture](#architecture)
+    *   [Decoupled Model](#decoupled-model)
+    *   [Unified Model](#unified-model)
 *   [Before you begin](#before-you-begin)
 *   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
     *   [Using Firestore for Autoscaler state](#using-firestore-for-autoscaler-state)
@@ -52,22 +55,67 @@ This directory contains Terraform configuration files to quickly set up the
 infrastructure for your Autoscaler for a deployment to
 [Google Kubernetes Engine (GKE)][gke].
 
-In this deployment option, all the components of the Autoscaler reside in the
-same project as your [Spanner][spanner] instances. A future enhancement may
-enable the autoscaler to operate cross-project when running in GKE.
-
 This deployment is ideal for independent teams who want to self-manage the
 infrastructure and configuration of their own Autoscalers on Kubernetes.
 
+The GKE deployment has the following pros and cons:
+
+### Pros
+
+*   **Kubernetes-based**: For teams that may not be able to use Google Cloud
+    services such as [Cloud Run functions][cloud-functions], this design enables
+    the use of the Autoscaler.
+*   **Configuration**: The control over scheduler parameters belongs to the team
+    that owns the Spanner instance, therefore the team has the highest degree of
+    freedom to adapt the Autoscaler to its needs.
+*   **Infrastructure**: This design establishes a clear boundary of
+    responsibility and security over the Autoscaler infrastructure because the
+    team owner of the Spanner instances is also the owner of the Autoscaler
+    infrastructure.
+
+### Cons
+
+*   **Infrastructure**: In contrast to the [Cloud Run functions][cloud-functions]
+    design, some long-lived infrastructure and services are required.
+*   **Maintenance**: with each team being responsible for the Autoscaler
+    configuration and infrastructure it may become difficult to make sure that
+    all Autoscalers across the company follow the same update guidelines.
+*   **Audit**: because of the high level of control by each team, a centralized
+    audit may become more complex.
+
+## Options for GKE deployment
+
+For deployment to GKE there are two options to choose from:
+
+1.  Deployment of decoupled Poller and Scaler components, running in separate pods.
+
+2.  Deployment of a unified Autoscaler, with Poller and Scaler components
+    combined.
+
+The decoupled deployment model has the advantage that Poller and Scaler
+components can be assigned individual permissions (i.e. run as separate service
+accounts), and the two components can be managed and scaled as required to suit
+your needs. However, this deployment model relies on the Scaler component being
+deployed as a long-running service, which consumes resources.
+
+In contrast, the unified deployment model has the advantage that the Poller and
+Scaler components can be deployed as a single pod, which runs as a Kubernetes
+cron job. This means there are no long-running components. As well as this,
+with Poller and Scaler components combined, only a single service account is
+required.
+
+For most use cases, the unified deployment model is recommended.
+
 ## Architecture
 
-![architecture-gke][architecture-gke]
+### Decoupled Model
+
+![architecture-gke-decoupled][architecture-gke-decoupled]
 
 1.  Using a [Kubernetes ConfigMap][kubernetes-configmap] you define which
-    Spanner instances you would like to be managed by the autoscaler. Currently
-    these must be in the same project as the cluster that runs the autoscaler.
+    Spanner instances you would like to be managed by the Autoscaler.
 
-2.  Using a [Kubernetes CronJob][kubernetes-cronjob], the autoscaler is
+2.  Using a [Kubernetes CronJob][kubernetes-cronjob], the Autoscaler is
     configured to run on a schedule. By default this is every two minutes,
     though this is configurable.
 
@@ -99,53 +147,45 @@ infrastructure and configuration of their own Autoscalers on Kubernetes.
     [Google Cloud Monitoring][gcm-docs]. See section
     [Metrics in GKE deployment](#metrics-in-gke-deployment)
 
-The GKE deployment has the following pros and cons:
+### Unified Model
 
-### Pros
+![architecture-gke-unified][architecture-gke-unified]
 
-*   **Kubernetes-based**: For teams that may not be able to use Google Cloud
-    services such as [Cloud Run functions][cloud-functions], this design enables
-    the use of the autoscaler.
-*   **Configuration**: The control over scheduler parameters belongs to the team
-    that owns the Spanner instance, therefore the team has the highest degree of
-    freedom to adapt the Autoscaler to its needs.
-*   **Infrastructure**: This design establishes a clear boundary of
-    responsibility and security over the Autoscaler infrastructure because the
-    team owner of the Spanner instances is also the owner of the Autoscaler
-    infrastructure.
+1.  Using a [Kubernetes ConfigMap][kubernetes-configmap] you define which
+    Spanner instances you would like to be managed by the Autoscaler.
 
-### Cons
+2.  Using a [Kubernetes CronJob][kubernetes-cronjob], the Autoscaler is
+    configured to run on a schedule. By default this is every two minutes,
+    though this is configurable.
 
-*   **Infrastructure**: In contrast to the [Cloud Run functions][cloud-functions]
-    design, some long-lived infrastructure and services are required.
-*   **Maintenance**: with each team being responsible for the Autoscaler
-    configuration and infrastructure it may become difficult to make sure that
-    all Autoscalers across the company follow the same update guidelines.
-*   **Audit**: because of the high level of control by each team, a centralized
-    audit may become more complex.
+3.  When scheduled, an instance of the unifed [Poller][autoscaler-poller] and
+    [Scaler][autoscaler-scaler] components (henceforth "Autoscaler") is created
+    as a [Kubernetes Job][kubernetes-job].
 
-## Further options for GKE deployment
+4.  The Autoscaler queries the [Cloud Monitoring][cloud-monitoring] API to retrieve
+    the utilization metrics for each Spanner instance.
 
-For deployment to GKE there are two further options to choose from:
+5.  For each Spanner instance, the Autoscaler makes an internal call with a
+    payload that contains the utilization metrics for the specific
+    Spanner instance, and some of its corresponding configuration parameters.
 
-1.  Deployment of decoupled Poller and Scaler components, running in separate pods.
+6.  Using the chosen [scaling method][scaling-methods]
+    the Autoscaler compares the Spanner instance metrics against the recommended
+    thresholds, plus or minus an [allowed margin][margins] and determines
+    if the instance should be scaled, and the number of nodes or processing units
+    that it should be scaled to.
 
-2.  Deployment of a unified Autoscaler, with Poller and Scaler components
-    combined.
+7.  The Autoscaler retrieves the time when the instance was last scaled from the
+    state data stored in [Cloud Firestore][cloud-firestore] (or alternatively
+    [Spanner][spanner]) and compares it with the current time.
 
-The decoupled deployment model has the advantage that Poller and Scaler
-components can be assigned individual permissions (i.e. run as separate service
-accounts), and the two components can be managed and scaled as required to suit
-your needs. However, this deployment model relies on the Scaler component being
-deployed as a long-running service, which consumes resources.
+8.  If the configured cooldown period has passed, then the Autoscaler requests the
+    Spanner Instance to scale out or in.
 
-In contrast, the unified deployment model has the advantage that the Poller and
-Scaler components can be deployed as a single pod, which runs as a Kubernetes
-cron job. This means there are no long-running components. As well as this,
-with Poller and Scaler components combined, only a single service account is
-required.
-
-For most use cases, the unified deployment model is recommended.
+9.  The Autoscaler publishes counters to an [OpenTelemetry Collector][otel-collector],
+    also running in Kubernetes, which is configured to forward these counters to
+    [Google Cloud Monitoring][gcm-docs]. See section
+    [Metrics in GKE deployment](#metrics-in-gke-deployment)
 
 ## Before you begin
 
@@ -563,10 +603,10 @@ Next, follow the instructions in the
     cat autoscaler-config/autoscaler-config*.yaml
     ```
 
-    These two files configure each instance of the autoscaler that you
+    These two files configure each instance of the Autoscaler that you
     scheduled in the previous step. Notice the environment variable
     `AUTOSCALER_CONFIG`. You can use this variable to reference a configuration
-    that will be used by that individual instance of the autoscaler. This means
+    that will be used by that individual instance of the Autoscaler. This means
     that you can configure multiple scaling schedules across multiple Spanner
     instances.
 
@@ -705,8 +745,10 @@ following the instructions above.
     ```
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[architecture-gke]: ../../resources/architecture-gke.png
+[architecture-gke-decoupled]: ../../resources/architecture-gke-decoupled.png
+[architecture-gke-unified]: ../../resources/architecture-gke-unified.png
 [autoscaler-poller]: ../../src/poller/README.md
+[autoscaler-scaler]: ../../src/scaler/README.md
 [autoscaler-config-params]: ../../src/poller/README.md#configuration-parameters
 [cron-frequent]: ../../kubernetes/decoupled/autoscaler-pkg/poller/poller.yaml
 [cron-hourly]: ../../kubernetes/decoupled/autoscaler-pkg/poller/poller-hourly.yaml
