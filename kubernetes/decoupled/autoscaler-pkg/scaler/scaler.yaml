@@ -51,6 +51,13 @@ spec:
               value: "http://otel-collector:4317/"
             - name: OTEL_IS_LONG_RUNNING_PROCESS
               value: "true"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities:
+              drop:
+                - all
       nodeSelector:
         iam.gke.io/gke-metadata-server-enabled: "true"
       serviceAccountName: scaler-sa
