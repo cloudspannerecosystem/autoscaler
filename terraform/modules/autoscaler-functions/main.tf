@@ -120,6 +120,7 @@ resource "google_cloudfunctions2_function" "poller_function" {
 
   service_config {
     available_memory      = "256M"
+    available_cpu         = var.poller_function_available_cpu
     ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
     service_account_email = var.poller_sa_email
   }
@@ -157,6 +158,7 @@ resource "google_cloudfunctions2_function" "scaler_function" {
 
   service_config {
     available_memory      = "256M"
+    available_cpu         = var.scaler_function_available_cpu
     ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
     service_account_email = var.scaler_sa_email
   }

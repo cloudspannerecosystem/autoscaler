@@ -55,3 +55,23 @@ variable "forwarder_sa_emails" {
   // Example ["serviceAccount:forwarder_sa@app-project.iam.gserviceaccount.com"]
   default = []
 }
+
+variable "poller_function_available_cpu" {
+  type        = number
+  default     = null
+  description = "The amount of available CPU for the poller function. Unset/null will allow Cloud Run to default based on Memory."
+  validation {
+    condition     = var.poller_function_available_cpu == null ? true : var.poller_function_available_cpu >= 0.08
+    error_message = "The minimum value for poller_function_available_cpu is 0.08."
+  }
+}
+
+variable "scaler_function_available_cpu" {
+  type        = number
+  default     = null
+  description = "The amount of available CPU for the scaler function. Unset/null will allow Cloud Run to default based on Memory."
+  validation {
+    condition     = var.scaler_function_available_cpu == null ? true : var.scaler_function_available_cpu >= 0.08
+    error_message = "The minimum value for scaler_function_available_cpu is 0.08."
+  }
+}
