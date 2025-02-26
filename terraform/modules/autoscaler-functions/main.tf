@@ -119,6 +119,7 @@ resource "google_cloudfunctions2_function" "poller_function" {
   }
 
   service_config {
+    max_instance_count    = var.poller_max_instance_count
     available_memory      = "256M"
     available_cpu         = var.poller_function_available_cpu
     ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
@@ -130,12 +131,6 @@ resource "google_cloudfunctions2_function" "poller_function" {
     pubsub_topic          = google_pubsub_topic.poller_topic.id
     retry_policy          = "RETRY_POLICY_RETRY"
     service_account_email = var.poller_sa_email
-  }
-
-  lifecycle {
-    ignore_changes = [
-      service_config[0].max_instance_count
-    ]
   }
 }
 
@@ -157,6 +152,7 @@ resource "google_cloudfunctions2_function" "scaler_function" {
   }
 
   service_config {
+    max_instance_count    = var.scaler_max_instance_count
     available_memory      = "256M"
     available_cpu         = var.scaler_function_available_cpu
     ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
@@ -168,12 +164,6 @@ resource "google_cloudfunctions2_function" "scaler_function" {
     pubsub_topic          = google_pubsub_topic.scaler_topic.id
     retry_policy          = "RETRY_POLICY_RETRY"
     service_account_email = var.scaler_sa_email
-  }
-
-  lifecycle {
-    ignore_changes = [
-      service_config[0].max_instance_count
-    ]
   }
 }
 
