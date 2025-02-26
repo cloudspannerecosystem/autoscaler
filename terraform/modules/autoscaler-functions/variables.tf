@@ -56,6 +56,18 @@ variable "forwarder_sa_emails" {
   default = []
 }
 
+variable "scaler_max_instance_count" {
+  description = "Maximum number of instances for the scaler function"
+  type        = number
+  default     = null
+}
+
+variable "poller_max_instance_count" {
+  description = "Maximum number of instances for the poller function"
+  type        = number
+  default     = null
+}
+
 variable "poller_function_available_cpu" {
   type        = number
   default     = null
