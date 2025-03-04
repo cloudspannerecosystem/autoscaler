@@ -1,5 +1,27 @@
 # Changelog
 
+## [5.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v4.0.0...v5.0.0) (2025-03-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* This change puts max_instance_count under Terraform control and is therefore a breaking change for users that rely on Terraform never updating this value.
+
+### Features
+
+* parameterize Cloud Run functions available CPU ([#441](https://github.com/cloudspannerecosystem/autoscaler/issues/441)) ([578d6e5](https://github.com/cloudspannerecosystem/autoscaler/commit/578d6e50e75087a67be3656f6dad6a979ac2fb0b))
+* parameterize Cloud Run functions instance count ([#442](https://github.com/cloudspannerecosystem/autoscaler/issues/442)) ([0c72f6a](https://github.com/cloudspannerecosystem/autoscaler/commit/0c72f6ac574f50f74a7baa066e37445c9a9ef1f9))
+
+
+### Bug Fixes
+
+* Bump undici from 6.20.1 to 6.21.1 ([#435](https://github.com/cloudspannerecosystem/autoscaler/issues/435)) ([addd81e](https://github.com/cloudspannerecosystem/autoscaler/commit/addd81e4af0b733a1d99197c95926b93d78ab532))
+* **deps:** update dependency googleapis to v146 ([#446](https://github.com/cloudspannerecosystem/autoscaler/issues/446)) ([8f06960](https://github.com/cloudspannerecosystem/autoscaler/commit/8f06960c64850305ae990e963a0fa954bdc93396))
+* **deps:** update npm-packages ([#432](https://github.com/cloudspannerecosystem/autoscaler/issues/432)) ([75a568d](https://github.com/cloudspannerecosystem/autoscaler/commit/75a568d5f6559e568fe48784d492c240f2fb4837))
+* **deps:** update terraform ([#445](https://github.com/cloudspannerecosystem/autoscaler/issues/445)) ([9f11392](https://github.com/cloudspannerecosystem/autoscaler/commit/9f1139231a1fb1245bc35672c2ae0b83e2706ae9))
+* **deps:** update terraform google to v6.22.0 ([#434](https://github.com/cloudspannerecosystem/autoscaler/issues/434)) ([233d4e7](https://github.com/cloudspannerecosystem/autoscaler/commit/233d4e7f019c5c592518139894e90b0e356c6088))
+* **deps:** update terraform terraform-google-modules/kubernetes-engine/google to v36 ([#426](https://github.com/cloudspannerecosystem/autoscaler/issues/426)) ([2f47992](https://github.com/cloudspannerecosystem/autoscaler/commit/2f479928c9dd73a671bfc6df058fa7255e37e269))
+
 ## [4.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v3.0.1...v4.0.0) (2024-12-23)
 
 
