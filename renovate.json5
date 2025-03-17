@@ -53,11 +53,10 @@
       groupName: "golang-modules",
     },
     {
-      // Temporarily disable updates for markdown-link-check as versions > v3.13.2
-      // are broken
+      // Temporarily put markdown-link-check in its own group.
       matchPackageNames: ["markdown-link-check"],
       matchDatasources: ["npm"],
-      enabled: false,
+      groupName: "markdown-link-check",
     },
   ],
   customManagers: [
