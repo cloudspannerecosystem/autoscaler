@@ -52,12 +52,6 @@
       matchDatasources: ["go"],
       groupName: "golang-modules",
     },
-    {
-      // Temporarily put markdown-link-check in its own group.
-      matchPackageNames: ["markdown-link-check"],
-      matchDatasources: ["npm"],
-      groupName: "markdown-link-check",
-    },
   ],
   customManagers: [
     {
