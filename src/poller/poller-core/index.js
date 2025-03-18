@@ -232,7 +232,11 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
     view: 'FULL',
   };
 
-  return metricsClient.listTimeSeries(request).then((metricResponses) => {
+  const options = {
+    timeout: 60 // seconds
+  };
+
+  return metricsClient.listTimeSeries(request, options).then((metricResponses) => {
     const resources = metricResponses[0];
     let maxValue = 0.0;
     let maxLocation = 'global';
