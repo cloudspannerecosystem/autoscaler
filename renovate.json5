@@ -52,6 +52,14 @@
       matchDatasources: ["go"],
       groupName: "golang-modules",
     },
+    {
+      // Temporarily put opentelemetry into its own group...
+      matchPackageNames: ["@opentelemetry/**"],
+      matchUpdateTypes: ["major", "minor", "patch"],
+      matchDatasources: ["npm"],
+      dependencyDashboardApproval: false,
+      groupName: "opentelemetry",
+    },
   ],
   customManagers: [
     {
