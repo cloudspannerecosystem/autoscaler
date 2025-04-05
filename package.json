@@ -39,10 +39,10 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.11.0",
-    "@google-cloud/functions-framework": "^3.4.6",
+    "@google-cloud/functions-framework": "^3.5.1",
     "@google-cloud/monitoring": "^4.1.0",
     "@google-cloud/opentelemetry-cloud-monitoring-exporter": "^0.20.0",
-    "@google-cloud/pubsub": "^4.10.0",
+    "@google-cloud/pubsub": "^4.11.0",
     "@google-cloud/spanner": "^7.19.1",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/exporter-metrics-otlp-grpc": "^0.57.2",
@@ -50,7 +50,7 @@
     "@opentelemetry/sdk-node": "^0.57.2",
     "@opentelemetry/semantic-conventions": "^1.30.0",
     "ajv": "^8.17.1",
-    "axios": "^1.8.3",
+    "axios": "^1.8.4",
     "eventid": "^2.0.1",
     "express": "^4.21.2",
     "express-jwt": "^8.5.1",
@@ -73,7 +73,7 @@
     "eslint": "^8.57.1",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-prettier": "^5.2.6",
     "husky": "^9.1.7",
     "lodash": "^4.17.21",
     "markdown-link-check": "^3.13.7",
@@ -83,8 +83,8 @@
     "prettier": "^3.5.3",
     "rewire": "^7.0.0",
     "should": "^13.2.3",
-    "sinon": "^19.0.2",
-    "typescript": "^5.8.2"
+    "sinon": "^19.0.5",
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": ">=20.0.0 || >=22.0.0",
