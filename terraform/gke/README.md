@@ -491,8 +491,8 @@ similar process.
 2.  Build the Autoscaler components by following the instructions in the
     appropriate section:
 
-    *   [Building the Autoscaler for a unified deployment model] (#building-the-autoscaler-for-a-unified-deployment-model)
-    *   [Building the Autoscaler for a decoupled deployment model] (#building-the-autoscaler-for-a-decoupled-deployment-model)
+    *   [Building the Autoscaler for a unified deployment model](#building-the-autoscaler-for-a-unified-deployment-model)
+    *   [Building the Autoscaler for a decoupled deployment model](#building-the-autoscaler-for-a-decoupled-deployment-model)
 
 ### Building the Autoscaler for a unified deployment model
 
