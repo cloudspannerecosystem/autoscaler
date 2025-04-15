@@ -158,7 +158,7 @@ For most use cases, the unified deployment model is recommended.
     configured to run on a schedule. By default this is every two minutes,
     though this is configurable.
 
-3.  When scheduled, an instance of the unifed [Poller][autoscaler-poller] and
+3.  When scheduled, an instance of the unified [Poller][autoscaler-poller] and
     [Scaler][autoscaler-scaler] components (henceforth "Autoscaler") is created
     as a [Kubernetes Job][kubernetes-job].
 
