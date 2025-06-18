@@ -1,5 +1,36 @@
 # Changelog
 
+## [5.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v4.0.0...v5.0.0) (2025-06-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* This change puts max_instance_count under Terraform control and is therefore a breaking change for users that rely on Terraform never updating this value.
+
+### Features
+
+* parameterize Cloud Run functions available CPU ([#441](https://github.com/cloudspannerecosystem/autoscaler/issues/441)) ([578d6e5](https://github.com/cloudspannerecosystem/autoscaler/commit/578d6e50e75087a67be3656f6dad6a979ac2fb0b))
+* parameterize Cloud Run functions instance count ([#442](https://github.com/cloudspannerecosystem/autoscaler/issues/442)) ([0c72f6a](https://github.com/cloudspannerecosystem/autoscaler/commit/0c72f6ac574f50f74a7baa066e37445c9a9ef1f9))
+
+
+### Bug Fixes
+
+* Bump undici from 6.20.1 to 6.21.1 ([#435](https://github.com/cloudspannerecosystem/autoscaler/issues/435)) ([addd81e](https://github.com/cloudspannerecosystem/autoscaler/commit/addd81e4af0b733a1d99197c95926b93d78ab532))
+* **deps:** update dependency go to v1.24.1 ([#422](https://github.com/cloudspannerecosystem/autoscaler/issues/422)) ([0d5bde2](https://github.com/cloudspannerecosystem/autoscaler/commit/0d5bde246e7ba421a9b86117cef3f5150bbadeb0))
+* **deps:** update dependency googleapis to v146 ([#446](https://github.com/cloudspannerecosystem/autoscaler/issues/446)) ([8f06960](https://github.com/cloudspannerecosystem/autoscaler/commit/8f06960c64850305ae990e963a0fa954bdc93396))
+* **deps:** update dependency markdown-link-check to ^3.13.7 ([#454](https://github.com/cloudspannerecosystem/autoscaler/issues/454)) ([f228175](https://github.com/cloudspannerecosystem/autoscaler/commit/f2281757b3aa012d630fe4732c9e1f9e942e4e97))
+* **deps:** update golang-modules ([#430](https://github.com/cloudspannerecosystem/autoscaler/issues/430)) ([9cd2342](https://github.com/cloudspannerecosystem/autoscaler/commit/9cd234287b8e85a82801dcecc753f677c875d4f9))
+* **deps:** update golang-modules ([#462](https://github.com/cloudspannerecosystem/autoscaler/issues/462)) ([3838b83](https://github.com/cloudspannerecosystem/autoscaler/commit/3838b8379df0264d49f7d58eb1204a630a52464e))
+* **deps:** update module golang.org/x/net to v0.36.0 [security] ([#453](https://github.com/cloudspannerecosystem/autoscaler/issues/453)) ([080df39](https://github.com/cloudspannerecosystem/autoscaler/commit/080df397a257fb303183926157b7efeb20c89a12))
+* **deps:** update npm dependencies [security] ([#457](https://github.com/cloudspannerecosystem/autoscaler/issues/457)) ([4cbe89c](https://github.com/cloudspannerecosystem/autoscaler/commit/4cbe89c8cf36921d054bce3d2ec040b641a5e1f0))
+* **deps:** update npm-packages ([#432](https://github.com/cloudspannerecosystem/autoscaler/issues/432)) ([75a568d](https://github.com/cloudspannerecosystem/autoscaler/commit/75a568d5f6559e568fe48784d492c240f2fb4837))
+* **deps:** update npm-packages ([#450](https://github.com/cloudspannerecosystem/autoscaler/issues/450)) ([472a7ff](https://github.com/cloudspannerecosystem/autoscaler/commit/472a7ff70f58ec289f5989cb4543bdf1fdd904bb))
+* **deps:** update npm-packages ([#460](https://github.com/cloudspannerecosystem/autoscaler/issues/460)) ([47bce47](https://github.com/cloudspannerecosystem/autoscaler/commit/47bce47b7efa9538f506245f0778ccda49c4bc1b))
+* **deps:** update terraform ([#445](https://github.com/cloudspannerecosystem/autoscaler/issues/445)) ([9f11392](https://github.com/cloudspannerecosystem/autoscaler/commit/9f1139231a1fb1245bc35672c2ae0b83e2706ae9))
+* **deps:** update terraform google to v6.22.0 ([#434](https://github.com/cloudspannerecosystem/autoscaler/issues/434)) ([233d4e7](https://github.com/cloudspannerecosystem/autoscaler/commit/233d4e7f019c5c592518139894e90b0e356c6088))
+* **deps:** update terraform terraform-google-modules/kubernetes-engine/google to v36 ([#426](https://github.com/cloudspannerecosystem/autoscaler/issues/426)) ([2f47992](https://github.com/cloudspannerecosystem/autoscaler/commit/2f479928c9dd73a671bfc6df058fa7255e37e269))
+* **docs:** fixed typo at gke unified model ([#465](https://github.com/cloudspannerecosystem/autoscaler/issues/465)) ([9729590](https://github.com/cloudspannerecosystem/autoscaler/commit/972959069e05aa6075ea711bed5ec8a091287a62))
+
 ## [4.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v3.0.1...v4.0.0) (2024-12-23)
 
 
