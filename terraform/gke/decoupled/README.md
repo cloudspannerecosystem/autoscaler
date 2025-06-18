@@ -32,6 +32,6 @@ This directory contains Terraform configuration files to quickly set
 up the infrastructure for your Autoscaler for a decoupled deployment to
 [Google Kubernetes Engine (GKE)][gke].
 
-Please see the documentation [here](../README.md).
+Please see the [documentation](../README.md).
 
 [gke]: https://cloud.google.com/kubernetes-engine
