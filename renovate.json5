@@ -24,7 +24,7 @@
       matchDatasources: ["npm"],
       matchUpdateTypes: ["minor", "patch"],
       groupName: "npm-packages",
-      matchPackageNames: ["!googleapis", "!npm", "!node"],
+      matchPackageNames: ["!googleapis", "!npm", "!node" , "!@opentelemetry/**"],
     },
     {
       description: "Allow all update types for googleapis",
@@ -38,7 +38,7 @@
       matchUpdateTypes: ["major"],
       groupName: "npm-major-packages",
       dependencyDashboardApproval: true,
-      matchPackageNames: ["!googleapis", "!npm", "!node"],
+      matchPackageNames: ["!googleapis", "!npm", "!node", "!@opentelemetry/**"],
     },
     {
       matchDatasources: ["terraform-module", "terraform-provider"],
@@ -55,7 +55,6 @@
     {
       // Temporarily put opentelemetry into its own group...
       matchPackageNames: ["@opentelemetry/**"],
-      matchUpdateTypes: ["major", "minor", "patch"],
       matchDatasources: ["npm"],
       dependencyDashboardApproval: false,
       groupName: "opentelemetry",
