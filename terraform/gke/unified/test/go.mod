@@ -1,6 +1,6 @@
 module github.com/cloudspannerecosystem/autoscaler/terraform/gke/unified
 
-go 1.24.1
+go 1.24.4
 
 require (
 	cloud.google.com/go/spanner v1.82.0
