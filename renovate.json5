@@ -24,7 +24,7 @@
       matchDatasources: ["npm"],
       matchUpdateTypes: ["minor", "patch"],
       groupName: "npm-packages",
-      matchPackageNames: ["!googleapis", "!npm", "!node" , "!@opentelemetry/**"],
+      matchPackageNames: ["!googleapis", "!npm", "!node", "!@opentelemetry/**"],
     },
     {
       description: "Allow all update types for googleapis",
