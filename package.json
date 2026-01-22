@@ -76,7 +76,7 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.5.0",
     "husky": "^9.1.7",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "markdown-link-check": "^3.13.7",
     "markdownlint-cli": "^0.45.0",
     "mocha": "^10.8.2",
