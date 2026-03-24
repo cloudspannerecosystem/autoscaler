@@ -232,25 +232,31 @@ function getMaxMetricValue(projectId, spannerInstanceId, metric) {
     view: 'FULL',
   };
 
-  return metricsClient.listTimeSeries(request).then((metricResponses) => {
-    const resources = metricResponses[0];
-    let maxValue = 0.0;
-    let maxLocation = 'global';
+  const options = {
+    timeout: 60, // seconds
+  };
 
-    for (const resource of resources) {
-      for (const point of assertDefined(resource.points)) {
-        const value = assertDefined(point.value?.doubleValue) * 100;
-        if (value > maxValue) {
-          maxValue = value;
-          if (resource.resource?.labels?.location) {
-            maxLocation = resource.resource.labels.location;
+  return metricsClient
+    .listTimeSeries(request, options)
+    .then((metricResponses) => {
+      const resources = metricResponses[0];
+      let maxValue = 0.0;
+      let maxLocation = 'global';
+
+      for (const resource of resources) {
+        for (const point of assertDefined(resource.points)) {
+          const value = assertDefined(point.value?.doubleValue) * 100;
+          if (value > maxValue) {
+            maxValue = value;
+            if (resource.resource?.labels?.location) {
+              maxLocation = resource.resource.labels.location;
+            }
           }
         }
       }
-    }
 
-    return [maxValue, maxLocation];
-  });
+      return [maxValue, maxLocation];
+    });
 }
 
 /**
