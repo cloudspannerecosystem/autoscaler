@@ -26,7 +26,7 @@
 const express = require('express');
 // eslint-disable-next-line no-unused-vars -- for type checking only.
 const {google: GoogleApis, spanner_v1: spannerRest} = require('googleapis');
-// eslint-disable-next-line no-unused-vars -- spannerProtos used for type checks
+
 const {Spanner, protos: spannerProtos} = require('@google-cloud/spanner');
 const Counters = require('./counters.js');
 const sanitize = require('sanitize-filename');
@@ -82,6 +82,7 @@ function getScalingMethod(spanner) {
       message: `Unknown scaling method '${methodName}'`,
       projectId: spanner.projectId,
       instanceId: spanner.instanceId,
+      err,
     });
     scalingMethod = require(
       SCALING_METHODS_FOLDER + DEFAULT_METHOD_NAME.toLowerCase(),
@@ -447,9 +448,8 @@ async function processScalingRequest(spanner, autoscalerState) {
  * Called by Cloud Run functions Scaler deployment.
  *
  * @param {{data:string}} pubSubEvent -- a CloudEvent object.
- * @param {*} context
  */
-async function scaleSpannerInstancePubSub(pubSubEvent, context) {
+async function scaleSpannerInstancePubSub(pubSubEvent) {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
     const spanner = JSON.parse(payload);

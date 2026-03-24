@@ -648,7 +648,7 @@ Next, follow the instructions in the
     ```
 
 8.  Any changes made to the configuration files and applied with `kubectl
- apply` will update the Autoscaler configuration.
+apply` will update the Autoscaler configuration.
 
 9.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
     Logging][cloud-console-logging] interface in the Google Cloud console.

@@ -76,9 +76,8 @@ async function forwardFromHTTP(req, res) {
  * Handle the Forwarder request from PubSub
  *
  * @param {any} pubSubEvent
- * @param {*} context
  */
-async function forwardFromPubSub(pubSubEvent, context) {
+async function forwardFromPubSub(pubSubEvent) {
   let payload;
   try {
     payload = Buffer.from(pubSubEvent.data, 'base64');

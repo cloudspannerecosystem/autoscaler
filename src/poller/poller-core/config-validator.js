@@ -104,6 +104,7 @@ class ConfigValidator {
     try {
       configJson = JSON.parse(jsonString);
     } catch (e) {
+      // eslint-disable-next-line preserve-caught-error
       throw new Error(`Invalid JSON in Autoscaler configuration: ${e}`);
     }
     await this.assertValidConfig(configJson);
@@ -130,6 +131,7 @@ async function assertValidJsonFile(configValidator, filename) {
     } else {
       console.error(`Processing of config in file ${filename} failed: ${e}`);
     }
+    // eslint-disable-next-line preserve-caught-error
     throw new Error(`${filename} Failed validation`);
   }
 }

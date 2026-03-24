@@ -197,7 +197,7 @@ function loopThroughSpannerMetrics(spanner, getSuggestedSize) {
       spanner.isOverloaded = true;
     }
 
-    if (!metric.hasOwnProperty('margin')) {
+    if (metric.margin === undefined || metric.margin === null) {
       metric.margin = DEFAULT_THRESHOLD_MARGIN;
     }
 

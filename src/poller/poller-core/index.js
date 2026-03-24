@@ -518,13 +518,19 @@ async function getMetrics(spanner) {
     let margin;
     if (spanner.regional) {
       threshold = metric.regional_threshold;
-      if (!metric.hasOwnProperty('regional_margin')) {
+      if (
+        metric.regional_margin === undefined ||
+        metric.regional_margin === null
+      ) {
         metric.regional_margin = DEFAULT_THRESHOLD_MARGIN;
       }
       margin = metric.regional_margin;
     } else {
       threshold = metric.multi_regional_threshold;
-      if (!metric.hasOwnProperty('multi_regional_margin')) {
+      if (
+        metric.multi_regional_margin === undefined ||
+        metric.multi_regional_margin === null
+      ) {
         metric.multi_regional_margin = DEFAULT_THRESHOLD_MARGIN;
       }
       margin = metric.multi_regional_margin;
@@ -606,9 +612,8 @@ async function aggregateMetrics(spanners) {
  * Handle a PubSub message and check if scaling is required
  *
  * @param {{data: string}} pubSubEvent
- * @param {*} context
  */
-async function checkSpannerScaleMetricsPubSub(pubSubEvent, context) {
+async function checkSpannerScaleMetricsPubSub(pubSubEvent) {
   try {
     const payload = Buffer.from(pubSubEvent.data, 'base64').toString();
     try {

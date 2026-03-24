@@ -131,6 +131,7 @@ class State {
    * Update state data in storage with the given values
    * @param {StateData} stateData
    */
+  // eslint-disable-next-line no-unused-vars
   async updateState(stateData) {
     throw new Error('Not implemented');
   }
