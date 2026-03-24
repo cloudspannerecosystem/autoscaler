@@ -195,7 +195,7 @@ class DiagToBunyanLogger {
    */
   error(message, ...args) {
     if (!this.suppressErrors) {
-      logger.error('otel: ' + message, args);
+      logger.error('otel: ' + message, ...args);
     }
   }
 }
@@ -251,7 +251,7 @@ async function initMetrics() {
       // In K8s. We need to set the Pod Name to prevent duplicate
       // timeseries errors.
       if (process.env.K8S_POD_NAME) {
-        RESOURCE_ATTRIBUTES[Semconv.ATTR_K8S_POD_NAME] =
+        RESOURCE_ATTRIBUTES[Semconv.SEMRESATTRS_K8S_POD_NAME] =
           process.env.K8S_POD_NAME;
       } else {
         logger.warn(
