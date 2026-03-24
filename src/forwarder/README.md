@@ -23,11 +23,11 @@
 
 ## Table of Contents
 
-*   [Table of Contents](#table-of-contents)
-*   [Overview](#overview)
-*   [Architecture](#architecture)
-*   [Configuration parameters](#configuration-parameters)
-    *   [Required](#required)
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Configuration parameters](#configuration-parameters)
+  - [Required](#required)
 
 ## Overview
 
@@ -49,20 +49,21 @@ The Cloud Spanner instances reside in a given application project.
 <ul> <li style="list-style-type: none;">
   1 . Cloud Scheduler lives in the same project as the Cloud Spanner instances.
 
-  2a. Cloud Scheduler publishes its messages to the Forwarder topic in the same project.
+2a. Cloud Scheduler publishes its messages to the Forwarder topic in the same project.
 
-  2b. The Forwarder Cloud Function reads messages from the Forwarder topic, and
+2b. The Forwarder Cloud Function reads messages from the Forwarder topic, and
 
-  2c. Forwards them to the Polling topic. The Polling topic resides in a
-  different project.
+2c. Forwards them to the Polling topic. The Polling topic resides in a
+different project.
 
-  3 . The Poller function reads the messages from the polling topic and
-  further continues the process as described in
-  the [main architecture section](../../terraform/cloud-functions/README.md#architecture).
+3 . The Poller function reads the messages from the polling topic and
+further continues the process as described in
+the [main architecture section](../../terraform/cloud-functions/README.md#architecture).
+
 </li> </ul>
 
 It is important to note that Autoscaler infrastructure is now distributed across
-several projects. *The core components reside in the Autoscaler project* An
+several projects. _The core components reside in the Autoscaler project_ An
 instance of Cloud Scheduler, the Forwarder topic and the Forwarder Function
 reside in each of the application projects.
 
@@ -73,6 +74,6 @@ variable `POLLER_TOPIC`.
 
 ### Required
 
-| Key            | Description |
+| Key            | Description                                 |
 | -------------- | ------------------------------------------- |
 | `POLLER_TOPIC` | PubSub topic the Poller function listens on |

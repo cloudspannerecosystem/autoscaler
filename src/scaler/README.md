@@ -23,11 +23,11 @@
 
 ## Table of Contents
 
-*   [Table of Contents](#table-of-contents)
-*   [Overview](#overview)
-*   [Scaling methods](#scaling-methods)
-    *   [Custom scaling methods](#custom-scaling-methods)
-*   [Parameters](#parameters)
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+- [Scaling methods](#scaling-methods)
+  - [Custom scaling methods](#custom-scaling-methods)
+- [Parameters](#parameters)
 
 ## Overview
 
@@ -42,28 +42,28 @@ it should be scaled to, and adjusts the size of the Spanner instance accordingly
 
 The Scaler component supports three scaling methods out of the box:
 
-*   [STEPWISE](scaler-core/scaling-methods/stepwise.js): This is the default
-    method used by the Scaler. It suggests adding or removing nodes or
-    processing units using a fixed step amount defined by the parameter
-    `stepSize`. In an overload situation, when the instance High Priority CPU
-    utilization is over 90%, the Scaler uses the `overloadStepSize` parameter
-    instead.
+- [STEPWISE](scaler-core/scaling-methods/stepwise.js): This is the default
+  method used by the Scaler. It suggests adding or removing nodes or
+  processing units using a fixed step amount defined by the parameter
+  `stepSize`. In an overload situation, when the instance High Priority CPU
+  utilization is over 90%, the Scaler uses the `overloadStepSize` parameter
+  instead.
 
-*   [LINEAR](scaler-core/scaling-methods/linear.js): This method suggests
-    adding or removing nodes or processing units calculated with a simple
-    linear [cross multiplication][cross-multiplication].
-    In other words, the new number of processing units divided by the max
-    number of processing units is equal to the metric value divided by the
-    metric threshold value.
-    Using this method, the new number of nodes or processing units is
-    [directly proportional][directly-proportional] to the current resource
-    utilization.
+- [LINEAR](scaler-core/scaling-methods/linear.js): This method suggests
+  adding or removing nodes or processing units calculated with a simple
+  linear [cross multiplication][cross-multiplication].
+  In other words, the new number of processing units divided by the max
+  number of processing units is equal to the metric value divided by the
+  metric threshold value.
+  Using this method, the new number of nodes or processing units is
+  [directly proportional][directly-proportional] to the current resource
+  utilization.
 
-*   [DIRECT](scaler-core/scaling-methods/direct.js): This method suggests
-    scaling to the number of nodes or processing units specified by the
-    `maxSize` parameter. It does NOT take in account the current utilization
-    metrics. It is useful to scale an instance in preparation for a batch job
-    and and to scale it back after the job is finished.
+- [DIRECT](scaler-core/scaling-methods/direct.js): This method suggests
+  scaling to the number of nodes or processing units specified by the
+  `maxSize` parameter. It does NOT take in account the current utilization
+  metrics. It is useful to scale an instance in preparation for a batch job
+  and and to scale it back after the job is finished.
 
 ### Custom scaling methods
 
@@ -180,23 +180,23 @@ The following is an example of a message published by the Autoscaler.
 
 Notable attributes are:
 
-*   **message.attributes.event:** the name of the event for which this message
-    was triggered. The Autoscaler publishes a message when it scales a Spanner
-    instance. The name of that event is `'SCALING'`. You can define
-    [custom messages](#custom-messages) for your own event types.
-*   **message.attributes.googclient_schemaname:** the
-    [Pub/Sub schema][pub-sub-schema] defining the format that the data field
-    must follow. The schema represents the contract between the message
-    producer (Autoscaler) and the message consumers (downstream applications).
-    Pub/Sub enforces the format. The default schema is defined as a Protocol
-    Buffer in the file
-    [downstream.schema.proto](scaler-core/downstream.schema.proto).
-*   **message.attributes.googclient_schemaencoding:** consumers will receive
-    the data in the messages encoded as Base64 containing JSON.
-*   **message.publishTime:** timestamp when the message was published
-*   **message.data:** the message payload encoded as Base64 containing a JSON
-    string. In the example, the [decoded][base-64-decode] string contains the
-    following data:
+- **message.attributes.event:** the name of the event for which this message
+  was triggered. The Autoscaler publishes a message when it scales a Spanner
+  instance. The name of that event is `'SCALING'`. You can define
+  [custom messages](#custom-messages) for your own event types.
+- **message.attributes.googclient_schemaname:** the
+  [Pub/Sub schema][pub-sub-schema] defining the format that the data field
+  must follow. The schema represents the contract between the message
+  producer (Autoscaler) and the message consumers (downstream applications).
+  Pub/Sub enforces the format. The default schema is defined as a Protocol
+  Buffer in the file
+  [downstream.schema.proto](scaler-core/downstream.schema.proto).
+- **message.attributes.googclient_schemaencoding:** consumers will receive
+  the data in the messages encoded as Base64 containing JSON.
+- **message.publishTime:** timestamp when the message was published
+- **message.data:** the message payload encoded as Base64 containing a JSON
+  string. In the example, the [decoded][base-64-decode] string contains the
+  following data:
 
 ```json
 {
@@ -248,11 +248,11 @@ section explains how to define one, which implies modifying the Scaler code.
 
 To publish a new event as a downstream message:
 
-*   Choose a unique name for your event. The convention is an all-caps
-    alphanumeric + underscores ID with a verb. e.g. `'SCALING'`
-*   Call the Scaler function `publishDownstreamEvent`.
-    For an example, look at the [Scaler](scaler-core/index.js)
-    function `processScalingRequest`.
+- Choose a unique name for your event. The convention is an all-caps
+  alphanumeric + underscores ID with a verb. e.g. `'SCALING'`
+- Call the Scaler function `publishDownstreamEvent`.
+  For an example, look at the [Scaler](scaler-core/index.js)
+  function `processScalingRequest`.
 
 In case you need to add fields to the message payload:
 

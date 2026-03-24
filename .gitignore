@@ -37,6 +37,7 @@ terraform/*/*/*.json
 
 # Code coverage report
 .nyc_output
+coverage
 
 # Kubernetes manifests generated from templates
 kubernetes/**/autoscaler-config/*.yaml

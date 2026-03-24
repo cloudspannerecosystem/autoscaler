@@ -22,13 +22,13 @@
 
 ## Table of Contents
 
-*   [Table of Contents](#table-of-contents)
-*   [Overview](#overview)
-*   [Architecture](#architecture)
-*   [Deployment](#deployment)
-*   [Configuration](#configuration)
-*   [Licensing](#licensing)
-*   [Contributing](#contributing)
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Deployment](#deployment)
+- [Configuration](#configuration)
+- [Licensing](#licensing)
+- [Contributing](#contributing)
 
 ## Overview
 
@@ -39,7 +39,7 @@ processing units in one or more Spanner instances, based on their utilization.
 When you create a [Cloud Spanner instance][spanner-instance], you choose the
 number of [nodes or processing units][compute-capacity] that provide compute
 resources for the instance. As the instance's workload changes, Cloud Spanner
-does *not* automatically adjust the number of nodes or processing units in the
+does _not_ automatically adjust the number of nodes or processing units in the
 instance.
 
 The Autoscaler monitors your instances and automatically adds or
@@ -58,8 +58,8 @@ The diagram above shows the high level components of the Autoscaler and the
 interaction flow:
 
 1.  The Autoscaler consists of two main decoupled components:
-    *   [The Poller component][autoscaler-poller]
-    *   [The Scaler component][autoscaler-scaler]
+    - [The Poller component][autoscaler-poller]
+    - [The Scaler component][autoscaler-scaler]
 
     These can be deployed to either [Cloud Run functions][cloud-functions] or
     [Google Kubernetes Engine (GKE)][gke], and configured so that the
@@ -93,8 +93,8 @@ tracking and auditing.
 To deploy the Autoscaler, decide which of the following strategies
 is best adjusted to fulfill your technical and operational needs:
 
-*   [Deployment to Cloud Run functions](terraform/cloud-functions/README.md)
-*   [Deployment to Google Kubernetes Engine (GKE)](terraform/gke/README.md)
+- [Deployment to Cloud Run functions](terraform/cloud-functions/README.md)
+- [Deployment to Google Kubernetes Engine (GKE)](terraform/gke/README.md)
 
 In both of the above instances, the Google Cloud Platform resources are
 deployed using Terraform. Please see the [Terraform instructions](terraform/README.md)
@@ -107,64 +107,64 @@ used to monitor the behavior of the autoscaler, and to configure alerts.
 
 ### Poller
 
-*   Message processing counters:
-    *   `cloudspannerecosystem/autoscaler/poller/requests-success` - the number
-        of polling request messages recieved and processed successfully.
-    *   `cloudspannerecosystem/autoscaler/poller/requests-failed` - the number
-        of polling request messages which failed processing.
+- Message processing counters:
+  - `cloudspannerecosystem/autoscaler/poller/requests-success` - the number
+    of polling request messages recieved and processed successfully.
+  - `cloudspannerecosystem/autoscaler/poller/requests-failed` - the number
+    of polling request messages which failed processing.
 
-*   Spanner Instance polling counters:
-    *   `cloudspannerecosystem/autoscaler/poller/polling-success` - the number
-        of successful polls of the Spanner instance metrics.
-    *   `cloudspannerecosystem/autoscaler/poller/polling-failed` - the number of
-        failed polls of the Spanner instance metrics.
-    *   Both of these metrics have `projectid` and `instanceid` to identify the
-        Spanner instance.
+- Spanner Instance polling counters:
+  - `cloudspannerecosystem/autoscaler/poller/polling-success` - the number
+    of successful polls of the Spanner instance metrics.
+  - `cloudspannerecosystem/autoscaler/poller/polling-failed` - the number of
+    failed polls of the Spanner instance metrics.
+  - Both of these metrics have `projectid` and `instanceid` to identify the
+    Spanner instance.
 
 ### Scaler
 
-*   Message processing counters:
-    *   `cloudspannerecosystem/autoscaler/scaler/requests-success` - the number
-        of scaling request messages recieved and processed successfully.
-    *   `cloudspannerecosystem/autoscaler/scaler/requests-failed` - the number
-        of scaling request messages which failed processing.
-*   Spanner Instance scaling counters:
-    *   `cloudspannerecosystem/autoscaler/scaler/scaling-success` - the number
-        of succesful rescales of the Spanner instance.
-    *   `cloudspannerecosystem/autoscaler/scaler/scaling-denied` - the number of
-        Spanner instance rescale attempts that failed
-    *   `cloudspannerecosystem/autoscaler/scaler/scaling-failed` - the number of
-        Spanner instance rescale attempts that were denied by autoscaler
-        configuration or policy.
+- Message processing counters:
+  - `cloudspannerecosystem/autoscaler/scaler/requests-success` - the number
+    of scaling request messages recieved and processed successfully.
+  - `cloudspannerecosystem/autoscaler/scaler/requests-failed` - the number
+    of scaling request messages which failed processing.
+- Spanner Instance scaling counters:
+  - `cloudspannerecosystem/autoscaler/scaler/scaling-success` - the number
+    of succesful rescales of the Spanner instance.
+  - `cloudspannerecosystem/autoscaler/scaler/scaling-denied` - the number of
+    Spanner instance rescale attempts that failed
+  - `cloudspannerecosystem/autoscaler/scaler/scaling-failed` - the number of
+    Spanner instance rescale attempts that were denied by autoscaler
+    configuration or policy.
 
-    *   These three metrics have the following attributes:
-        *   `spanner_project_id` - the Project ID of the affected Spanner
-            instance
-        *   `spanner_instance_id` - the Instance ID of the affected Spanner
-            instance
-        *   `scaling_method` - the scaling method used
-        *   `scaling_direction` - which can be `SCALE_UP`, `SCALE_DOWN` or
-            `SCALE_SAME` (when the calculated rescale size is equal to the
-            current size)
-        *   In addition, the `scaling-denied` counter has a `scaling_denied_reason`
-            attribute containing the reason why the scaling was not performed, which
-            can be:
-            *   `SAME_SIZE` - when the calculated rescale size is equal to the
-                current instance size.
-            *   `MAX_SIZE` - when the instance has already been scaled up to the
-                maximum configured size.
-            *   `WITHIN_COOLDOWN` - when the instance has been recently rescaled,
-                and the autoscaler is waiting for the cooldown period to end.
-            *   `IN_PROGRESS` - when an instance scaling operation is still
-                ongoing.
+  - These three metrics have the following attributes:
+    - `spanner_project_id` - the Project ID of the affected Spanner
+      instance
+    - `spanner_instance_id` - the Instance ID of the affected Spanner
+      instance
+    - `scaling_method` - the scaling method used
+    - `scaling_direction` - which can be `SCALE_UP`, `SCALE_DOWN` or
+      `SCALE_SAME` (when the calculated rescale size is equal to the
+      current size)
+    - In addition, the `scaling-denied` counter has a `scaling_denied_reason`
+      attribute containing the reason why the scaling was not performed, which
+      can be:
+      - `SAME_SIZE` - when the calculated rescale size is equal to the
+        current instance size.
+      - `MAX_SIZE` - when the instance has already been scaled up to the
+        maximum configured size.
+      - `WITHIN_COOLDOWN` - when the instance has been recently rescaled,
+        and the autoscaler is waiting for the cooldown period to end.
+      - `IN_PROGRESS` - when an instance scaling operation is still
+        ongoing.
 
 ## Configuration
 
 The parameters for configuring the Autoscaler are identical regardless of the chosen
 deployment type, but the mechanism for configuration differs slightly:
 
-*   [Cloud Run functions](terraform/cloud-functions/README.md#configuration)
-*   [Google Kubernetes Engine (GKE)](terraform/gke/README.md#building-and-deploying-the-autoscaler-services)
+- [Cloud Run functions](terraform/cloud-functions/README.md#configuration)
+- [Google Kubernetes Engine (GKE)](terraform/gke/README.md#building-and-deploying-the-autoscaler-services)
 
 There is also a [browser-based configuration file editor and a command line
 configuration file validator][configeditor].
@@ -198,8 +198,8 @@ support channels.
 
 ## Contributing
 
-*   [Contributing guidelines][contributing-guidelines]
-*   [Code of conduct][code-of-conduct]
+- [Contributing guidelines][contributing-guidelines]
+- [Code of conduct][code-of-conduct]
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 

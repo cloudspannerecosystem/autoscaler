@@ -1,7 +1,7 @@
 steps:
-- name: 'gcr.io/cloud-builders/docker'
-  script: |
-    docker build -t us-central1-docker.pkg.dev/oss-spanner-autoscaler-ci-mgmt/ci/test-builder .
-  automapSubstitutions: true
+  - name: "gcr.io/cloud-builders/docker"
+    script: |
+      docker build -t us-central1-docker.pkg.dev/oss-spanner-autoscaler-ci-mgmt/ci/test-builder .
+    automapSubstitutions: true
 images:
-- 'us-central1-docker.pkg.dev/oss-spanner-autoscaler-ci-mgmt/ci/test-builder'
+  - "us-central1-docker.pkg.dev/oss-spanner-autoscaler-ci-mgmt/ci/test-builder"

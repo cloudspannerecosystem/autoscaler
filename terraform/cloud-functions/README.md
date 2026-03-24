@@ -34,11 +34,11 @@
 
 ## Table of Contents
 
-*   [Table of Contents](#table-of-contents)
-*   [Overview](#overview)
-*   [Architecture](#architecture)
-*   [Deployment](#deployment)
-*   [Monitoring](#monitoring)
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Deployment](#deployment)
+- [Monitoring](#monitoring)
 
 ## Overview
 
@@ -100,25 +100,25 @@ tracking and auditing.
 The Autoscaler can be deployed following three different strategies. Choose the
 one that is best adjusted to fulfill your technical and operational needs.
 
-*   [Per-Project deployment](per-project/README.md): all the components of the
-    Autoscaler reside in the same project as your Spanner
-    instances. This deployment is ideal for independent teams who want to self
-    manage the configuration and infrastructure of their own Autoscalers. It is
-    also a good entry point for testing the Autoscaler capabilities.
+- [Per-Project deployment](per-project/README.md): all the components of the
+  Autoscaler reside in the same project as your Spanner
+  instances. This deployment is ideal for independent teams who want to self
+  manage the configuration and infrastructure of their own Autoscalers. It is
+  also a good entry point for testing the Autoscaler capabilities.
 
-*   [Centralized deployment](centralized/README.md): a slight departure from the
-    pre-project deployment, where all the components of the Cloud Spanner
-    Autoscaler reside in the same project, but the Spanner instances may be
-    located in different projects. This deployment is suited for a team managing
-    the configuration and infrastructure of several Autoscalers in a central
-    place.
+- [Centralized deployment](centralized/README.md): a slight departure from the
+  pre-project deployment, where all the components of the Cloud Spanner
+  Autoscaler reside in the same project, but the Spanner instances may be
+  located in different projects. This deployment is suited for a team managing
+  the configuration and infrastructure of several Autoscalers in a central
+  place.
 
-*   [Distributed deployment](distributed/README.md): all the components of the
-    Autoscaler reside in a single project, with the exception of
-    Cloud Scheduler. This deployment is a hybrid where teams who own the Spanner
-    instances want to manage only the Autoscaler configuration parameters for
-    their instances, but the rest of the Autoscaler infrastructure is managed by
-    a central team.
+- [Distributed deployment](distributed/README.md): all the components of the
+  Autoscaler reside in a single project, with the exception of
+  Cloud Scheduler. This deployment is a hybrid where teams who own the Spanner
+  instances want to manage only the Autoscaler configuration parameters for
+  their instances, but the rest of the Autoscaler infrastructure is managed by
+  a central team.
 
 ## Configuration
 
@@ -186,9 +186,9 @@ Scheduler configuration will be reset on the next Terraform run.
 The [monitoring](../modules/monitoring) module is an optional module for monitoring,
 and creates the following resources.
 
-*   Cloud Monitoring Dashboard: a starter dashboard users could deploy to get
-    started. This dashboard has 4 metrics: High CPU utilization, Smoothed CPU
-    utilization, Storage utilization and Processing units.
+- Cloud Monitoring Dashboard: a starter dashboard users could deploy to get
+  started. This dashboard has 4 metrics: High CPU utilization, Smoothed CPU
+  utilization, Storage utilization and Processing units.
 
 [autoscaler-poller]: ../../src/poller/README.md
 [autoscaler-scaler]: ../../src/scaler/README.md

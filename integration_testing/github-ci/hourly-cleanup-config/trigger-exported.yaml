@@ -2,18 +2,18 @@ build:
   options:
     logging: CLOUD_LOGGING_ONLY
   steps:
-  - args:
-    - -c
-    - "for TEST_PROJECT_ID in $(gcloud alpha projects list --folder=${_FOLDER} --format=\"\
-      value(projectId)\" --filter=\"createTime<-P1H\")\n  do\n    echo Deleting $${TEST_PROJECT_ID}...\n\
-      \    gcloud projects delete $${TEST_PROJECT_ID} --quiet\n  done\n"
-    entrypoint: /bin/bash
-    name: gcr.io/cloud-builders/gcloud
-createTime: '2024-04-26T10:12:36.054394923Z'
+    - args:
+        - -c
+        - "for TEST_PROJECT_ID in $(gcloud alpha projects list --folder=${_FOLDER} --format=\"\
+          value(projectId)\" --filter=\"createTime<-P1H\")\n  do\n    echo Deleting $${TEST_PROJECT_ID}...\n\
+          \    gcloud projects delete $${TEST_PROJECT_ID} --quiet\n  done\n"
+      entrypoint: /bin/bash
+      name: gcr.io/cloud-builders/gcloud
+createTime: "2024-04-26T10:12:36.054394923Z"
 description: Hourly cleanup of test project folder
 id: 8fcc9410-980c-49aa-835b-1c9e9691c4f6
 name: autoscaler-hourly-cleanup
 resourceName: projects/oss-spanner-autoscaler-ci-mgmt/locations/us-central1/triggers/8fcc9410-980c-49aa-835b-1c9e9691c4f6
 serviceAccount: projects/oss-spanner-autoscaler-ci-mgmt/serviceAccounts/oss-spanner-autoscaler-ci-mgmt@oss-spanner-autoscaler-ci-mgmt.iam.gserviceaccount.com
 substitutions:
-  _FOLDER: '153589581157'
+  _FOLDER: "153589581157"

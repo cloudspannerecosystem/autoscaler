@@ -3,7 +3,7 @@
   "MD033": false,
   "MD041": false,
   "MD002": false,
-  "MD004": { "style": "asterisk" },
+  "MD004": { "style": "dash" },
   "MD007": { "indent": 4 },
   "MD013": {
     "ignore_code_blocks": true,
@@ -11,5 +11,31 @@
     "tables": false
   },
   "MD029": { "style": "ordered" },
-  "MD030": { "ul_single": 3, "ul_multi": 3, "ol_single": 2, "ol_multi": 2 }
+  "MD030": { "ul_single": 2, "ul_multi": 2, "ol_single": 2, "ol_multi": 2 },
+
+  "comment": "Disables rules that may conflict with Prettier",
+
+  "blanks-around-fences": false,
+  "blanks-around-headings": false,
+  "blanks-around-lists": false,
+  "code-fence-style": false,
+  "emphasis-style": false,
+  "heading-start-left": false,
+  "heading-style": false,
+  "hr-style": false,
+  "line-length": false,
+  "list-indent": false,
+  "list-marker-space": false,
+  "no-blanks-blockquote": false,
+  "no-hard-tabs": false,
+  "no-missing-space-atx": false,
+  "no-missing-space-closed-atx": false,
+  "no-multiple-blanks": false,
+  "no-multiple-space-atx": false,
+  "no-multiple-space-blockquote": false,
+  "no-multiple-space-closed-atx": false,
+  "no-trailing-spaces": false,
+  "ol-prefix": false,
+  "strong-style": false,
+  "ul-indent": false
 }
