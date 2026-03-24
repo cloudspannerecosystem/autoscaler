@@ -1,0 +1,56 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+steps:
+  - name: gcr.io/cloud-builders/gcloud-slim
+    entrypoint: /bin/bash
+    args:
+      - '-e'
+      - '-x'
+      - '-c'
+      - >- # folded text - replace newlines with spaces - each command needs to be separated by ';'
+        export TEST_PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ;
+        gcloud projects create $${TEST_PROJECT_ID} --folder ${_FOLDER} ;
+        sleep 10 ;
+        trap "gcloud projects delete --quiet $${TEST_PROJECT_ID}" ERR ;
+        gcloud billing projects link $${TEST_PROJECT_ID} --billing-account=${_BILLING} ;
+        gcloud services enable --project $${TEST_PROJECT_ID} appengine.googleapis.com cloudbuild.googleapis.com cloudfunctions.googleapis.com cloudresourcemanager.googleapis.com cloudscheduler.googleapis.com firestore.googleapis.com iam.googleapis.com pubsub.googleapis.com spanner.googleapis.com ;
+        sleep 30 ;
+        gcloud app create --region=us-central --project $${TEST_PROJECT_ID} ;
+        sleep 30 ;
+        gcloud firestore databases update --type=firestore-native --project $${TEST_PROJECT_ID}
+
+  - name: 'us-central1-docker.pkg.dev/oss-spanner-autoscaler-ci-mgmt/ci/test-builder:v1'
+    args:
+      - '-e'
+      - '-x'
+      - '-c'
+      - >-
+        trap "gcloud projects delete --quiet $${TEST_PROJECT_ID}" ERR ;
+        cd /workspace/terraform/cloud-functions/per-project/test ;
+        export PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ;
+        go test -v -run ./ -timeout 30m --tags=e2e
+    entrypoint: /bin/bash
+  - name: gcr.io/cloud-builders/gcloud-slim
+    args:
+      - '-x'
+      - '-c'
+      - >-
+        export TEST_PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ;
+        gcloud projects delete $${TEST_PROJECT_ID} --quiet
+    entrypoint: /bin/bash
+options:
+  logging: CLOUD_LOGGING_ONLY
+
