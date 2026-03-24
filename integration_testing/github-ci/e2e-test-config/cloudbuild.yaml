@@ -17,9 +17,9 @@ steps:
   - name: gcr.io/cloud-builders/gcloud-slim
     entrypoint: /bin/bash
     args:
-      - '-e'
-      - '-x'
-      - '-c'
+      - "-e"
+      - "-x"
+      - "-c"
       - >- # folded text - replace newlines with spaces - each command needs to be separated by ';'
         export TEST_PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ;
         gcloud projects create $${TEST_PROJECT_ID} --folder ${_FOLDER} ;
@@ -32,11 +32,11 @@ steps:
         sleep 30 ;
         gcloud firestore databases update --type=firestore-native --project $${TEST_PROJECT_ID}
 
-  - name: 'us-central1-docker.pkg.dev/oss-spanner-autoscaler-ci-mgmt/ci/test-builder:v1'
+  - name: "us-central1-docker.pkg.dev/oss-spanner-autoscaler-ci-mgmt/ci/test-builder:v1"
     args:
-      - '-e'
-      - '-x'
-      - '-c'
+      - "-e"
+      - "-x"
+      - "-c"
       - >-
         trap "gcloud projects delete --quiet $${TEST_PROJECT_ID}" ERR ;
         cd /workspace/terraform/cloud-functions/per-project/test ;
@@ -45,12 +45,11 @@ steps:
     entrypoint: /bin/bash
   - name: gcr.io/cloud-builders/gcloud-slim
     args:
-      - '-x'
-      - '-c'
+      - "-x"
+      - "-c"
       - >-
         export TEST_PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ;
         gcloud projects delete $${TEST_PROJECT_ID} --quiet
     entrypoint: /bin/bash
 options:
   logging: CLOUD_LOGGING_ONLY
-

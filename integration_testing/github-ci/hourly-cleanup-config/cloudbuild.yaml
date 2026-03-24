@@ -14,8 +14,8 @@
 #
 
 steps:
-  - name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: '/bin/bash'
+  - name: "gcr.io/cloud-builders/gcloud"
+    entrypoint: "/bin/bash"
     args:
       - -c
       - |
@@ -26,4 +26,4 @@ steps:
           done
 
 options:
-  logging: 'CLOUD_LOGGING_ONLY'
+  logging: "CLOUD_LOGGING_ONLY"

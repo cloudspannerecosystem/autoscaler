@@ -36,18 +36,18 @@
 
 ## Table of Contents
 
-*   [Table of Contents](#table-of-contents)
-*   [Overview](#overview)
-*   [Architecture](#architecture)
-    *   [Pros](#pros)
-    *   [Cons](#cons)
-*   [Before you begin](#before-you-begin)
-*   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
-    *   [Deploying the Autoscaler](#deploying-the-autoscaler)
-*   [Preparing the Application Project](#preparing-the-application-project)
-    *   [Deploying the Autoscaler](#deploying-the-autoscaler)
-    *   [Authorize the Forwarder function to publish to the Poller topic](#authorize-the-forwarder-function-to-publish-to-the-poller-topic)
-*   [Verifying your deployment](#verifying-your-deployment)
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+- [Architecture](#architecture)
+  - [Pros](#pros)
+  - [Cons](#cons)
+- [Before you begin](#before-you-begin)
+- [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
+  - [Deploying the Autoscaler](#deploying-the-autoscaler)
+- [Preparing the Application Project](#preparing-the-application-project)
+  - [Deploying the Autoscaler](#deploying-the-autoscaler)
+  - [Authorize the Forwarder function to publish to the Poller topic](#authorize-the-forwarder-function-to-publish-to-the-poller-topic)
+- [Verifying your deployment](#verifying-your-deployment)
 
 ## Overview
 
@@ -59,9 +59,9 @@ reside in a single project, with the exception of Cloud Scheduler (step 1) and
 the [Forwarder topic and function](../../../src/forwarder/README.md)
 
 This deployment is the best of both worlds between the per-project and the
-centralized deployments: *Teams who own the Spanner instances, called
+centralized deployments: _Teams who own the Spanner instances, called
 Application teams, are able to manage the Autoscaler configuration parameters
-for their instances with their own Cloud Scheduler jobs.* On the other hand,
+for their instances with their own Cloud Scheduler jobs._ On the other hand,
 the rest of the Autoscaler infrastructure is managed by a central team.
 
 ## Architecture
@@ -81,19 +81,19 @@ The distributed deployment has the following pros and cons:
 
 ### Pros
 
-*   **Configuration and infrastructure**: application teams are in control of
-    their config and schedules
-*   **Maintenance**: Scaler infrastructure is centralized, reducing up-keep
-    overhead
-*   **Policies and audit**: Best practices across teams might be easier to
-    specify and enact. Audits might be easier to execute.
+- **Configuration and infrastructure**: application teams are in control of
+  their config and schedules
+- **Maintenance**: Scaler infrastructure is centralized, reducing up-keep
+  overhead
+- **Policies and audit**: Best practices across teams might be easier to
+  specify and enact. Audits might be easier to execute.
 
 ### Cons
 
-*   **Configuration**: application teams need to provide service accounts to
-    write to the polling topic.
-*   **Risk**: the centralized team itself may become a single point of failure
-    even if the infrastructure is designed with high availability in mind.
+- **Configuration**: application teams need to provide service accounts to
+  write to the polling topic.
+- **Risk**: the centralized team itself may become a single point of failure
+  even if the infrastructure is designed with high availability in mind.
 
 ## Before you begin
 
@@ -426,9 +426,9 @@ with -parallelism=1
 
 Your Autoscaler infrastructure is ready, follow the instructions in the main
 page to [configure your Autoscaler](../README.md#configuration). Please take
-in account that In a distributed deployment: *Logs from the Poller and Scaler
+in account that In a distributed deployment: _Logs from the Poller and Scaler
 functions will appear in the [Logs Viewer][logs-viewer] for the Autoscaler
-project.* Logs about syntax errors in the JSON configuration of the Cloud
+project._ Logs about syntax errors in the JSON configuration of the Cloud
 Scheduler payload will appear in the Logs viewer of each Application project, so
 that the team responsible for a specific Cloud Spanner instance can troubleshoot
 its configuration issues independently.

@@ -28,26 +28,26 @@
 
 ## Table of Contents
 
-*   [Table of Contents](#table-of-contents)
-*   [Overview](#overview)
-    *   [Pros](#pros)
-    *   [Cons](#cons)
-*   [Options for GKE deployment](#options-for-gke-deployment)
-*   [Architecture](#architecture)
-    *   [Decoupled Model](#decoupled-model)
-    *   [Unified Model](#unified-model)
-*   [Before you begin](#before-you-begin)
-*   [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
-    *   [Using Firestore for Autoscaler state](#using-firestore-for-autoscaler-state)
-    *   [Using Spanner for Autoscaler state](#using-spanner-for-autoscaler-state)
-*   [Creating Autoscaler infrastructure](#creating-autoscaler-infrastructure)
-*   [Importing your Spanner instances](#importing-your-spanner-instances)
-*   [Building the Autoscaler](#building-the-autoscaler)
-    *   [Building the Autoscaler for a unified deployment model](#building-the-autoscaler-for-a-unified-deployment-model)
-    *   [Building the Autoscaler for a decoupled deployment model](#building-the-autoscaler-for-a-decoupled-deployment-model)
-*   [Deploying the Autoscaler](#deploying-the-autoscaler)
-*   [Metrics in GKE deployment](#metrics-in-gke-deployment)
-*   [Troubleshooting](#troubleshooting)
+- [Table of Contents](#table-of-contents)
+- [Overview](#overview)
+  - [Pros](#pros)
+  - [Cons](#cons)
+- [Options for GKE deployment](#options-for-gke-deployment)
+- [Architecture](#architecture)
+  - [Decoupled Model](#decoupled-model)
+  - [Unified Model](#unified-model)
+- [Before you begin](#before-you-begin)
+- [Preparing the Autoscaler Project](#preparing-the-autoscaler-project)
+  - [Using Firestore for Autoscaler state](#using-firestore-for-autoscaler-state)
+  - [Using Spanner for Autoscaler state](#using-spanner-for-autoscaler-state)
+- [Creating Autoscaler infrastructure](#creating-autoscaler-infrastructure)
+- [Importing your Spanner instances](#importing-your-spanner-instances)
+- [Building the Autoscaler](#building-the-autoscaler)
+  - [Building the Autoscaler for a unified deployment model](#building-the-autoscaler-for-a-unified-deployment-model)
+  - [Building the Autoscaler for a decoupled deployment model](#building-the-autoscaler-for-a-decoupled-deployment-model)
+- [Deploying the Autoscaler](#deploying-the-autoscaler)
+- [Metrics in GKE deployment](#metrics-in-gke-deployment)
+- [Troubleshooting](#troubleshooting)
 
 ## Overview
 
@@ -62,26 +62,26 @@ The GKE deployment has the following pros and cons:
 
 ### Pros
 
-*   **Kubernetes-based**: For teams that may not be able to use Google Cloud
-    services such as [Cloud Run functions][cloud-functions], this design enables
-    the use of the Autoscaler.
-*   **Configuration**: The control over scheduler parameters belongs to the team
-    that owns the Spanner instance, therefore the team has the highest degree of
-    freedom to adapt the Autoscaler to its needs.
-*   **Infrastructure**: This design establishes a clear boundary of
-    responsibility and security over the Autoscaler infrastructure because the
-    team owner of the Spanner instances is also the owner of the Autoscaler
-    infrastructure.
+- **Kubernetes-based**: For teams that may not be able to use Google Cloud
+  services such as [Cloud Run functions][cloud-functions], this design enables
+  the use of the Autoscaler.
+- **Configuration**: The control over scheduler parameters belongs to the team
+  that owns the Spanner instance, therefore the team has the highest degree of
+  freedom to adapt the Autoscaler to its needs.
+- **Infrastructure**: This design establishes a clear boundary of
+  responsibility and security over the Autoscaler infrastructure because the
+  team owner of the Spanner instances is also the owner of the Autoscaler
+  infrastructure.
 
 ### Cons
 
-*   **Infrastructure**: In contrast to the [Cloud Run functions][cloud-functions]
-    design, some long-lived infrastructure and services are required.
-*   **Maintenance**: with each team being responsible for the Autoscaler
-    configuration and infrastructure it may become difficult to make sure that
-    all Autoscalers across the company follow the same update guidelines.
-*   **Audit**: because of the high level of control by each team, a centralized
-    audit may become more complex.
+- **Infrastructure**: In contrast to the [Cloud Run functions][cloud-functions]
+  design, some long-lived infrastructure and services are required.
+- **Maintenance**: with each team being responsible for the Autoscaler
+  configuration and infrastructure it may become difficult to make sure that
+  all Autoscalers across the company follow the same update guidelines.
+- **Audit**: because of the high level of control by each team, a centralized
+  audit may become more complex.
 
 ## Options for GKE deployment
 
@@ -290,7 +290,6 @@ In this section you prepare your project for deployment.
     [Importing your Spanner instances](#importing-your-spanner-instances)
 
 7.  There are two options for deploying the state store for the Autoscaler:
-
     1.  Store the state in [Firestore][cloud-firestore]
     2.  Store the state in [Spanner][spanner]
 
@@ -490,9 +489,8 @@ similar process.
 
 2.  Build the Autoscaler components by following the instructions in the
     appropriate section:
-
-    *   [Building the Autoscaler for a unified deployment model](#building-the-autoscaler-for-a-unified-deployment-model)
-    *   [Building the Autoscaler for a decoupled deployment model](#building-the-autoscaler-for-a-decoupled-deployment-model)
+    - [Building the Autoscaler for a unified deployment model](#building-the-autoscaler-for-a-unified-deployment-model)
+    - [Building the Autoscaler for a decoupled deployment model](#building-the-autoscaler-for-a-decoupled-deployment-model)
 
 ### Building the Autoscaler for a unified deployment model
 
@@ -643,17 +641,17 @@ Next, follow the instructions in the
     configuration files accordingly.
 
 7.  To configure the Autoscaler and begin scaling operations, run the following
-     command:
+    command:
 
-     ```sh
-     kubectl apply -f autoscaler-config/
-     ```
+    ```sh
+    kubectl apply -f autoscaler-config/
+    ```
 
 8.  Any changes made to the configuration files and applied with `kubectl
-     apply` will update the Autoscaler configuration.
+ apply` will update the Autoscaler configuration.
 
 9.  You can view logs for the Autoscaler components via `kubectl` or the [Cloud
-     Logging][cloud-console-logging] interface in the Google Cloud console.
+    Logging][cloud-console-logging] interface in the Google Cloud console.
 
 ## Metrics in GKE deployment
 
@@ -745,6 +743,7 @@ following the instructions above.
     ```
 
 <!-- LINKS: https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+
 [architecture-gke-decoupled]: ../../resources/architecture-gke-decoupled.png
 [architecture-gke-unified]: ../../resources/architecture-gke-unified.png
 [autoscaler-poller]: ../../src/poller/README.md
@@ -758,6 +757,7 @@ following the instructions above.
 [gcm-docs]: https://cloud.google.com/monitoring/docs
 
 <!-- GKE deployment architecture -->
+
 [gke]: https://cloud.google.com/kubernetes-engine
 [kubernetes-configmap]: https://kubernetes.io/docs/concepts/configuration/configmap/
 [kubernetes-cronjob]: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
@@ -769,6 +769,7 @@ following the instructions above.
 [cloud-functions]: https://cloud.google.com/functions
 
 <!-- General -->
+
 [project-selector]: https://console.cloud.google.com/projectselector2/home/dashboard
 [enable-billing]: https://cloud.google.com/billing/docs/how-to/modify-project
 [cloud-console]: https://console.cloud.google.com

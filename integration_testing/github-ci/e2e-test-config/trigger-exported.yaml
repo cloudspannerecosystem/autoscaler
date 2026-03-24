@@ -2,40 +2,40 @@ build:
   options:
     logging: CLOUD_LOGGING_ONLY
   steps:
-  - args:
-    - -e
-    - -x
-    - -c
-    - export TEST_PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ; gcloud projects
-      create $${TEST_PROJECT_ID} --folder ${_FOLDER} ; sleep 10 ; trap "gcloud projects
-      delete --quiet $${TEST_PROJECT_ID}" ERR ; gcloud billing projects link $${TEST_PROJECT_ID}
-      --billing-account=${_BILLING} ; gcloud services enable --project $${TEST_PROJECT_ID}
-      appengine.googleapis.com cloudbuild.googleapis.com cloudfunctions.googleapis.com
-      cloudresourcemanager.googleapis.com cloudscheduler.googleapis.com firestore.googleapis.com
-      iam.googleapis.com pubsub.googleapis.com spanner.googleapis.com ; sleep 30 ;
-      gcloud app create --region=us-central --project $${TEST_PROJECT_ID} ; sleep
-      30 ; gcloud firestore databases update --type=firestore-native --project $${TEST_PROJECT_ID}
-    entrypoint: /bin/bash
-    name: gcr.io/cloud-builders/gcloud-slim
-  - args:
-    - -e
-    - -x
-    - -c
-    - trap "gcloud projects delete --quiet $${TEST_PROJECT_ID}" ERR ;
-      cd /workspace/terraform/cloud-functions/per-project/test ;
-      export PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ;
-      go test -v -run ./ -timeout 30m --tags=e2e
-    entrypoint: /bin/bash
-    name: us-central1-docker.pkg.dev/oss-spanner-autoscaler-ci-mgmt/ci/test-builder:${_TEST_BUILDER_VERSION}
-  - args:
-    - -e
-    - -x
-    - -c
-    - export TEST_PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ; gcloud projects
-      delete $${TEST_PROJECT_ID} --quiet
-    entrypoint: /bin/bash
-    name: gcr.io/cloud-builders/gcloud-slim
-createTime: '2024-04-24T13:09:37.483731875Z'
+    - args:
+        - -e
+        - -x
+        - -c
+        - export TEST_PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ; gcloud projects
+          create $${TEST_PROJECT_ID} --folder ${_FOLDER} ; sleep 10 ; trap "gcloud projects
+          delete --quiet $${TEST_PROJECT_ID}" ERR ; gcloud billing projects link $${TEST_PROJECT_ID}
+          --billing-account=${_BILLING} ; gcloud services enable --project $${TEST_PROJECT_ID}
+          appengine.googleapis.com cloudbuild.googleapis.com cloudfunctions.googleapis.com
+          cloudresourcemanager.googleapis.com cloudscheduler.googleapis.com firestore.googleapis.com
+          iam.googleapis.com pubsub.googleapis.com spanner.googleapis.com ; sleep 30 ;
+          gcloud app create --region=us-central --project $${TEST_PROJECT_ID} ; sleep
+          30 ; gcloud firestore databases update --type=firestore-native --project $${TEST_PROJECT_ID}
+      entrypoint: /bin/bash
+      name: gcr.io/cloud-builders/gcloud-slim
+    - args:
+        - -e
+        - -x
+        - -c
+        - trap "gcloud projects delete --quiet $${TEST_PROJECT_ID}" ERR ;
+          cd /workspace/terraform/cloud-functions/per-project/test ;
+          export PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ;
+          go test -v -run ./ -timeout 30m --tags=e2e
+      entrypoint: /bin/bash
+      name: us-central1-docker.pkg.dev/oss-spanner-autoscaler-ci-mgmt/ci/test-builder:${_TEST_BUILDER_VERSION}
+    - args:
+        - -e
+        - -x
+        - -c
+        - export TEST_PROJECT_ID=${TRIGGER_NAME}-${_PROJECT_SUFFIX} ; gcloud projects
+          delete $${TEST_PROJECT_ID} --quiet
+      entrypoint: /bin/bash
+      name: gcr.io/cloud-builders/gcloud-slim
+createTime: "2024-04-24T13:09:37.483731875Z"
 description: Run end-to-end tests for Cloud Functions deployment
 id: dbb22ce7-1723-4707-8ac0-ed59f1be7c1c
 name: autoscaler-e2e-test
@@ -49,6 +49,6 @@ resourceName: projects/oss-spanner-autoscaler-ci-mgmt/locations/us-central1/trig
 serviceAccount: projects/oss-spanner-autoscaler-ci-mgmt/serviceAccounts/oss-spanner-autoscaler-ci-mgmt@oss-spanner-autoscaler-ci-mgmt.iam.gserviceaccount.com
 substitutions:
   _BILLING: 01F47E-C3F93E-C50E1B
-  _FOLDER: '153589581157'
+  _FOLDER: "153589581157"
   _PROJECT_SUFFIX: ${BUILD_ID:0:8}
   _TEST_BUILDER_VERSION: v1

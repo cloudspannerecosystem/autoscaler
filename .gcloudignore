@@ -25,5 +25,6 @@ test/
 *release-please*
 *.md
 configeditor/
+integration_testing/
 
 #!include:.gitignore
