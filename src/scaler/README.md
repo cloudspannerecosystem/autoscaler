@@ -195,8 +195,7 @@ Notable attributes are:
   the data in the messages encoded as Base64 containing JSON.
 - **message.publishTime:** timestamp when the message was published
 - **message.data:** the message payload encoded as Base64 containing a JSON
-  string. In the example, the [decoded][base-64-decode] string contains the
-  following data:
+  string. In the example, the decoded string contains the following data:
 
 ```json
 {
@@ -287,7 +286,6 @@ you can follow [this example][pub-sub-receive-proto].
 [directly-proportional]: https://en.wikipedia.org/wiki/Proportionality_(mathematics)#Direct_proportionality
 [cross-multiplication]: https://github.com/cloudspannerecosystem/autoscaler/blob/83ed3f5d37eceedd031ff679c1f2b9de7b0a3dbf/scaler/scaler-core/scaling-methods/linear.js#L35
 [pub-sub-schema]: https://cloud.google.com/pubsub/docs/schemas
-[base-64-decode]: https://www.base64decode.org/
 [log-based-metrics]: https://cloud.google.com/logging/docs/logs-based-metrics
 [charts-and-alerts]: https://cloud.google.com/logging/docs/logs-based-metrics#monitoring
 [notification-channels]: https://cloud.google.com/monitoring/support/notification-options
