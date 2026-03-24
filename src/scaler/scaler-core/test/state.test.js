@@ -52,7 +52,6 @@ class DummySpannerClass {
     return stubSpannerConstructor(arg);
   }
   // @ts-ignore
-  // eslint-disable-next-line require-jsdoc
   static timestamp(arg) {
     return spanner.Spanner.timestamp(arg);
   }

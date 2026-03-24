@@ -18,7 +18,6 @@
  * @fileoverview Support scripts for browser-based config editor.
  */
 
-// eslint-disable-next-line
 import {
   JSONEditor,
   createAjvValidator,
