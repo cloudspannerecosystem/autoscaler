@@ -3,7 +3,7 @@ module github.com/cloudspannerecosystem/autoscaler/terraform/gke/unified
 go 1.26.1
 
 require (
-	cloud.google.com/go/spanner v1.88.0
+	cloud.google.com/go/spanner v1.89.0
 	github.com/gruntwork-io/terratest v0.56.0
 	github.com/sethvargo/go-envconfig v1.3.0
 	github.com/stretchr/testify v1.11.1
