@@ -35,7 +35,7 @@ spec:
                   memory: "256Mi"
                   cpu: "250m"
                 limits:
-                  memory: "256Mi"
+                  memory: "512Mi"
               env:
                 - name: AUTOSCALER_CONFIG
                   value: "/etc/autoscaler-config/autoscaler-config-hourly.yaml"

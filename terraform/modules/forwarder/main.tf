@@ -112,7 +112,7 @@ resource "google_cloudfunctions2_function" "forwarder_function" {
   }
 
   service_config {
-    available_memory      = "256M"
+    available_memory      = "512M"
     ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
     service_account_email = google_service_account.forwarder_sa.email
     environment_variables = {
