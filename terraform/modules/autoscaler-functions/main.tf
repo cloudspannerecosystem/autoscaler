@@ -120,7 +120,7 @@ resource "google_cloudfunctions2_function" "poller_function" {
 
   service_config {
     max_instance_count    = var.poller_max_instance_count
-    available_memory      = "256M"
+    available_memory      = "512M"
     available_cpu         = var.poller_function_available_cpu
     ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
     service_account_email = var.poller_sa_email
@@ -153,7 +153,7 @@ resource "google_cloudfunctions2_function" "scaler_function" {
 
   service_config {
     max_instance_count    = var.scaler_max_instance_count
-    available_memory      = "256M"
+    available_memory      = "512M"
     available_cpu         = var.scaler_function_available_cpu
     ingress_settings      = "ALLOW_INTERNAL_AND_GCLB"
     service_account_email = var.scaler_sa_email
