@@ -1,6 +1,6 @@
 {
   "name": "cloudspannerecosystem/autoscaler",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "Description": "Autoscaling for Cloud Spanner based on CPU metrics",
   "homepage": "https://github.com/cloudspannerecosystem/autoscaler",
   "license": "Apache-2.0",
@@ -89,8 +89,7 @@
     "diff": ">=8.0.4",
     "minimatch": ">=10.2.4",
     "glob": ">=13.0.6",
-    "serialize-javascript": ">=7.0.4",
-    "@tootallnate/once": ">=3.0.1",
-    "serialize-javascript": ">=7.0.5"
+    "serialize-javascript": ">=7.0.5",
+    "@tootallnate/once": ">=3.0.1"
   }
 }

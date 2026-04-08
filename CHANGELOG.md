@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.0.1](https://github.com/cloudspannerecosystem/autoscaler/compare/v5.0.0...v5.0.1) (2026-04-08)
+
+
+### Bug Fixes
+
+* **deps:** update vulnerable deps ([#530](https://github.com/cloudspannerecosystem/autoscaler/issues/530)) ([d012275](https://github.com/cloudspannerecosystem/autoscaler/commit/d0122751ae590e0605d951674ba156337feef47c))
+* increase memory defaults ([#522](https://github.com/cloudspannerecosystem/autoscaler/issues/522)) ([4577baa](https://github.com/cloudspannerecosystem/autoscaler/commit/4577baae6b59ea59b921cb641aa919b1c19ac0a2))
+
 ## [5.0.0](https://github.com/cloudspannerecosystem/autoscaler/compare/v4.0.0...v5.0.0) (2026-03-24)
 
 
