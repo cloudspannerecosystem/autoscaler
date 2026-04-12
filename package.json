@@ -48,7 +48,7 @@
     "@opentelemetry/exporter-metrics-otlp-grpc": "^0.213.0",
     "@opentelemetry/sdk-metrics": "^2.6.0",
     "ajv": "^8.18.0",
-    "axios": "^1.13.6",
+    "axios": "^1.15.0",
     "express": "^4.22.1",
     "googleapis": "^171.4.0",
     "js-yaml": "^4.1.1",
