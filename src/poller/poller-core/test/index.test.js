@@ -143,6 +143,26 @@ describe('#parseAndEnrichPayload', () => {
     unset();
   });
 
+  it('should skip an instance if metric retrieval failed', async () => {
+    const payload = JSON.stringify([
+      {
+        projectId: 'my-spanner-project',
+        instanceId: 'spanner1',
+        scalerPubSubTopic: 'projects/my-project/topics/spanner-scaling',
+        units: 'PROCESSING_UNITS',
+        minSize: 200,
+      },
+    ]);
+
+    const stub = sinon.stub().rejects('error');
+    const unset = app.__set__('getSpannerMetadata', stub);
+
+    const mergedConfig = await parseAndEnrichPayload(payload);
+    should(mergedConfig.length).equal(0);
+
+    unset();
+  });
+
   it('should use the value of minSize/maxSize for minNodes/maxNodes instead of overriding with the defaults, Github Issue 61', async () => {
     const payload = JSON.stringify([
       {

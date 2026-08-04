@@ -404,8 +404,8 @@ async function callScalerHTTP(spanner, metrics) {
  */
 async function parseAndEnrichPayload(payload) {
   const spanners = await configValidator.parseAndAssertValidConfig(payload);
-  /** @type {AutoscalerSpanner[]} */
-  const spannersFound = [];
+  /** @type {Promise<AutoscalerSpanner?>[]} */
+  const spannersFoundPromises = [];
 
   for (let sIdx = 0; sIdx < spanners.length; sIdx++) {
     const metricOverrides =
@@ -467,29 +467,36 @@ async function parseAndEnrichPayload(payload) {
       }
     }
 
-    // merge in the current Spanner state
-    try {
-      spanners[sIdx] = {
-        ...spanners[sIdx],
-        ...(await getSpannerMetadata(
-          spanners[sIdx].projectId,
-          spanners[sIdx].instanceId,
-          spanners[sIdx].units.toUpperCase(),
-        )),
-      };
-      spannersFound.push(spanners[sIdx]);
-    } catch (err) {
-      logger.error({
-        message: `Unable to retrieve Spanner metadata for ${spanners[sIdx].projectId}/${spanners[sIdx].instanceId}: ${err}`,
-        projectId: spanners[sIdx].projectId,
-        instanceId: spanners[sIdx].instanceId,
-        err: err,
-        payload: spanners[sIdx],
-      });
-    }
+    // get spanner metadata asynchronously
+    /** @type {Promise<AutoscalerSpanner?>} */
+    const spannerFoundPromise = (async () => {
+      // merge in the current Spanner state
+      try {
+        spanners[sIdx] = {
+          ...spanners[sIdx],
+          ...(await getSpannerMetadata(
+            spanners[sIdx].projectId,
+            spanners[sIdx].instanceId,
+            spanners[sIdx].units.toUpperCase(),
+          )),
+        };
+        return spanners[sIdx];
+      } catch (err) {
+        logger.error({
+          message: `Unable to retrieve Spanner metadata for ${spanners[sIdx].projectId}/${spanners[sIdx].instanceId}: ${err}`,
+          projectId: spanners[sIdx].projectId,
+          instanceId: spanners[sIdx].instanceId,
+          err: err,
+          payload: spanners[sIdx],
+        });
+        return null;
+      }
+    })();
+    spannersFoundPromises.push(spannerFoundPromise);
   }
 
-  return spannersFound;
+  // wait for all to resolve and return an array with no nulls/undefineds.
+  return (await Promise.all(spannersFoundPromises)).filter((x) => x != null);
 }
 
 /**
