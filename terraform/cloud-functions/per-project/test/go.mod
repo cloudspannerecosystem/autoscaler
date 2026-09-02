@@ -1,6 +1,6 @@
 module github.com/cloudspannerecosystem/autoscaler/terraform/cloud-functions/per-project
 
-go 1.26.1
+go 1.27.1
 
 require (
 	cloud.google.com/go/scheduler v1.11.8
